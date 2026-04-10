@@ -1,0 +1,19 @@
+[mcp_servers.better-t-stack]
+command = "pnpm"
+args = ["dlx", "create-better-t-stack@latest", "mcp"]
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+
+[mcp_servers.convex]
+command = "npx"
+args = ["-y", "convex@latest", "mcp", "start"]
+
+[mcp_servers.shadcn]
+command = "npx"
+args = ["-y", "shadcn@latest", "mcp"]
+
+[mcp_servers.clerk]
+type = "http"
+url = "https://mcp.clerk.com/mcp"

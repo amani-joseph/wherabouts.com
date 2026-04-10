@@ -1,0 +1,32 @@
+{
+  "name": "wherabouts.com",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F @wherabouts.com/backend dev",
+    "dev:setup": "turbo -F @wherabouts.com/backend dev:setup",
+    "check": "ultracite check",
+    "fix": "ultracite fix"
+  },
+  "dependencies": {
+    "@wherabouts.com/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.10",
+    "@wherabouts.com/config": "workspace:*",
+    "turbo": "^2.8.12",
+    "typescript": "^5",
+    "ultracite": "7.4.4"
+  },
+  "packageManager": "pnpm@10.12.4"
+}
