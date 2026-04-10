@@ -1,0 +1,2582 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>wherabouts · Brand Guide 2026</title>
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+			rel="stylesheet"
+		>
+
+		<style>
+		/* ─────────────────────────────────────────────────
+       TOKENS
+    ───────────────────────────────────────────────── */
+		:root {
+			--void: #0c0c0c;
+			--surface: #161616;
+			--overlay: #222222;
+			--border: #2c2c2c;
+			--border-2: #3a3a3a;
+			--white: #ffffff;
+			--silver: #c8c8c8;
+			--mist: #5a5a5a;
+			--ghost: #2a2a2a;
+
+			--font-brand: "JetBrains Mono", ui-monospace, monospace;
+			--font-ui: "JetBrains Mono", ui-monospace, monospace;
+			--font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+			--gutter: clamp(24px, 5vw, 80px);
+			--max-w: 1260px;
+		}
+
+		/* ─────────────────────────────────────────────────
+       RESET & BASE
+    ───────────────────────────────────────────────── */
+		*,
+		*::before,
+		*::after {
+			box-sizing: border-box;
+			padding: 0;
+			margin: 0;
+		}
+
+		html {
+			scroll-behavior: smooth;
+		}
+
+		body {
+			font-family: var(--font-brand);
+			font-size: 16px;
+			font-weight: 400;
+			-webkit-font-smoothing: antialiased;
+			line-height: 1.6;
+			color: var(--white);
+			background: var(--void);
+		}
+
+		/* ─────────────────────────────────────────────────
+       LAYOUT UTILS
+    ───────────────────────────────────────────────── */
+		.wrap {
+			max-width: var(--max-w);
+			padding: 0 var(--gutter);
+			margin: 0 auto;
+		}
+
+		.rule {
+			width: 100%;
+			height: 1px;
+			background: var(--border);
+		}
+
+		.eyebrow {
+			font-family: var(--font-ui);
+			font-size: 10px;
+			font-weight: 600;
+			color: var(--mist);
+			text-transform: uppercase;
+			letter-spacing: 0.18em;
+		}
+
+		section {
+			padding: 80px 0;
+			border-top: 1px solid var(--border);
+		}
+
+		.sec-head {
+			display: flex;
+			gap: 24px;
+			align-items: baseline;
+			margin-bottom: 56px;
+		}
+
+		.sec-num {
+			font-family: var(--font-mono);
+			font-size: 11px;
+			color: var(--mist);
+			user-select: none;
+			opacity: 0.5;
+		}
+
+		.sec-title {
+			font-size: 13px;
+			font-weight: 500;
+			color: var(--silver);
+			text-transform: uppercase;
+			letter-spacing: 0.14em;
+		}
+
+		/* ─────────────────────────────────────────────────
+       NAVBAR
+    ───────────────────────────────────────────────── */
+		nav {
+			position: sticky;
+			top: 0;
+			z-index: 100;
+			padding: 0 var(--gutter);
+			background: rgba(12, 12, 12, 0.92);
+			border-bottom: 1px solid var(--border);
+			-webkit-backdrop-filter: blur(12px);
+			backdrop-filter: blur(12px);
+		}
+
+		.nav-inner {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			max-width: var(--max-w);
+			height: 52px;
+			margin: 0 auto;
+		}
+
+		.nav-brand {
+			display: flex;
+			gap: 12px;
+			align-items: center;
+		}
+
+		.nav-logo-mark {
+			display: block;
+			width: 38px;
+			height: 22px;
+		}
+
+		.nav-name {
+			font-size: 14px;
+			font-weight: 400;
+			color: var(--white);
+			letter-spacing: -0.01em;
+		}
+
+		.nav-divider {
+			width: 1px;
+			height: 16px;
+			background: var(--border-2);
+		}
+
+		.nav-tag {
+			font-family: var(--font-ui);
+			font-size: 11px;
+			color: var(--mist);
+			letter-spacing: 0.04em;
+		}
+
+		.nav-links {
+			display: flex;
+			gap: 28px;
+			list-style: none;
+		}
+
+		.nav-links a {
+			font-family: var(--font-ui);
+			font-size: 12px;
+			color: var(--mist);
+			letter-spacing: 0.02em;
+			text-decoration: none;
+			transition: color 0.15s;
+		}
+		.nav-links a:hover {
+			color: var(--silver);
+		}
+
+		/* ─────────────────────────────────────────────────
+       HERO
+    ───────────────────────────────────────────────── */
+		#hero {
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			min-height: 92vh;
+			padding: 80px var(--gutter);
+			overflow: hidden;
+			text-align: center;
+			border-top: none;
+		}
+
+		/* Subtle dot-grid background */
+		#hero::before {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			content: "";
+			background-image: radial-gradient(
+				circle,
+				rgba(255, 255, 255, 0.04) 1px,
+				transparent 1px
+			);
+			background-size: 32px 32px;
+		}
+
+		/* Radial fade over grid */
+		#hero::after {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			content: "";
+			background: radial-gradient(
+				ellipse 60% 60% at 50% 50%,
+				transparent 30%,
+				var(--void) 100%
+			);
+		}
+
+		.hero-inner {
+			position: relative;
+			z-index: 1;
+			display: flex;
+			flex-direction: column;
+			gap: 0;
+			align-items: center;
+		}
+
+		.hero-mark {
+			width: clamp(200px, 40vw, 340px);
+			height: auto;
+			margin-bottom: 44px;
+		}
+
+		.hero-name {
+			margin-bottom: 20px;
+			font-size: clamp(42px, 6vw, 76px);
+			font-weight: 300;
+			line-height: 1;
+			color: var(--white);
+			letter-spacing: -0.04em;
+		}
+
+		.hero-tag {
+			font-family: var(--font-ui);
+			font-size: 13px;
+			font-weight: 500;
+			color: var(--mist);
+			text-transform: uppercase;
+			letter-spacing: 0.14em;
+		}
+
+		.hero-divider {
+			display: inline-block;
+			width: 1px;
+			height: 24px;
+			margin: 0 16px;
+			vertical-align: middle;
+			background: var(--border-2);
+		}
+
+		.hero-sub {
+			margin-top: 56px;
+			font-family: var(--font-ui);
+			font-size: 12px;
+			font-weight: 500;
+			color: var(--ghost);
+			text-transform: uppercase;
+			letter-spacing: 0.16em;
+		}
+
+		/* ─────────────────────────────────────────────────
+       ANATOMY (THE MARK)
+    ───────────────────────────────────────────────── */
+		.anatomy-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 80px;
+			align-items: center;
+		}
+
+		.anatomy-svg-wrap {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 52px 48px;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 8px;
+		}
+
+		.anatomy-notes {
+			display: flex;
+			flex-direction: column;
+			gap: 32px;
+		}
+
+		.anatomy-item {
+			display: flex;
+			gap: 20px;
+			align-items: flex-start;
+		}
+
+		.anatomy-icon {
+			flex-shrink: 0;
+			width: 36px;
+			height: 36px;
+			margin-top: 2px;
+		}
+
+		.anatomy-label {
+			margin-bottom: 6px;
+			font-size: 14px;
+			font-weight: 500;
+			color: var(--white);
+		}
+
+		.anatomy-desc {
+			font-size: 13px;
+			line-height: 1.7;
+			color: var(--mist);
+		}
+
+		/* ─────────────────────────────────────────────────
+       LOGO VARIANTS
+    ───────────────────────────────────────────────── */
+		.variants-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 2px;
+		}
+
+		.variant-card {
+			display: flex;
+			flex-direction: column;
+			gap: 0;
+			padding: 44px 40px 36px;
+			border-radius: 0;
+		}
+
+		.variant-display {
+			display: flex;
+			flex: 1;
+			align-items: center;
+			justify-content: center;
+			min-height: 160px;
+			padding: 0 0 36px;
+		}
+
+		.variant-rule {
+			height: 1px;
+			margin-bottom: 18px;
+		}
+
+		.variant-name {
+			margin-bottom: 4px;
+			font-size: 13px;
+			font-weight: 500;
+		}
+
+		.variant-note {
+			font-family: var(--font-ui);
+			font-size: 11px;
+			color: var(--mist);
+			letter-spacing: 0.02em;
+		}
+
+		/* Variant 1: on void (default) */
+		.v-on-void {
+			background: var(--void);
+		}
+		.v-on-void .variant-rule {
+			background: var(--border);
+		}
+		.v-on-void .variant-name {
+			color: var(--silver);
+		}
+
+		/* Variant 2: on surface */
+		.v-on-surface {
+			background: var(--surface);
+		}
+		.v-on-surface .variant-rule {
+			background: var(--border);
+		}
+		.v-on-surface .variant-name {
+			color: var(--silver);
+		}
+
+		/* Variant 3: mark only */
+		.v-mark-only {
+			background: var(--overlay);
+		}
+		.v-mark-only .variant-rule {
+			background: var(--border-2);
+		}
+		.v-mark-only .variant-name {
+			color: var(--silver);
+		}
+
+		/* Variant 4: inverted on white */
+		.v-on-white {
+			background: #ffffff;
+		}
+		.v-on-white .variant-rule {
+			background: #dcdcdc;
+		}
+		.v-on-white .variant-name {
+			color: #1a1a1a;
+		}
+		.v-on-white .variant-note {
+			color: #888;
+		}
+
+		/* Variant 5: inverted on off-white */
+		.v-on-offwhite {
+			background: #f3ede4;
+		}
+		.v-on-offwhite .variant-rule {
+			background: #ddd6ce;
+		}
+		.v-on-offwhite .variant-name {
+			color: #1a1a1a;
+		}
+		.v-on-offwhite .variant-note {
+			color: #888;
+		}
+
+		/* Variant 6: mono dark */
+		.v-mono {
+			background: #ededed;
+		}
+		.v-mono .variant-rule {
+			background: #ccc;
+		}
+		.v-mono .variant-name {
+			color: #1a1a1a;
+		}
+		.v-mono .variant-note {
+			color: #888;
+		}
+
+		/* ─────────────────────────────────────────────────
+       COLOUR
+    ───────────────────────────────────────────────── */
+		.palette-primary {
+			display: grid;
+			grid-template-columns: 2fr 1fr 1fr;
+			gap: 2px;
+			margin-bottom: 2px;
+		}
+
+		.palette-secondary {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 2px;
+		}
+
+		.swatch {
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-end;
+			min-height: 180px;
+			padding: 36px 32px 28px;
+			border-radius: 0;
+		}
+
+		.swatch.sm {
+			min-height: 120px;
+			padding: 24px 28px 20px;
+		}
+
+		.swatch-name {
+			margin-bottom: 5px;
+			font-size: 14px;
+			font-weight: 500;
+		}
+
+		.swatch-hex {
+			font-family: var(--font-mono);
+			font-size: 13px;
+			opacity: 0.6;
+		}
+
+		.swatch-use {
+			margin-top: 8px;
+			font-family: var(--font-ui);
+			font-size: 11px;
+			letter-spacing: 0.03em;
+			opacity: 0.45;
+		}
+
+		/* ─────────────────────────────────────────────────
+       TYPOGRAPHY
+    ───────────────────────────────────────────────── */
+		.type-hero {
+			margin-bottom: 56px;
+			font-family: var(--font-brand);
+			font-size: clamp(52px, 7vw, 96px);
+			font-weight: 300;
+			line-height: 1;
+			color: var(--white);
+			letter-spacing: -0.04em;
+		}
+
+		.type-specimen-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 48px;
+			margin-bottom: 64px;
+		}
+
+		.type-weight-row {
+			display: flex;
+			flex-direction: column;
+			gap: 28px;
+			padding: 44px;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+		}
+
+		.type-weight-item {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			padding-bottom: 24px;
+			border-bottom: 1px solid var(--border);
+		}
+		.type-weight-item:last-child {
+			padding-bottom: 0;
+			border-bottom: none;
+		}
+
+		.type-weight-label {
+			margin-bottom: 8px;
+			font-family: var(--font-ui);
+			font-size: 10px;
+			font-weight: 500;
+			color: var(--mist);
+			text-transform: uppercase;
+			letter-spacing: 0.14em;
+		}
+
+		.type-sample {
+			font-family: var(--font-brand);
+			color: var(--white);
+		}
+
+		.type-hierarchy {
+			display: flex;
+			flex-direction: column;
+			gap: 28px;
+			padding: 44px;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+		}
+
+		.hier-item {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+		.hier-label {
+			margin-bottom: 4px;
+			font-family: var(--font-mono);
+			font-size: 10px;
+			color: var(--mist);
+		}
+
+		.mono-specimen {
+			padding: 20px 24px;
+			font-family: var(--font-mono);
+			font-size: 13px;
+			line-height: 1.7;
+			color: #a8d8a0;
+			background: var(--ghost);
+			border-radius: 6px;
+		}
+
+		/* ─────────────────────────────────────────────────
+       SCALE
+    ───────────────────────────────────────────────── */
+		.scale-row {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 48px;
+			align-items: flex-end;
+		}
+
+		.scale-item {
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+			align-items: center;
+		}
+
+		.scale-bg {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 16px;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+		}
+
+		.scale-label {
+			font-family: var(--font-mono);
+			font-size: 10px;
+			color: var(--mist);
+			text-align: center;
+		}
+
+		/* ─────────────────────────────────────────────────
+       USAGE (DO / DON'T)
+    ───────────────────────────────────────────────── */
+		.usage-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 2px;
+		}
+
+		.usage-col {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+
+		.usage-card {
+			position: relative;
+			padding: 36px 36px 28px;
+			background: var(--surface);
+		}
+
+		.usage-display {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 120px;
+			margin-bottom: 20px;
+		}
+
+		.usage-badge {
+			position: absolute;
+			top: 20px;
+			right: 20px;
+			padding: 4px 10px;
+			font-family: var(--font-ui);
+			font-size: 10px;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.1em;
+			border-radius: 100px;
+		}
+
+		.badge-do {
+			color: #68d082;
+			background: rgba(80, 200, 100, 0.12);
+		}
+		.badge-dont {
+			color: #e07070;
+			background: rgba(220, 60, 60, 0.12);
+		}
+
+		.usage-text {
+			font-size: 13px;
+			line-height: 1.6;
+			color: var(--mist);
+		}
+
+		/* ─────────────────────────────────────────────────
+       APPLICATIONS
+    ───────────────────────────────────────────────── */
+		.apps-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 2px;
+		}
+
+		.app-card {
+			overflow: hidden;
+			background: var(--surface);
+			border-radius: 0;
+		}
+
+		.app-label {
+			padding: 16px 24px;
+			font-family: var(--font-ui);
+			font-size: 10px;
+			font-weight: 600;
+			color: var(--mist);
+			text-transform: uppercase;
+			letter-spacing: 0.14em;
+			border-bottom: 1px solid var(--border);
+		}
+
+		.app-body {
+			padding: 40px 36px;
+		}
+
+		/* Browser mockup */
+		.browser {
+			overflow: hidden;
+			background: #1c1c1c;
+			border-radius: 8px;
+			box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+		}
+		.browser-bar {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			padding: 10px 14px;
+			background: #2a2a2a;
+		}
+		.browser-dots {
+			display: flex;
+			gap: 6px;
+		}
+		.browser-dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+		}
+		.browser-tab {
+			display: flex;
+			gap: 6px;
+			align-items: center;
+			max-width: 200px;
+			padding: 6px 14px;
+			font-family: var(--font-ui);
+			font-size: 11px;
+			color: var(--silver);
+			background: var(--void);
+			border-radius: 4px 4px 0 0;
+		}
+		.browser-content {
+			padding: 20px 18px;
+			background: var(--void);
+		}
+		.browser-nav {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 12px 20px;
+			background: var(--surface);
+			border-bottom: 1px solid var(--border);
+		}
+		.browser-nav-links {
+			display: flex;
+			gap: 20px;
+		}
+		.browser-nav-link {
+			font-family: var(--font-ui);
+			font-size: 11px;
+			color: var(--mist);
+		}
+
+		/* API terminal mockup */
+		.terminal {
+			overflow: hidden;
+			background: #0a0a0a;
+			border: 1px solid var(--border);
+			border-radius: 8px;
+		}
+		.terminal-bar {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			padding: 10px 16px;
+			background: #1a1a1a;
+		}
+		.terminal-title {
+			margin-left: 6px;
+			font-family: var(--font-mono);
+			font-size: 11px;
+			color: var(--mist);
+		}
+		.terminal-body {
+			padding: 24px 22px;
+			font-family: var(--font-mono);
+			font-size: 12px;
+			line-height: 1.9;
+		}
+		.t-comment {
+			color: #484848;
+		}
+		.t-method {
+			color: #6dadff;
+		}
+		.t-url {
+			color: #a8d8a0;
+		}
+		.t-key {
+			color: #c8a0ff;
+		}
+		.t-val {
+			color: #ffb86c;
+		}
+		.t-str {
+			color: #f8d080;
+		}
+		.t-ret {
+			color: #80e0c0;
+		}
+
+		/* Email mockup */
+		.email {
+			overflow: hidden;
+			background: #1a1a1a;
+			border: 1px solid var(--border);
+			border-radius: 8px;
+		}
+		.email-header {
+			display: flex;
+			gap: 16px;
+			align-items: center;
+			padding: 24px 28px;
+			border-bottom: 1px solid var(--border);
+		}
+		.email-body-content {
+			padding: 28px;
+		}
+		.email-subj {
+			margin-bottom: 8px;
+			font-size: 14px;
+			font-weight: 500;
+			color: var(--white);
+		}
+		.email-from {
+			font-family: var(--font-ui);
+			font-size: 12px;
+			color: var(--mist);
+		}
+		.email-p {
+			font-size: 13px;
+			line-height: 1.7;
+			color: var(--silver);
+		}
+		.email-sig {
+			display: flex;
+			gap: 14px;
+			align-items: center;
+			padding-top: 20px;
+			margin-top: 24px;
+			border-top: 1px solid var(--border);
+		}
+		.sig-text {
+			font-size: 12px;
+			line-height: 1.5;
+			color: var(--mist);
+		}
+		.sig-name {
+			font-size: 13px;
+			font-weight: 500;
+			color: var(--silver);
+		}
+
+		/* Social mockup */
+		.social-card {
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+			padding: 24px;
+			background: var(--ghost);
+			border-radius: 12px;
+		}
+		.social-header {
+			display: flex;
+			gap: 14px;
+			align-items: center;
+		}
+		.social-avatar {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 52px;
+			height: 52px;
+			background: var(--void);
+			border: 2px solid var(--border-2);
+			border-radius: 50%;
+		}
+		.social-name-stack {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+		.social-name {
+			font-size: 14px;
+			font-weight: 500;
+			color: var(--white);
+		}
+		.social-handle {
+			font-family: var(--font-mono);
+			font-size: 12px;
+			color: var(--mist);
+		}
+		.social-bio {
+			font-size: 13px;
+			line-height: 1.6;
+			color: var(--silver);
+		}
+		.social-stats {
+			display: flex;
+			gap: 28px;
+		}
+		.stat {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+		.stat-n {
+			font-size: 16px;
+			font-weight: 600;
+			color: var(--white);
+		}
+		.stat-l {
+			font-family: var(--font-ui);
+			font-size: 11px;
+			color: var(--mist);
+		}
+
+		/* ─────────────────────────────────────────────────
+       FOOTER
+    ───────────────────────────────────────────────── */
+		footer {
+			padding: 40px var(--gutter);
+			border-top: 1px solid var(--border);
+		}
+
+		.footer-inner {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			max-width: var(--max-w);
+			margin: 0 auto;
+		}
+
+		.footer-brand {
+			display: flex;
+			gap: 12px;
+			align-items: center;
+		}
+
+		.footer-text {
+			font-family: var(--font-ui);
+			font-size: 11px;
+			color: var(--ghost);
+			letter-spacing: 0.04em;
+		}
+
+		/* ─────────────────────────────────────────────────
+       RESPONSIVE
+    ───────────────────────────────────────────────── */
+		@media (max-width: 900px) {
+			.anatomy-grid {
+				grid-template-columns: 1fr;
+				gap: 40px;
+			}
+			.variants-grid {
+				grid-template-columns: repeat(2, 1fr);
+			}
+			.palette-primary {
+				grid-template-columns: 1fr;
+			}
+			.palette-secondary {
+				grid-template-columns: repeat(2, 1fr);
+			}
+			.type-specimen-grid {
+				grid-template-columns: 1fr;
+			}
+			.apps-grid {
+				grid-template-columns: 1fr;
+			}
+			.usage-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 560px) {
+			.variants-grid {
+				grid-template-columns: 1fr;
+			}
+			.nav-links {
+				display: none;
+			}
+			section {
+				padding: 56px 0;
+			}
+		}
+		</style>
+	</head>
+	<body>
+		<!-- ═══════════════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════════════════ -->
+		<nav>
+			<div class="nav-inner">
+				<div class="nav-brand">
+					<!-- Inline mini mark -->
+					<svg
+						class="nav-logo-mark"
+						viewBox="0 0 152 84"
+						xmlns="http://www.w3.org/2000/svg"
+						aria-hidden="true"
+					>
+						<circle
+							cx="14"
+							cy="16"
+							r="9.5"
+							fill="none"
+							stroke="#FFFFFF"
+							stroke-width="3.5"
+						/>
+						<path
+							d="M14,16 L38,72 L76,30 L114,72 L138,16"
+							fill="none"
+							stroke="#FFFFFF"
+							stroke-width="11"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-dasharray="15 11"
+						/>
+						<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+						<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+					</svg>
+					<span class="nav-name">wherabouts</span>
+					<div class="nav-divider"></div>
+					<span class="nav-tag">Brand Guide 2026</span>
+				</div>
+				<ul class="nav-links">
+					<li><a href="#anatomy">The Mark</a></li>
+					<li><a href="#variants">Variants</a></li>
+					<li><a href="#colour">Colour</a></li>
+					<li><a href="#typography">Type</a></li>
+					<li><a href="#applications">Applications</a></li>
+				</ul>
+			</div>
+		</nav>
+
+		<!-- ═══════════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════════ -->
+		<section id="hero">
+			<div class="hero-inner">
+				<!-- Large route mark -->
+				<svg
+					class="hero-mark"
+					viewBox="0 0 152 84"
+					xmlns="http://www.w3.org/2000/svg"
+					aria-label="wherabouts mark"
+				>
+					<circle
+						cx="14"
+						cy="16"
+						r="9.5"
+						fill="none"
+						stroke="#FFFFFF"
+						stroke-width="3.5"
+					/>
+					<path
+						d="M14,16 L38,72 L76,30 L114,72 L138,16"
+						fill="none"
+						stroke="#FFFFFF"
+						stroke-width="11"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-dasharray="15 11"
+					/>
+					<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+					<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+				</svg>
+
+				<h1 class="hero-name">wherabouts</h1>
+				<p class="hero-tag">
+					Locations API
+					<span class="hero-divider"></span>
+					Obsidian Brand System
+				</p>
+				<p class="hero-sub">Brand Guide · April 2026</p>
+			</div>
+		</section>
+
+		<!-- ═══════════════════════════════════════════════════
+     01 · ANATOMY / THE MARK
+════════════════════════════════════════════════════ -->
+		<section id="anatomy">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="sec-num">01</span>
+					<span class="sec-title">The Mark</span>
+				</div>
+
+				<div class="anatomy-grid">
+					<!-- Annotated SVG -->
+					<div class="anatomy-svg-wrap">
+						<svg
+							viewBox="0 0 260 130"
+							width="100%"
+							xmlns="http://www.w3.org/2000/svg"
+							aria-label="wherabouts mark anatomy"
+						>
+							<!-- Faint construction grid -->
+							<line
+								x1="40"
+								y1="0"
+								x2="40"
+								y2="130"
+								stroke="rgba(255,255,255,0.04)"
+								stroke-width="1"
+							/>
+							<line
+								x1="220"
+								y1="0"
+								x2="220"
+								y2="130"
+								stroke="rgba(255,255,255,0.04)"
+								stroke-width="1"
+							/>
+
+							<!-- The mark (scaled to fit) -->
+							<!-- Original: viewBox 152×84, scale ~1.42x, translate to fit 260×130 -->
+							<g transform="translate(14,22) scale(1.52)">
+								<circle
+									cx="14"
+									cy="16"
+									r="9.5"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="3.5"
+								/>
+								<path
+									d="M14,16 L38,72 L76,30 L114,72 L138,16"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="11"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-dasharray="15 11"
+								/>
+								<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+								<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+							</g>
+
+							<!-- Annotation: origin ring -->
+							<line
+								x1="35"
+								y1="30"
+								x2="35"
+								y2="6"
+								stroke="#C8C8C8"
+								stroke-width="0.75"
+								stroke-dasharray="2 2"
+								opacity="0.5"
+							/>
+							<circle cx="35" cy="6" r="2" fill="#C8C8C8" opacity="0.5" />
+							<text
+								x="40"
+								y="9"
+								font-family="'JetBrains Mono',ui-monospace,monospace"
+								font-size="8"
+								fill="#C8C8C8"
+								opacity="0.65"
+							>
+								origin ring
+							</text>
+
+							<!-- Annotation: route -->
+							<line
+								x1="130"
+								y1="118"
+								x2="130"
+								y2="126"
+								stroke="#C8C8C8"
+								stroke-width="0.75"
+								stroke-dasharray="2 2"
+								opacity="0.5"
+							/>
+							<circle cx="130" cy="126" r="2" fill="#C8C8C8" opacity="0.5" />
+							<text
+								x="96"
+								y="128.5"
+								font-family="'JetBrains Mono',ui-monospace,monospace"
+								font-size="8"
+								fill="#C8C8C8"
+								opacity="0.65"
+							>
+								pill-dash route
+							</text>
+
+							<!-- Annotation: destination -->
+							<line
+								x1="225"
+								y1="30"
+								x2="225"
+								y2="6"
+								stroke="#C8C8C8"
+								stroke-width="0.75"
+								stroke-dasharray="2 2"
+								opacity="0.5"
+							/>
+							<circle cx="225" cy="6" r="2" fill="#C8C8C8" opacity="0.5" />
+							<text
+								x="178"
+								y="9"
+								font-family="'JetBrains Mono',ui-monospace,monospace"
+								font-size="8"
+								fill="#C8C8C8"
+								opacity="0.65"
+							>
+								destination pin
+							</text>
+						</svg>
+					</div>
+
+					<!-- Notes -->
+					<div class="anatomy-notes">
+						<div class="anatomy-item">
+							<svg
+								class="anatomy-icon"
+								viewBox="0 0 36 36"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<circle
+									cx="18"
+									cy="18"
+									r="10"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="3"
+								/>
+							</svg>
+							<div>
+								<p class="anatomy-label">Origin Ring</p>
+								<p class="anatomy-desc">
+									An open circle marks the point of departure — where an API
+									request begins. The unfilled centre signals potential: a
+									location to be resolved.
+								</p>
+							</div>
+						</div>
+						<div class="anatomy-item">
+							<svg
+								class="anatomy-icon"
+								viewBox="0 0 36 36"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									d="M4,18 L32,18"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="3.5"
+									stroke-linecap="round"
+									stroke-dasharray="8 6"
+								/>
+							</svg>
+							<div>
+								<p class="anatomy-label">Pill-Dash Route</p>
+								<p class="anatomy-desc">
+									Rounded capsule dashes trace a W-shaped journey across the
+									canvas — the five waypoints spell the brand's initial while
+									evoking a mapped route.
+								</p>
+							</div>
+						</div>
+						<div class="anatomy-item">
+							<svg
+								class="anatomy-icon"
+								viewBox="0 0 36 36"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<circle cx="18" cy="14" r="7" fill="#C8C8C8" />
+								<path d="M11,14 L25,14 L18,28 Z" fill="#C8C8C8" />
+							</svg>
+							<div>
+								<p class="anatomy-label">Destination Pin</p>
+								<p class="anatomy-desc">
+									A solid filled dot with a downward-pointing tail — the answer
+									to the query; where you arrive. Silver signals resolution and
+									precision.
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- ═══════════════════════════════════════════════════
+     02 · LOGO VARIANTS
+════════════════════════════════════════════════════ -->
+		<section id="variants">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="sec-num">02</span>
+					<span class="sec-title">Logo Variants</span>
+				</div>
+			</div>
+
+			<div
+				class="variants-grid"
+				style="max-width:var(--max-w); margin:0 auto; padding:0 var(--gutter);"
+			>
+				<!-- 1. Primary: white on void -->
+				<div class="variant-card v-on-void">
+					<div class="variant-display">
+						<svg
+							viewBox="0 0 152 124"
+							width="140"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle
+								cx="14"
+								cy="16"
+								r="9.5"
+								fill="none"
+								stroke="#FFFFFF"
+								stroke-width="3.5"
+							/>
+							<path
+								d="M14,16 L38,72 L76,30 L114,72 L138,16"
+								fill="none"
+								stroke="#FFFFFF"
+								stroke-width="11"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-dasharray="15 11"
+							/>
+							<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+							<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+							<text
+								x="76"
+								y="112"
+								font-family="'JetBrains Mono',ui-monospace,monospace"
+								font-size="22"
+								font-weight="300"
+								fill="#FFFFFF"
+								letter-spacing="-0.2"
+								text-anchor="middle"
+							>
+								wherabouts
+							</text>
+						</svg>
+					</div>
+					<div class="variant-rule" style="background:var(--border);"></div>
+					<p class="variant-name" style="color:var(--silver);">Primary</p>
+					<p class="variant-note">Use on dark backgrounds — #0C0C0C, #161616</p>
+				</div>
+
+				<!-- 2. Primary: white on surface -->
+				<div class="variant-card v-on-surface">
+					<div class="variant-display">
+						<svg
+							viewBox="0 0 152 84"
+							width="140"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle
+								cx="14"
+								cy="16"
+								r="9.5"
+								fill="none"
+								stroke="#FFFFFF"
+								stroke-width="3.5"
+							/>
+							<path
+								d="M14,16 L38,72 L76,30 L114,72 L138,16"
+								fill="none"
+								stroke="rgba(255,255,255,0.88)"
+								stroke-width="11"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-dasharray="15 11"
+							/>
+							<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+							<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+						</svg>
+					</div>
+					<div class="variant-rule" style="background:var(--border);"></div>
+					<p class="variant-name" style="color:var(--silver);">Mark Only</p>
+					<p class="variant-note">
+						Use when wordmark is contextually redundant
+					</p>
+				</div>
+
+				<!-- 3. Wordmark only -->
+				<div class="variant-card v-mark-only">
+					<div class="variant-display">
+						<svg
+							viewBox="0 0 180 36"
+							width="180"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<text
+								x="0"
+								y="28"
+								font-family="'JetBrains Mono',ui-monospace,monospace"
+								font-size="30"
+								font-weight="300"
+								fill="#FFFFFF"
+								letter-spacing="-0.3"
+							>
+								wherabouts
+							</text>
+						</svg>
+					</div>
+					<div class="variant-rule" style="background:var(--border-2);"></div>
+					<p class="variant-name" style="color:var(--silver);">Wordmark Only</p>
+					<p class="variant-note">
+						For use where the mark has been established nearby
+					</p>
+				</div>
+
+				<!-- 4. Inverted on white -->
+				<div class="variant-card v-on-white">
+					<div class="variant-display">
+						<svg
+							viewBox="0 0 152 124"
+							width="140"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle
+								cx="14"
+								cy="16"
+								r="9.5"
+								fill="none"
+								stroke="#0C0C0C"
+								stroke-width="3.5"
+							/>
+							<path
+								d="M14,16 L38,72 L76,30 L114,72 L138,16"
+								fill="none"
+								stroke="#0C0C0C"
+								stroke-width="11"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-dasharray="15 11"
+							/>
+							<circle cx="138" cy="16" r="6.5" fill="#3D3D3D" />
+							<path d="M131,16 L145,16 L138,34 Z" fill="#3D3D3D" />
+							<text
+								x="76"
+								y="112"
+								font-family="'JetBrains Mono',ui-monospace,monospace"
+								font-size="22"
+								font-weight="300"
+								fill="#0C0C0C"
+								letter-spacing="-0.2"
+								text-anchor="middle"
+							>
+								wherabouts
+							</text>
+						</svg>
+					</div>
+					<div class="variant-rule" style="background:#DCDCDC;"></div>
+					<p class="variant-name" style="color:#1A1A1A;">Inverted — White</p>
+					<p class="variant-note" style="color:#888;">
+						Use on pure white backgrounds
+					</p>
+				</div>
+
+				<!-- 5. Inverted on off-white -->
+				<div class="variant-card v-on-offwhite">
+					<div class="variant-display">
+						<svg
+							viewBox="0 0 152 124"
+							width="140"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle
+								cx="14"
+								cy="16"
+								r="9.5"
+								fill="none"
+								stroke="#1A1A1A"
+								stroke-width="3.5"
+							/>
+							<path
+								d="M14,16 L38,72 L76,30 L114,72 L138,16"
+								fill="none"
+								stroke="#1A1A1A"
+								stroke-width="11"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-dasharray="15 11"
+							/>
+							<circle cx="138" cy="16" r="6.5" fill="#4A4A4A" />
+							<path d="M131,16 L145,16 L138,34 Z" fill="#4A4A4A" />
+							<text
+								x="76"
+								y="112"
+								font-family="'JetBrains Mono',ui-monospace,monospace"
+								font-size="22"
+								font-weight="300"
+								fill="#1A1A1A"
+								letter-spacing="-0.2"
+								text-anchor="middle"
+							>
+								wherabouts
+							</text>
+						</svg>
+					</div>
+					<div class="variant-rule" style="background:#DDD6CE;"></div>
+					<p class="variant-name" style="color:#1A1A1A;">Inverted — Warm</p>
+					<p class="variant-note" style="color:#888;">
+						Use on cream, ivory, warm-neutral backgrounds
+					</p>
+				</div>
+
+				<!-- 6. Monochrome mid grey -->
+				<div class="variant-card v-mono">
+					<div class="variant-display">
+						<svg
+							viewBox="0 0 152 124"
+							width="140"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle
+								cx="14"
+								cy="16"
+								r="9.5"
+								fill="none"
+								stroke="#1A1A1A"
+								stroke-width="3.5"
+							/>
+							<path
+								d="M14,16 L38,72 L76,30 L114,72 L138,16"
+								fill="none"
+								stroke="rgba(0,0,0,0.6)"
+								stroke-width="11"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-dasharray="15 11"
+							/>
+							<circle cx="138" cy="16" r="6.5" fill="#555555" />
+							<path d="M131,16 L145,16 L138,34 Z" fill="#555555" />
+							<text
+								x="76"
+								y="112"
+								font-family="'JetBrains Mono',ui-monospace,monospace"
+								font-size="22"
+								font-weight="300"
+								fill="#1A1A1A"
+								letter-spacing="-0.2"
+								text-anchor="middle"
+							>
+								wherabouts
+							</text>
+						</svg>
+					</div>
+					<div class="variant-rule" style="background:#CCC;"></div>
+					<p class="variant-name" style="color:#1A1A1A;">Monochrome</p>
+					<p class="variant-note" style="color:#888;">
+						Single-colour reproduction — print, emboss
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<!-- ═══════════════════════════════════════════════════
+     03 · COLOUR
+════════════════════════════════════════════════════ -->
+		<section id="colour">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="sec-num">03</span>
+					<span class="sec-title">Colour</span>
+				</div>
+
+				<!-- Primary swatches -->
+				<div class="palette-primary">
+					<div
+						class="swatch"
+						style="background:#0C0C0C; border:1px solid #2C2C2C;"
+					>
+						<span class="swatch-name" style="color:#FFFFFF;">Void</span>
+						<span class="swatch-hex" style="color:#FFFFFF;">#0C0C0C</span>
+						<span class="swatch-use" style="color:#FFFFFF;"
+							>Primary background · Brand black</span
+						>
+					</div>
+					<div class="swatch" style="background:#FFFFFF;">
+						<span class="swatch-name" style="color:#0C0C0C;">White</span>
+						<span class="swatch-hex" style="color:#0C0C0C;">#FFFFFF</span>
+						<span class="swatch-use" style="color:#0C0C0C;"
+							>Primary mark · Typography</span
+						>
+					</div>
+					<div class="swatch" style="background:#C8C8C8;">
+						<span class="swatch-name" style="color:#1A1A1A;">Silver</span>
+						<span class="swatch-hex" style="color:#1A1A1A;">#C8C8C8</span>
+						<span class="swatch-use" style="color:#1A1A1A;"
+							>Accent · Destination pin</span
+						>
+					</div>
+				</div>
+
+				<!-- Secondary swatches -->
+				<div class="palette-secondary" style="margin-top:2px;">
+					<div
+						class="swatch sm"
+						style="background:#161616; border:1px solid #2C2C2C;"
+					>
+						<span class="swatch-name" style="color:#C8C8C8;">Surface</span>
+						<span class="swatch-hex" style="color:#C8C8C8;">#161616</span>
+					</div>
+					<div
+						class="swatch sm"
+						style="background:#222222; border:1px solid #2C2C2C;"
+					>
+						<span class="swatch-name" style="color:#C8C8C8;">Overlay</span>
+						<span class="swatch-hex" style="color:#C8C8C8;">#222222</span>
+					</div>
+					<div class="swatch sm" style="background:#2C2C2C;">
+						<span class="swatch-name" style="color:#888;">Border</span>
+						<span class="swatch-hex" style="color:#888;">#2C2C2C</span>
+					</div>
+					<div class="swatch sm" style="background:#5A5A5A;">
+						<span class="swatch-name" style="color:#AAA;">Mist</span>
+						<span class="swatch-hex" style="color:#AAA;">#5A5A5A</span>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- ═══════════════════════════════════════════════════
+     04 · TYPOGRAPHY
+════════════════════════════════════════════════════ -->
+		<section id="typography">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="sec-num">04</span>
+					<span class="sec-title">Typography</span>
+				</div>
+
+				<!-- Hero specimen -->
+				<p class="type-hero">
+					Find anywhere.<br>
+					<em style="font-style:italic; color:var(--mist);"
+						>Navigate everything.</em
+					>
+				</p>
+
+				<div class="type-specimen-grid">
+					<!-- Weight specimens -->
+					<div class="type-weight-row">
+						<p class="eyebrow" style="margin-bottom:8px;">
+							JetBrains Mono — Brand Typeface
+						</p>
+						<div class="type-weight-item">
+							<p class="type-weight-label">Light 300 — Wordmark, Hero</p>
+							<p
+								class="type-sample"
+								style="font-weight:300; font-size:28px; letter-spacing:-.02em;"
+							>
+								wherabouts
+							</p>
+						</div>
+						<div class="type-weight-item">
+							<p class="type-weight-label">Regular 400 — Body Copy</p>
+							<p class="type-sample" style="font-weight:400; font-size:18px;">
+								The global Locations API built for scale.
+							</p>
+						</div>
+						<div class="type-weight-item">
+							<p class="type-weight-label">Medium 500 — Labels, UI</p>
+							<p
+								class="type-sample"
+								style="font-weight:500; font-size:14px; letter-spacing:.02em;"
+							>
+								API REFERENCE · AUTHENTICATION · ENDPOINTS
+							</p>
+						</div>
+						<div class="type-weight-item">
+							<p class="type-weight-label">SemiBold 600 — Emphasis, CTAs</p>
+							<p class="type-sample" style="font-weight:600; font-size:15px;">
+								Get Started → View Docs
+							</p>
+						</div>
+					</div>
+
+					<!-- Type hierarchy -->
+					<div class="type-hierarchy">
+						<p class="eyebrow" style="margin-bottom:4px;">Type Hierarchy</p>
+						<div class="hier-item">
+							<p class="hier-label">
+								Display / Hero · JetBrains Mono 300 · 64px / −4%
+							</p>
+							<p
+								style="font-size:clamp(28px,3.5vw,48px); font-weight:300; letter-spacing:-.04em; color:var(--white);"
+							>
+								Find anywhere.
+							</p>
+						</div>
+						<div class="hier-item">
+							<p class="hier-label">
+								Heading · JetBrains Mono 400 · 28px / −2%
+							</p>
+							<p
+								style="font-size:22px; font-weight:400; letter-spacing:-.02em; color:var(--white);"
+							>
+								Locations API Reference
+							</p>
+						</div>
+						<div class="hier-item">
+							<p class="hier-label">Subheading · JetBrains Mono 500 · 16px</p>
+							<p style="font-size:15px; font-weight:500; color:var(--silver);">
+								GET /v1/resolve · POST /v1/geocode
+							</p>
+						</div>
+						<div class="hier-item">
+							<p class="hier-label">Body · JetBrains Mono 400 · 14px / 1.7</p>
+							<p style="font-size:14px; color:var(--mist); line-height:1.7;">
+								Returns a resolved location object from a free-form query
+								string, with coordinates, country, and confidence score.
+							</p>
+						</div>
+						<div class="hier-item">
+							<p class="hier-label">Code · JetBrains Mono 400 · 13px</p>
+							<p class="mono-specimen">
+								curl https://api.wherabouts.com/v1/resolve<br>&nbsp;&nbsp;-H
+								"Authorization: Bearer { key}"<br>&nbsp;&nbsp;-d
+								"q=Eiffel+Tower"
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- ═══════════════════════════════════════════════════
+     05 · SIZE & SCALE
+════════════════════════════════════════════════════ -->
+		<section id="scale">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="sec-num">05</span>
+					<span class="sec-title">Size &amp; Scale</span>
+				</div>
+
+				<div class="scale-row">
+					<div class="scale-item">
+						<div class="scale-bg" style="width:56px; height:56px;">
+							<svg
+								viewBox="0 0 100 100"
+								width="32"
+								height="32"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<rect width="100" height="100" rx="22" fill="#0C0C0C" />
+								<circle
+									cx="14"
+									cy="22"
+									r="8"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="3.5"
+								/>
+								<path
+									d="M14,22 L34,76 L50,42 L66,76 L86,22"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="9"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-dasharray="12 9"
+								/>
+								<circle cx="86" cy="22" r="6" fill="#C8C8C8" />
+								<path d="M80,22 L92,22 L86,36 Z" fill="#C8C8C8" />
+							</svg>
+						</div>
+						<p class="scale-label">Favicon<br>16 × 16</p>
+					</div>
+
+					<div class="scale-item">
+						<div class="scale-bg" style="width:72px; height:72px;">
+							<svg
+								viewBox="0 0 100 100"
+								width="48"
+								height="48"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<rect width="100" height="100" rx="22" fill="#161616" />
+								<circle
+									cx="14"
+									cy="22"
+									r="8"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="3.5"
+								/>
+								<path
+									d="M14,22 L34,76 L50,42 L66,76 L86,22"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="9"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-dasharray="12 9"
+								/>
+								<circle cx="86" cy="22" r="6" fill="#C8C8C8" />
+								<path d="M80,22 L92,22 L86,36 Z" fill="#C8C8C8" />
+							</svg>
+						</div>
+						<p class="scale-label">App Icon<br>48 × 48</p>
+					</div>
+
+					<div class="scale-item">
+						<div class="scale-bg" style="width:120px; height:120px;">
+							<svg
+								viewBox="0 0 152 84"
+								width="96"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<circle
+									cx="14"
+									cy="16"
+									r="9.5"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="3.5"
+								/>
+								<path
+									d="M14,16 L38,72 L76,30 L114,72 L138,16"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="11"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-dasharray="15 11"
+								/>
+								<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+								<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+							</svg>
+						</div>
+						<p class="scale-label">Mark<br>96px</p>
+					</div>
+
+					<div class="scale-item">
+						<div class="scale-bg" style="width:240px; height:140px;">
+							<svg
+								viewBox="0 0 152 124"
+								width="180"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<circle
+									cx="14"
+									cy="16"
+									r="9.5"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="3.5"
+								/>
+								<path
+									d="M14,16 L38,72 L76,30 L114,72 L138,16"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="11"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-dasharray="15 11"
+								/>
+								<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+								<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+								<text
+									x="76"
+									y="112"
+									font-family="'JetBrains Mono',ui-monospace,monospace"
+									font-size="22"
+									font-weight="300"
+									fill="#FFFFFF"
+									letter-spacing="-0.2"
+									text-anchor="middle"
+								>
+									wherabouts
+								</text>
+							</svg>
+						</div>
+						<p class="scale-label">Lockup<br>180px</p>
+					</div>
+
+					<div class="scale-item">
+						<div class="scale-bg" style="width:340px; height:180px;">
+							<svg
+								viewBox="0 0 152 124"
+								width="300"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<circle
+									cx="14"
+									cy="16"
+									r="9.5"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="3.5"
+								/>
+								<path
+									d="M14,16 L38,72 L76,30 L114,72 L138,16"
+									fill="none"
+									stroke="#FFFFFF"
+									stroke-width="11"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-dasharray="15 11"
+								/>
+								<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+								<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+								<text
+									x="76"
+									y="112"
+									font-family="'JetBrains Mono',ui-monospace,monospace"
+									font-size="22"
+									font-weight="300"
+									fill="#FFFFFF"
+									letter-spacing="-0.2"
+									text-anchor="middle"
+								>
+									wherabouts
+								</text>
+							</svg>
+						</div>
+						<p class="scale-label">Hero<br>300px+</p>
+					</div>
+				</div>
+
+				<p
+					style="margin-top:40px; font-family:var(--font-ui); font-size:12px; color:var(--mist); line-height:1.8;"
+				>
+					Minimum size: <strong style="color:var(--silver);">80px</strong> wide
+					for the full lockup ·
+					<strong style="color:var(--silver);">32px</strong>
+					for the mark alone ·
+					<strong style="color:var(--silver);">16px</strong>
+					for the favicon icon. Below these sizes, use the simplified icon
+					variant.
+				</p>
+			</div>
+		</section>
+
+		<!-- ═══════════════════════════════════════════════════
+     06 · USAGE
+════════════════════════════════════════════════════ -->
+		<section id="usage">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="sec-num">06</span>
+					<span class="sec-title">Usage</span>
+				</div>
+
+				<div class="usage-grid">
+					<!-- DO column -->
+					<div class="usage-col">
+						<div class="usage-card">
+							<span class="usage-badge badge-do">✓ Do</span>
+							<div
+								class="usage-display"
+								style="background:#0C0C0C; border-radius:4px;"
+							>
+								<svg
+									viewBox="0 0 152 84"
+									width="120"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<circle
+										cx="14"
+										cy="16"
+										r="9.5"
+										fill="none"
+										stroke="#FFF"
+										stroke-width="3.5"
+									/>
+									<path
+										d="M14,16 L38,72 L76,30 L114,72 L138,16"
+										fill="none"
+										stroke="#FFF"
+										stroke-width="11"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-dasharray="15 11"
+									/>
+									<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+									<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+								</svg>
+							</div>
+							<p class="usage-text">
+								Use white mark on dark backgrounds (#0C0C0C, #161616, or other
+								dark surfaces).
+							</p>
+						</div>
+						<div class="usage-card">
+							<span class="usage-badge badge-do">✓ Do</span>
+							<div
+								class="usage-display"
+								style="background:#FFFFFF; border-radius:4px;"
+							>
+								<svg
+									viewBox="0 0 152 84"
+									width="120"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<circle
+										cx="14"
+										cy="16"
+										r="9.5"
+										fill="none"
+										stroke="#0C0C0C"
+										stroke-width="3.5"
+									/>
+									<path
+										d="M14,16 L38,72 L76,30 L114,72 L138,16"
+										fill="none"
+										stroke="#0C0C0C"
+										stroke-width="11"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-dasharray="15 11"
+									/>
+									<circle cx="138" cy="16" r="6.5" fill="#3D3D3D" />
+									<path d="M131,16 L145,16 L138,34 Z" fill="#3D3D3D" />
+								</svg>
+							</div>
+							<p class="usage-text">
+								Use the dark inverted version on white and very light neutral
+								backgrounds.
+							</p>
+						</div>
+						<div class="usage-card">
+							<span class="usage-badge badge-do">✓ Do</span>
+							<div
+								class="usage-display"
+								style="background:#1A1A1A; border-radius:4px; flex-direction:column; gap:12px;"
+							>
+								<svg
+									viewBox="0 0 152 84"
+									width="96"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<circle
+										cx="14"
+										cy="16"
+										r="9.5"
+										fill="none"
+										stroke="#FFF"
+										stroke-width="3.5"
+									/>
+									<path
+										d="M14,16 L38,72 L76,30 L114,72 L138,16"
+										fill="none"
+										stroke="#FFF"
+										stroke-width="11"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-dasharray="15 11"
+									/>
+									<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+									<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+								</svg>
+								<p
+									style="font-family:var(--font-ui);font-size:10px;color:var(--mist);"
+								>
+									Adequate clear space maintained
+								</p>
+							</div>
+							<p class="usage-text">
+								Always maintain clear space equal to the height of the origin
+								ring on all sides of the mark.
+							</p>
+						</div>
+					</div>
+
+					<!-- DON'T column -->
+					<div class="usage-col">
+						<div class="usage-card">
+							<span class="usage-badge badge-dont">✗ Don't</span>
+							<div
+								class="usage-display"
+								style="background:#1A7852; border-radius:4px;"
+							>
+								<svg
+									viewBox="0 0 152 84"
+									width="120"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<circle
+										cx="14"
+										cy="16"
+										r="9.5"
+										fill="none"
+										stroke="#FFF"
+										stroke-width="3.5"
+									/>
+									<path
+										d="M14,16 L38,72 L76,30 L114,72 L138,16"
+										fill="none"
+										stroke="#FFF"
+										stroke-width="11"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-dasharray="15 11"
+									/>
+									<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+									<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+								</svg>
+							</div>
+							<p class="usage-text">
+								Don't place the logo on coloured backgrounds without explicit
+								brand approval. The Obsidian system is black / white / silver
+								only.
+							</p>
+						</div>
+						<div class="usage-card">
+							<span class="usage-badge badge-dont">✗ Don't</span>
+							<div
+								class="usage-display"
+								style="background:#0C0C0C; border-radius:4px;"
+							>
+								<!-- Distorted (skewed) version -->
+								<svg
+									viewBox="0 0 180 60"
+									width="140"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<circle
+										cx="14"
+										cy="14"
+										r="9.5"
+										fill="none"
+										stroke="#FFF"
+										stroke-width="3.5"
+									/>
+									<path
+										d="M14,14 L38,54 L76,22 L114,54 L152,14"
+										fill="none"
+										stroke="#FFF"
+										stroke-width="11"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-dasharray="15 11"
+									/>
+									<circle cx="152" cy="14" r="6.5" fill="#C8C8C8" />
+									<path d="M145,14 L159,14 L152,30 Z" fill="#C8C8C8" />
+								</svg>
+							</div>
+							<p class="usage-text">
+								Don't stretch, compress, or skew the mark. Always scale
+								proportionally from the original SVG source files.
+							</p>
+						</div>
+						<div class="usage-card">
+							<span class="usage-badge badge-dont">✗ Don't</span>
+							<div
+								class="usage-display"
+								style="background:#0C0C0C; border-radius:4px;"
+							>
+								<!-- Drop-shadow applied (wrong) -->
+								<svg
+									viewBox="0 0 152 84"
+									width="120"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<defs>
+										<filter id="wrong-shadow">
+											<feDropShadow
+												dx="4"
+												dy="4"
+												stdDeviation="3"
+												flood-color="#1A7852"
+												flood-opacity="0.9"
+											/>
+										</filter>
+									</defs>
+									<circle
+										cx="14"
+										cy="16"
+										r="9.5"
+										fill="none"
+										stroke="#FFF"
+										stroke-width="3.5"
+										filter="url(#wrong-shadow)"
+									/>
+									<path
+										d="M14,16 L38,72 L76,30 L114,72 L138,16"
+										fill="none"
+										stroke="#FFF"
+										stroke-width="11"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-dasharray="15 11"
+										filter="url(#wrong-shadow)"
+									/>
+									<circle
+										cx="138"
+										cy="16"
+										r="6.5"
+										fill="#C8C8C8"
+										filter="url(#wrong-shadow)"
+									/>
+									<path
+										d="M131,16 L145,16 L138,34 Z"
+										fill="#C8C8C8"
+										filter="url(#wrong-shadow)"
+									/>
+								</svg>
+							</div>
+							<p class="usage-text">
+								Don't apply shadows, glows, gradients, or other effects to the
+								mark. Use it exactly as provided.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- ═══════════════════════════════════════════════════
+     07 · APPLICATIONS
+════════════════════════════════════════════════════ -->
+		<section id="applications">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="sec-num">07</span>
+					<span class="sec-title">Applications</span>
+				</div>
+
+				<div class="apps-grid">
+					<!-- Browser / API Docs mockup -->
+					<div class="app-card">
+						<div class="app-label">API Documentation</div>
+						<div class="app-body">
+							<div class="browser">
+								<div class="browser-bar">
+									<div class="browser-dots">
+										<div class="browser-dot" style="background:#FF5F57;"></div>
+										<div class="browser-dot" style="background:#FEBC2E;"></div>
+										<div class="browser-dot" style="background:#28C840;"></div>
+									</div>
+									<div class="browser-tab">
+										<svg
+											viewBox="0 0 100 100"
+											width="12"
+											height="12"
+											xmlns="http://www.w3.org/2000/svg"
+											style="flex-shrink:0;"
+										>
+											<rect width="100" height="100" rx="22" fill="#0C0C0C" />
+											<circle
+												cx="14"
+												cy="22"
+												r="8"
+												fill="none"
+												stroke="#FFF"
+												stroke-width="3.5"
+											/>
+											<path
+												d="M14,22 L34,76 L50,42 L66,76 L86,22"
+												fill="none"
+												stroke="#FFF"
+												stroke-width="9"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-dasharray="12 9"
+											/>
+											<circle cx="86" cy="22" r="6" fill="#C8C8C8" />
+											<path d="M80,22 L92,22 L86,36 Z" fill="#C8C8C8" />
+										</svg>
+										wherabouts | Docs
+									</div>
+								</div>
+								<div class="browser-nav">
+									<svg
+										viewBox="0 0 152 84"
+										height="22"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<circle
+											cx="14"
+											cy="16"
+											r="9.5"
+											fill="none"
+											stroke="#FFFFFF"
+											stroke-width="3.5"
+										/>
+										<path
+											d="M14,16 L38,72 L76,30 L114,72 L138,16"
+											fill="none"
+											stroke="#FFFFFF"
+											stroke-width="11"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-dasharray="15 11"
+										/>
+										<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+										<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+									</svg>
+									<div class="browser-nav-links">
+										<span class="browser-nav-link">Docs</span>
+										<span class="browser-nav-link">API Reference</span>
+										<span class="browser-nav-link">SDKs</span>
+										<span class="browser-nav-link">Pricing</span>
+									</div>
+								</div>
+								<div class="browser-content">
+									<p
+										style="font-family:var(--font-ui);font-size:11px;color:var(--mist);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;"
+									>
+										Quick Start
+									</p>
+									<p
+										style="font-size:18px;font-weight:300;color:var(--white);margin-bottom:8px;"
+									>
+										Resolve your first location.
+									</p>
+									<div
+										class="mono-specimen"
+										style="font-size:11px;line-height:1.8;margin-top:0;"
+									>
+										<span class="t-comment">// GET /v1/resolve</span><br>
+										<span class="t-method">curl</span>
+										<span class="t-url"
+											>https://api.wherabouts.com/v1/resolve</span
+										><br>
+										&nbsp;&nbsp;<span class="t-key">-H</span>
+										<span class="t-str">"Authorization: Bearer whr_..."</span>
+										<br>
+										&nbsp;&nbsp;<span class="t-key">-d</span>
+										<span class="t-str">"q=Eiffel+Tower,+Paris"</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- API terminal mockup -->
+					<div class="app-card">
+						<div class="app-label">API Response</div>
+						<div class="app-body">
+							<div class="terminal">
+								<div class="terminal-bar">
+									<div class="browser-dots">
+										<div class="browser-dot" style="background:#3A3A3A;"></div>
+										<div class="browser-dot" style="background:#3A3A3A;"></div>
+										<div class="browser-dot" style="background:#3A3A3A;"></div>
+									</div>
+									<span class="terminal-title">wherabouts — API v1</span>
+								</div>
+								<div class="terminal-body">
+									<span class="t-comment">// 200 OK · 42ms</span><br>
+									<span style="color:var(--border-2);">{</span><br>
+									&nbsp;&nbsp;<span class="t-key">"query"</span
+									><span style="color:var(--mist);">:</span>
+									<span class="t-str">"Eiffel Tower, Paris"</span>,<br>
+									&nbsp;&nbsp;<span class="t-key">"resolved"</span
+									><span style="color:var(--mist);">:</span>
+									<span style="color:var(--border-2);">{</span><br>
+									&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-key">"name"</span
+									><span style="color:var(--mist);">:</span>
+									<span class="t-str">"Tour Eiffel"</span>,<br>
+									&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-key">"lat"</span
+									><span style="color:var(--mist);">:</span>
+									<span class="t-val">48.858844</span>,<br>
+									&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-key">"lng"</span
+									><span style="color:var(--mist);">:</span>
+									<span class="t-val">2.294351</span>,<br>
+									&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-key">"country"</span
+									><span style="color:var(--mist);">:</span>
+									<span class="t-str">"FR"</span>,<br>
+									&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-key">"confidence"</span
+									><span style="color:var(--mist);">:</span>
+									<span class="t-ret">0.99</span><br>
+									&nbsp;&nbsp;<span style="color:var(--border-2);">}</span><br>
+									<span style="color:var(--border-2);">}</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Email signature mockup -->
+					<div class="app-card">
+						<div class="app-label">Email Signature</div>
+						<div class="app-body">
+							<div class="email">
+								<div class="email-header">
+									<svg
+										viewBox="0 0 152 84"
+										height="28"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<circle
+											cx="14"
+											cy="16"
+											r="9.5"
+											fill="none"
+											stroke="#FFFFFF"
+											stroke-width="3.5"
+										/>
+										<path
+											d="M14,16 L38,72 L76,30 L114,72 L138,16"
+											fill="none"
+											stroke="#FFFFFF"
+											stroke-width="11"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-dasharray="15 11"
+										/>
+										<circle cx="138" cy="16" r="6.5" fill="#C8C8C8" />
+										<path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8" />
+									</svg>
+									<div style="flex:1;">
+										<p
+											class="email-subj"
+											style="font-size:12px; margin-bottom:2px;"
+										>
+											RE: API integration support
+										</p>
+										<p class="email-from">
+											from@wherabouts.com · to: developer@example.com
+										</p>
+									</div>
+								</div>
+								<div class="email-body-content">
+									<p class="email-p">
+										Hi there, thanks for reaching out. I've reviewed your
+										integration and everything looks good — your geocoding calls
+										are resolving correctly. Let me know if you need anything
+										else.
+									</p>
+									<div class="email-sig">
+										<div
+											style="width:40px;height:40px;border-radius:50%;background:#161616;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--border);"
+										>
+											<svg
+												viewBox="0 0 100 100"
+												width="28"
+												height="28"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<circle
+													cx="14"
+													cy="22"
+													r="8"
+													fill="none"
+													stroke="#FFF"
+													stroke-width="3.5"
+												/>
+												<path
+													d="M14,22 L34,76 L50,42 L66,76 L86,22"
+													fill="none"
+													stroke="#FFF"
+													stroke-width="9"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-dasharray="12 9"
+												/>
+												<circle cx="86" cy="22" r="6" fill="#C8C8C8" />
+												<path d="M80,22 L92,22 L86,36 Z" fill="#C8C8C8" />
+											</svg>
+										</div>
+										<div class="sig-text">
+											<p class="sig-name">Amani Joseph</p>
+											<p>Founder · wherabouts.com</p>
+											<p>api.wherabouts.com</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Social / Profile mockup -->
+					<div class="app-card">
+						<div class="app-label">Social Profile</div>
+						<div class="app-body">
+							<div class="social-card">
+								<div class="social-header">
+									<div class="social-avatar">
+										<svg
+											viewBox="0 0 100 100"
+											width="36"
+											height="36"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<circle
+												cx="14"
+												cy="22"
+												r="8"
+												fill="none"
+												stroke="#FFF"
+												stroke-width="3.5"
+											/>
+											<path
+												d="M14,22 L34,76 L50,42 L66,76 L86,22"
+												fill="none"
+												stroke="#FFF"
+												stroke-width="9"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-dasharray="12 9"
+											/>
+											<circle cx="86" cy="22" r="6" fill="#C8C8C8" />
+											<path d="M80,22 L92,22 L86,36 Z" fill="#C8C8C8" />
+										</svg>
+									</div>
+									<div class="social-name-stack">
+										<p class="social-name">wherabouts</p>
+										<p class="social-handle">@wherabouts</p>
+									</div>
+								</div>
+								<p class="social-bio">
+									The global Locations API. Resolve, geocode, and navigate
+									anywhere — built for developers. 🗺️
+								</p>
+								<div class="social-stats">
+									<div class="stat">
+										<span class="stat-n">12.4k</span>
+										<span class="stat-l">Followers</span>
+									</div>
+									<div class="stat">
+										<span class="stat-n">840</span>
+										<span class="stat-l">Following</span>
+									</div>
+									<div class="stat">
+										<span class="stat-n">2.1k</span>
+										<span class="stat-l">Posts</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- ═══════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════ -->
+		<footer>
+			<div class="footer-inner">
+				<div class="footer-brand">
+					<svg
+						viewBox="0 0 152 84"
+						height="20"
+						xmlns="http://www.w3.org/2000/svg"
+						aria-hidden="true"
+					>
+						<circle
+							cx="14"
+							cy="16"
+							r="9.5"
+							fill="none"
+							stroke="rgba(255,255,255,0.3)"
+							stroke-width="3.5"
+						/>
+						<path
+							d="M14,16 L38,72 L76,30 L114,72 L138,16"
+							fill="none"
+							stroke="rgba(255,255,255,0.3)"
+							stroke-width="11"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-dasharray="15 11"
+						/>
+						<circle cx="138" cy="16" r="6.5" fill="rgba(200,200,200,0.3)" />
+						<path d="M131,16 L145,16 L138,34 Z" fill="rgba(200,200,200,0.3)" />
+					</svg>
+					<span class="footer-text">wherabouts.com</span>
+				</div>
+				<p class="footer-text">
+					Obsidian Brand System · Brand Guide 2026 · All rights reserved
+				</p>
+			</div>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,19 @@
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { AppShell } from "@/components/app-shell";
+
+export const Route = createFileRoute("/_protected")({
+	beforeLoad: ({ context }) => {
+		if (!context.userId) {
+			throw redirect({ to: "/sign-in/$" });
+		}
+	},
+	component: RouteComponent,
+});
+
+function RouteComponent() {
+	return (
+		<AppShell>
+			<Outlet />
+		</AppShell>
+	);
+}
