@@ -14,11 +14,16 @@
     "dev:server": "turbo -F @wherabouts.com/backend dev",
     "dev:setup": "turbo -F @wherabouts.com/backend dev:setup",
     "check": "ultracite check",
-    "fix": "ultracite fix"
+    "fix": "ultracite fix",
+    "deploy": "turbo -F @wherabouts.com/backend deploy && turbo -F web deploy",
+    "deploy:web": "turbo -F web deploy",
+    "deploy:convex": "turbo -F @wherabouts.com/backend deploy"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@wherabouts.com/env": "workspace:*",
     "dotenv": "catalog:",
+    "tsx": "^4.21.0",
     "zod": "catalog:"
   },
   "devDependencies": {

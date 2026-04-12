@@ -2,6 +2,7 @@ import {
 	BarChart3Icon,
 	BookOpenIcon,
 	BriefcaseIcon,
+	CodeIcon,
 	CreditCardIcon,
 	HelpCircleIcon,
 	KeyRoundIcon,
@@ -12,18 +13,18 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
-export type SidebarNavItem = {
-	title: string;
-	path?: string;
+export interface SidebarNavItem {
 	icon?: ReactNode;
 	isActive?: boolean;
+	path?: string;
 	subItems?: SidebarNavItem[];
-};
+	title: string;
+}
 
-export type SidebarNavGroup = {
-	label?: string;
+export interface SidebarNavGroup {
 	items: SidebarNavItem[];
-};
+	label?: string;
+}
 
 export const navGroups: SidebarNavGroup[] = [
 	{
@@ -36,12 +37,12 @@ export const navGroups: SidebarNavGroup[] = [
 			},
 			{
 				title: "Analytics",
-				path: "#",
+				path: "/analytics",
 				icon: <BarChart3Icon />,
 			},
 			{
 				title: "Projects",
-				path: "#",
+				path: "/projects",
 				icon: <BriefcaseIcon />,
 			},
 		],
@@ -51,18 +52,23 @@ export const navGroups: SidebarNavGroup[] = [
 		items: [
 			{
 				title: "Team",
-				path: "#",
+				path: "/team",
 				icon: <UsersIcon />,
 			},
 			{
 				title: "Integrations",
-				path: "#",
+				path: "/integrations",
 				icon: <PlugIcon />,
 			},
 			{
 				title: "API Keys",
-				path: "#",
+				path: "/api-keys",
 				icon: <KeyRoundIcon />,
+			},
+			{
+				title: "API Docs",
+				path: "/api-docs",
+				icon: <CodeIcon />,
 			},
 		],
 	},
@@ -71,12 +77,12 @@ export const navGroups: SidebarNavGroup[] = [
 		items: [
 			{
 				title: "Settings",
-				path: "#",
+				path: "/settings",
 				icon: <SettingsIcon />,
 			},
 			{
 				title: "Billing",
-				path: "#",
+				path: "/billing",
 				icon: <CreditCardIcon />,
 			},
 		],
@@ -86,12 +92,12 @@ export const navGroups: SidebarNavGroup[] = [
 export const footerNavLinks: SidebarNavItem[] = [
 	{
 		title: "Help Center",
-		path: "#",
+		path: "/help",
 		icon: <HelpCircleIcon />,
 	},
 	{
 		title: "Documentation",
-		path: "#",
+		path: "/docs",
 		icon: <BookOpenIcon />,
 	},
 ];

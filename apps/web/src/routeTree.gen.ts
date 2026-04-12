@@ -9,12 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignUpSplatRouteImport } from './routes/sign-up.$'
 import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
+import { Route as ProtectedTeamRouteImport } from './routes/_protected/team'
+import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
+import { Route as ProtectedProjectsRouteImport } from './routes/_protected/projects'
+import { Route as ProtectedIntegrationsRouteImport } from './routes/_protected/integrations'
+import { Route as ProtectedHelpRouteImport } from './routes/_protected/help'
+import { Route as ProtectedDocsRouteImport } from './routes/_protected/docs'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
+import { Route as ProtectedBillingRouteImport } from './routes/_protected/billing'
+import { Route as ProtectedApiKeysRouteImport } from './routes/_protected/api-keys'
+import { Route as ProtectedApiDocsRouteImport } from './routes/_protected/api-docs'
+import { Route as ProtectedAnalyticsRouteImport } from './routes/_protected/analytics'
+import { Route as ApiV1AddressesReverseRouteImport } from './routes/api/v1/addresses/reverse'
+import { Route as ApiV1AddressesNearbyRouteImport } from './routes/api/v1/addresses/nearby'
+import { Route as ApiV1AddressesAutocompleteRouteImport } from './routes/api/v1/addresses/autocomplete'
+import { Route as ApiV1AddressesIdRouteImport } from './routes/api/v1/addresses/$id'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProtectedRoute = ProtectedRouteImport.update({
   id: '/_protected',
   getParentRoute: () => rootRouteImport,
@@ -34,55 +54,236 @@ const SignInSplatRoute = SignInSplatRouteImport.update({
   path: '/sign-in/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedTeamRoute = ProtectedTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedSettingsRoute = ProtectedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedProjectsRoute = ProtectedProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedIntegrationsRoute = ProtectedIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedHelpRoute = ProtectedHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedDocsRoute = ProtectedDocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedBillingRoute = ProtectedBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedApiKeysRoute = ProtectedApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedApiDocsRoute = ProtectedApiDocsRouteImport.update({
+  id: '/api-docs',
+  path: '/api-docs',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedAnalyticsRoute = ProtectedAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ApiV1AddressesReverseRoute = ApiV1AddressesReverseRouteImport.update({
+  id: '/api/v1/addresses/reverse',
+  path: '/api/v1/addresses/reverse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1AddressesNearbyRoute = ApiV1AddressesNearbyRouteImport.update({
+  id: '/api/v1/addresses/nearby',
+  path: '/api/v1/addresses/nearby',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1AddressesAutocompleteRoute =
+  ApiV1AddressesAutocompleteRouteImport.update({
+    id: '/api/v1/addresses/autocomplete',
+    path: '/api/v1/addresses/autocomplete',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiV1AddressesIdRoute = ApiV1AddressesIdRouteImport.update({
+  id: '/api/v1/addresses/$id',
+  path: '/api/v1/addresses/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/analytics': typeof ProtectedAnalyticsRoute
+  '/api-docs': typeof ProtectedApiDocsRoute
+  '/api-keys': typeof ProtectedApiKeysRoute
+  '/billing': typeof ProtectedBillingRoute
   '/dashboard': typeof ProtectedDashboardRoute
+  '/docs': typeof ProtectedDocsRoute
+  '/help': typeof ProtectedHelpRoute
+  '/integrations': typeof ProtectedIntegrationsRoute
+  '/projects': typeof ProtectedProjectsRoute
+  '/settings': typeof ProtectedSettingsRoute
+  '/team': typeof ProtectedTeamRoute
   '/sign-in/$': typeof SignInSplatRoute
   '/sign-up/$': typeof SignUpSplatRoute
+  '/api/v1/addresses/$id': typeof ApiV1AddressesIdRoute
+  '/api/v1/addresses/autocomplete': typeof ApiV1AddressesAutocompleteRoute
+  '/api/v1/addresses/nearby': typeof ApiV1AddressesNearbyRoute
+  '/api/v1/addresses/reverse': typeof ApiV1AddressesReverseRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/analytics': typeof ProtectedAnalyticsRoute
+  '/api-docs': typeof ProtectedApiDocsRoute
+  '/api-keys': typeof ProtectedApiKeysRoute
+  '/billing': typeof ProtectedBillingRoute
   '/dashboard': typeof ProtectedDashboardRoute
+  '/docs': typeof ProtectedDocsRoute
+  '/help': typeof ProtectedHelpRoute
+  '/integrations': typeof ProtectedIntegrationsRoute
+  '/projects': typeof ProtectedProjectsRoute
+  '/settings': typeof ProtectedSettingsRoute
+  '/team': typeof ProtectedTeamRoute
   '/sign-in/$': typeof SignInSplatRoute
   '/sign-up/$': typeof SignUpSplatRoute
+  '/api/v1/addresses/$id': typeof ApiV1AddressesIdRoute
+  '/api/v1/addresses/autocomplete': typeof ApiV1AddressesAutocompleteRoute
+  '/api/v1/addresses/nearby': typeof ApiV1AddressesNearbyRoute
+  '/api/v1/addresses/reverse': typeof ApiV1AddressesReverseRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_protected/analytics': typeof ProtectedAnalyticsRoute
+  '/_protected/api-docs': typeof ProtectedApiDocsRoute
+  '/_protected/api-keys': typeof ProtectedApiKeysRoute
+  '/_protected/billing': typeof ProtectedBillingRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
+  '/_protected/docs': typeof ProtectedDocsRoute
+  '/_protected/help': typeof ProtectedHelpRoute
+  '/_protected/integrations': typeof ProtectedIntegrationsRoute
+  '/_protected/projects': typeof ProtectedProjectsRoute
+  '/_protected/settings': typeof ProtectedSettingsRoute
+  '/_protected/team': typeof ProtectedTeamRoute
   '/sign-in/$': typeof SignInSplatRoute
   '/sign-up/$': typeof SignUpSplatRoute
+  '/api/v1/addresses/$id': typeof ApiV1AddressesIdRoute
+  '/api/v1/addresses/autocomplete': typeof ApiV1AddressesAutocompleteRoute
+  '/api/v1/addresses/nearby': typeof ApiV1AddressesNearbyRoute
+  '/api/v1/addresses/reverse': typeof ApiV1AddressesReverseRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/sign-in/$' | '/sign-up/$'
+  fullPaths:
+    | '/'
+    | '/sitemap.xml'
+    | '/analytics'
+    | '/api-docs'
+    | '/api-keys'
+    | '/billing'
+    | '/dashboard'
+    | '/docs'
+    | '/help'
+    | '/integrations'
+    | '/projects'
+    | '/settings'
+    | '/team'
+    | '/sign-in/$'
+    | '/sign-up/$'
+    | '/api/v1/addresses/$id'
+    | '/api/v1/addresses/autocomplete'
+    | '/api/v1/addresses/nearby'
+    | '/api/v1/addresses/reverse'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/sign-in/$' | '/sign-up/$'
+  to:
+    | '/'
+    | '/sitemap.xml'
+    | '/analytics'
+    | '/api-docs'
+    | '/api-keys'
+    | '/billing'
+    | '/dashboard'
+    | '/docs'
+    | '/help'
+    | '/integrations'
+    | '/projects'
+    | '/settings'
+    | '/team'
+    | '/sign-in/$'
+    | '/sign-up/$'
+    | '/api/v1/addresses/$id'
+    | '/api/v1/addresses/autocomplete'
+    | '/api/v1/addresses/nearby'
+    | '/api/v1/addresses/reverse'
   id:
     | '__root__'
     | '/'
     | '/_protected'
+    | '/sitemap.xml'
+    | '/_protected/analytics'
+    | '/_protected/api-docs'
+    | '/_protected/api-keys'
+    | '/_protected/billing'
     | '/_protected/dashboard'
+    | '/_protected/docs'
+    | '/_protected/help'
+    | '/_protected/integrations'
+    | '/_protected/projects'
+    | '/_protected/settings'
+    | '/_protected/team'
     | '/sign-in/$'
     | '/sign-up/$'
+    | '/api/v1/addresses/$id'
+    | '/api/v1/addresses/autocomplete'
+    | '/api/v1/addresses/nearby'
+    | '/api/v1/addresses/reverse'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRoute: typeof ProtectedRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SignInSplatRoute: typeof SignInSplatRoute
   SignUpSplatRoute: typeof SignUpSplatRoute
+  ApiV1AddressesIdRoute: typeof ApiV1AddressesIdRoute
+  ApiV1AddressesAutocompleteRoute: typeof ApiV1AddressesAutocompleteRoute
+  ApiV1AddressesNearbyRoute: typeof ApiV1AddressesNearbyRoute
+  ApiV1AddressesReverseRoute: typeof ApiV1AddressesReverseRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_protected': {
       id: '/_protected'
       path: ''
@@ -111,6 +312,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/team': {
+      id: '/_protected/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof ProtectedTeamRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/settings': {
+      id: '/_protected/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof ProtectedSettingsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/projects': {
+      id: '/_protected/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProtectedProjectsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/integrations': {
+      id: '/_protected/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof ProtectedIntegrationsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/help': {
+      id: '/_protected/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof ProtectedHelpRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/docs': {
+      id: '/_protected/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof ProtectedDocsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/dashboard': {
       id: '/_protected/dashboard'
       path: '/dashboard'
@@ -118,15 +361,91 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedDashboardRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/billing': {
+      id: '/_protected/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof ProtectedBillingRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/api-keys': {
+      id: '/_protected/api-keys'
+      path: '/api-keys'
+      fullPath: '/api-keys'
+      preLoaderRoute: typeof ProtectedApiKeysRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/api-docs': {
+      id: '/_protected/api-docs'
+      path: '/api-docs'
+      fullPath: '/api-docs'
+      preLoaderRoute: typeof ProtectedApiDocsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/analytics': {
+      id: '/_protected/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof ProtectedAnalyticsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/api/v1/addresses/reverse': {
+      id: '/api/v1/addresses/reverse'
+      path: '/api/v1/addresses/reverse'
+      fullPath: '/api/v1/addresses/reverse'
+      preLoaderRoute: typeof ApiV1AddressesReverseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/addresses/nearby': {
+      id: '/api/v1/addresses/nearby'
+      path: '/api/v1/addresses/nearby'
+      fullPath: '/api/v1/addresses/nearby'
+      preLoaderRoute: typeof ApiV1AddressesNearbyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/addresses/autocomplete': {
+      id: '/api/v1/addresses/autocomplete'
+      path: '/api/v1/addresses/autocomplete'
+      fullPath: '/api/v1/addresses/autocomplete'
+      preLoaderRoute: typeof ApiV1AddressesAutocompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/addresses/$id': {
+      id: '/api/v1/addresses/$id'
+      path: '/api/v1/addresses/$id'
+      fullPath: '/api/v1/addresses/$id'
+      preLoaderRoute: typeof ApiV1AddressesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface ProtectedRouteChildren {
+  ProtectedAnalyticsRoute: typeof ProtectedAnalyticsRoute
+  ProtectedApiDocsRoute: typeof ProtectedApiDocsRoute
+  ProtectedApiKeysRoute: typeof ProtectedApiKeysRoute
+  ProtectedBillingRoute: typeof ProtectedBillingRoute
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
+  ProtectedDocsRoute: typeof ProtectedDocsRoute
+  ProtectedHelpRoute: typeof ProtectedHelpRoute
+  ProtectedIntegrationsRoute: typeof ProtectedIntegrationsRoute
+  ProtectedProjectsRoute: typeof ProtectedProjectsRoute
+  ProtectedSettingsRoute: typeof ProtectedSettingsRoute
+  ProtectedTeamRoute: typeof ProtectedTeamRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
+  ProtectedAnalyticsRoute: ProtectedAnalyticsRoute,
+  ProtectedApiDocsRoute: ProtectedApiDocsRoute,
+  ProtectedApiKeysRoute: ProtectedApiKeysRoute,
+  ProtectedBillingRoute: ProtectedBillingRoute,
   ProtectedDashboardRoute: ProtectedDashboardRoute,
+  ProtectedDocsRoute: ProtectedDocsRoute,
+  ProtectedHelpRoute: ProtectedHelpRoute,
+  ProtectedIntegrationsRoute: ProtectedIntegrationsRoute,
+  ProtectedProjectsRoute: ProtectedProjectsRoute,
+  ProtectedSettingsRoute: ProtectedSettingsRoute,
+  ProtectedTeamRoute: ProtectedTeamRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
@@ -136,8 +455,13 @@ const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRoute: ProtectedRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SignInSplatRoute: SignInSplatRoute,
   SignUpSplatRoute: SignUpSplatRoute,
+  ApiV1AddressesIdRoute: ApiV1AddressesIdRoute,
+  ApiV1AddressesAutocompleteRoute: ApiV1AddressesAutocompleteRoute,
+  ApiV1AddressesNearbyRoute: ApiV1AddressesNearbyRoute,
+  ApiV1AddressesReverseRoute: ApiV1AddressesReverseRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

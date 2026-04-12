@@ -1,11 +1,98 @@
 "use client";
 import { ArrowRight } from "lucide-react";
 import { motion, useInView } from "motion/react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Marquee } from "@/components/shadcn-space/animations/marquee";
 import ParticleSphereAnimation from "@/components/shadcn-space/blocks/hero-15/particalsphear";
 import { buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+
+const DEMO_ADDRESSES = [
+	"1600 Amphitheatre Pkwy, Mountain View, CA",
+	"350 Fifth Ave, New York, NY 10118",
+	"10 Downing St, London SW1A 2AA",
+	"1-1 Marunouchi, Chiyoda City, Tokyo",
+] as const;
+
+const TYPE_MS = 48;
+const DELETE_MS = 36;
+const PAUSE_FULL_MS = 2200;
+const PAUSE_EMPTY_MS = 600;
+
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => {
+		setTimeout(resolve, ms);
+	});
+}
+
+async function typeDemoAddress(
+	full: string,
+	setValue: (v: string) => void,
+	isCancelled: () => boolean
+): Promise<void> {
+	for (let c = 0; c <= full.length && !isCancelled(); c += 1) {
+		setValue(full.slice(0, c));
+		await sleep(TYPE_MS);
+	}
+}
+
+async function eraseDemoAddress(
+	full: string,
+	setValue: (v: string) => void,
+	isCancelled: () => boolean
+): Promise<void> {
+	for (let c = full.length; c >= 0 && !isCancelled(); c -= 1) {
+		setValue(full.slice(0, c));
+		await sleep(DELETE_MS);
+	}
+}
+
+function AddressDemoInput() {
+	const [value, setValue] = useState("");
+
+	useEffect(() => {
+		let cancelled = false;
+		const isCancelled = () => cancelled;
+		let addressIndex = 0;
+
+		const task = async () => {
+			while (!isCancelled()) {
+				const full = DEMO_ADDRESSES[addressIndex % DEMO_ADDRESSES.length];
+				addressIndex += 1;
+				await typeDemoAddress(full, setValue, isCancelled);
+				if (isCancelled()) {
+					break;
+				}
+				await sleep(PAUSE_FULL_MS);
+				await eraseDemoAddress(full, setValue, isCancelled);
+				if (isCancelled()) {
+					break;
+				}
+				await sleep(PAUSE_EMPTY_MS);
+			}
+		};
+
+		task().catch(() => {
+			// demo loop stopped on unmount; ignore
+		});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
+	return (
+		<div className="mx-auto w-full max-w-md">
+			<Input
+				aria-label="Example address autocomplete"
+				className="h-11 rounded-full border-border/80 bg-background/80 px-4 text-left text-sm shadow-sm backdrop-blur-sm md:h-12 md:text-base"
+				readOnly
+				tabIndex={-1}
+				value={value}
+			/>
+		</div>
+	);
+}
 
 export interface BrandList {
 	image: string;
@@ -122,6 +209,9 @@ const HeroSection = ({ brandList }: { brandList: BrandList[] }) => {
 							time.
 						</motion.p>
 					</div>
+					<motion.div className="w-full max-w-xl" variants={itemVariants}>
+						<AddressDemoInput />
+					</motion.div>
 					<motion.div
 						className="flex flex-wrap justify-center gap-2"
 						variants={itemVariants}
