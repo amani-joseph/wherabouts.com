@@ -29,10 +29,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. The `api_keys` table has a `project_id` foreign key linking every key to a project
   3. All existing API keys continue to authenticate successfully against the geocoding API
   4. Each existing user has a default project with their orphaned keys assigned to it
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 01-01: TBD
+- [ ] 01-01-PLAN.md — Create projects schema, update api_keys with project_id, backfill default projects
 
 ### Phase 2: Project Management
 **Goal**: Users can create, view, edit, and delete projects with full cascade behavior
@@ -100,7 +100,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Schema & Migration | 0/0 | Not started | - |
+| 1. Schema & Migration | 0/1 | Planning complete | - |
 | 2. Project Management | 0/0 | Not started | - |
 | 3. Project-Scoped Keys | 0/0 | Not started | - |
 | 4. Key Lifecycle & Usage | 0/0 | Not started | - |
