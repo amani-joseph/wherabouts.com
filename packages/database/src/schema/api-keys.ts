@@ -20,9 +20,11 @@ export const apiKeys = pgTable(
 		secretSalt: text("secret_salt").notNull(),
 		/** Last 4 characters of the secret segment for display (e.g. wh_<uuid>_...abcd) */
 		secretDisplaySuffix: text("secret_display_suffix").notNull(),
-		projectId: uuid("project_id").references(() => projects.id, {
-			onDelete: "cascade",
-		}),
+		projectId: uuid("project_id")
+			.notNull()
+			.references(() => projects.id, {
+				onDelete: "cascade",
+			}),
 		createdAt: timestamp("created_at", { withTimezone: true })
 			.notNull()
 			.defaultNow(),
