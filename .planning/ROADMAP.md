@@ -27,11 +27,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Convex stores user and session records created by BetterAuth
   3. Protected routes redirect unauthenticated visitors to login
   4. Client-side hooks expose current user and loading/authenticated state
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Install BetterAuth packages and configure Convex backend (component, auth, HTTP routes)
+- [ ] 01-02-PLAN.md — Wire BetterAuth into TanStack Start frontend (auth client, proxy, provider swap, route guard)
 
 ### Phase 2: Auth Flows
 **Goal**: Users can sign up, sign in, verify email, reset passwords, and use Google/GitHub OAuth -- all through BetterAuth
