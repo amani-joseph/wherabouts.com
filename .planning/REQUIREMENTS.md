@@ -1,4 +1,4 @@
-# Requirements: Wherabouts.com — Clerk to BetterAuth Migration
+# Requirements: Wherabouts.com — BetterAuth Migration
 
 **Defined:** 2026-04-14
 **Core Value:** Users can authenticate seamlessly — login, signup, OAuth, and session persistence must work without disruption after the migration.
@@ -28,9 +28,9 @@ Requirements for the migration. Each maps to roadmap phases.
 
 ### Migration
 
-- [ ] **MIGR-01**: All Clerk packages and dependencies removed
-- [ ] **MIGR-02**: All Clerk middleware, components, and API routes removed
-- [ ] **MIGR-03**: All Clerk environment variables removed
+- [ ] **MIGR-01**: All legacy auth packages and dependencies removed
+- [ ] **MIGR-02**: All legacy auth middleware, components, and API routes removed
+- [ ] **MIGR-03**: All legacy auth environment variables removed
 - [ ] **MIGR-04**: User profile/metadata accessible via BetterAuth
 
 ## v2 Requirements
@@ -51,7 +51,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | Multi-tenancy / organizations | Not part of current auth setup |
 | Automated user data migration tooling | Manual migration if needed |
 | Additional OAuth providers beyond Google/GitHub | Defer to future |
-| 2FA | Not currently implemented with Clerk |
+| 2FA | Not currently implemented |
 
 ## Traceability
 
