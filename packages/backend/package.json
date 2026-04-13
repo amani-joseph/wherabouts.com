@@ -10,6 +10,7 @@
     "deploy": "convex deploy"
   },
   "dependencies": {
+    "@convex-dev/better-auth": "^0.11.4",
     "convex": "catalog:",
     "dotenv": "catalog:",
     "zod": "catalog:"
