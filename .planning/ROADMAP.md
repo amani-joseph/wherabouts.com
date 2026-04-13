@@ -1,0 +1,77 @@
+# Roadmap: Wherabouts.com — Clerk to BetterAuth Migration
+
+## Overview
+
+Migrate authentication from Clerk to BetterAuth in three phases: stand up BetterAuth infrastructure on Convex, implement all auth flows (email/password + OAuth), then strip out Clerk entirely. Each phase delivers a verifiable capability, and the final state is zero Clerk residue with full feature parity.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: BetterAuth Infrastructure** - BetterAuth server running on TanStack Start with Convex storage
+- [ ] **Phase 2: Auth Flows** - Email/password and OAuth login fully functional through BetterAuth
+- [ ] **Phase 3: Clerk Removal** - All Clerk code, dependencies, and config purged with no regressions
+
+## Phase Details
+
+### Phase 1: BetterAuth Infrastructure
+**Goal**: BetterAuth is configured, connected to Convex, and protecting routes -- the foundation all auth flows depend on
+**Depends on**: Nothing (first phase)
+**Requirements**: INFR-01, INFR-02, INFR-03, INFR-04
+**Success Criteria** (what must be TRUE):
+  1. BetterAuth server initializes without errors on app startup
+  2. Convex stores user and session records created by BetterAuth
+  3. Protected routes redirect unauthenticated visitors to login
+  4. Client-side hooks expose current user and loading/authenticated state
+**Plans**: TBD
+
+Plans:
+- [ ] 01-01: TBD
+- [ ] 01-02: TBD
+
+### Phase 2: Auth Flows
+**Goal**: Users can sign up, sign in, verify email, reset passwords, and use Google/GitHub OAuth -- all through BetterAuth
+**Depends on**: Phase 1
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, OATH-01, OATH-02
+**Success Criteria** (what must be TRUE):
+  1. User can create an account with email and password and is stored in Convex
+  2. User receives a verification email after signup and can verify their address
+  3. User can reset a forgotten password via email link
+  4. User session survives browser refresh without re-login
+  5. User can sign in with Google OAuth and with GitHub OAuth
+**Plans**: TBD
+**UI hint**: yes
+
+Plans:
+- [ ] 02-01: TBD
+- [ ] 02-02: TBD
+- [ ] 02-03: TBD
+
+### Phase 3: Clerk Removal
+**Goal**: Every trace of Clerk is removed and the app runs exclusively on BetterAuth with full feature parity
+**Depends on**: Phase 2
+**Requirements**: MIGR-01, MIGR-02, MIGR-03, MIGR-04
+**Success Criteria** (what must be TRUE):
+  1. No Clerk packages exist in package.json or lock file
+  2. No Clerk middleware, components, or API routes remain in the codebase
+  3. No Clerk environment variables exist in .env files or deployment config
+  4. User profile and metadata are accessible through BetterAuth (no data loss)
+**Plans**: TBD
+
+Plans:
+- [ ] 03-01: TBD
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 -> 2 -> 3
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. BetterAuth Infrastructure | 0/2 | Not started | - |
+| 2. Auth Flows | 0/3 | Not started | - |
+| 3. Clerk Removal | 0/1 | Not started | - |
