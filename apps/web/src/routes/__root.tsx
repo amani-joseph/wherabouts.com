@@ -60,7 +60,13 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 	component: RootDocument,
 	beforeLoad: async (ctx) => {
-		const token = await fetchAuth();
+		let token: string | null = null;
+		try {
+			token = await fetchAuth();
+		} catch {
+			// fetchAuth may throw when getToken() lacks request context
+			// (e.g., client-side SPA transitions). Default to unauthenticated.
+		}
 		if (token) {
 			ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
 		}
