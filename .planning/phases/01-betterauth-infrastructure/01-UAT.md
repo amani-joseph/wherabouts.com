@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-betterauth-infrastructure
 source: 01-01-SUMMARY.md, 01-02-SUMMARY.md
 started: 2026-04-14T12:00:00Z
@@ -54,8 +54,6 @@ issues: 3
 pending: 0
 skipped: 0
 blocked: 2
-skipped: 0
-blocked: 0
 
 ## Gaps
 
@@ -64,27 +62,40 @@ blocked: 0
   reason: "User reported: After a successful sign up, I only get notified that a successful sign up, but I'm not being redirected to the dashboard or authenticated area. No errors are being displayed"
   severity: major
   test: 2
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "register.tsx has no navigation after successful signUp.email(). callbackURL only works for OAuth flows. Code falls through to finally { setIsSubmitting(false) } with no redirect."
+  artifacts:
+    - path: "apps/web/src/components/shadcn-space/blocks/register-03/register.tsx"
+      issue: "Missing router.navigate() or router.invalidate() on sign-up success path (after line 94)"
+  missing:
+    - "Add useRouter import and call router.invalidate() then navigate({ to: '/dashboard' }) after successful sign-up"
+    - "Remove leftover debug instrumentation (#region agent log blocks)"
+  debug_session: ".planning/debug/signup-no-redirect.md"
 
 - truth: "After sign-in, user is authenticated and redirected to the protected area"
   status: failed
   reason: "User reported: No redirection, no error message, no response from the page. It just stays on the sign-in page."
   severity: major
   test: 3
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "login.tsx has no navigation after successful signIn.email(). Zero imports of useRouter/useNavigate. callbackURL is OAuth-only. Router context isAuthenticated only re-evaluates on navigation events, which never fire."
+  artifacts:
+    - path: "apps/web/src/components/shadcn-space/blocks/login-03/login.tsx"
+      issue: "Missing post-login navigation — no useRouter import, no navigate() call on success"
+  missing:
+    - "Import useRouter from TanStack Router, call router.invalidate() then navigate({ to: '/dashboard' }) after successful sign-in"
+    - "Remove leftover debug instrumentation (#region agent log blocks)"
+  debug_session: ".planning/debug/signin-no-redirect.md"
 
 - truth: "Unauthenticated user navigating to /dashboard is cleanly redirected to sign-in page"
   status: failed
   reason: "User reported: Some behavior: no response, no error message, just blinks and stays on the same sign-in page."
   severity: major
   test: 4
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Root beforeLoad in __root.tsx calls fetchAuth() -> getToken() with no error handling. When getToken() throws during client-side SPA transition, TanStack Router catches the error internally — page blinks and stays put with no visible error."
+  artifacts:
+    - path: "apps/web/src/routes/__root.tsx"
+      issue: "fetchAuth() in beforeLoad (lines 62-68) has no try-catch — any throw kills navigation silently"
+    - path: "apps/web/src/lib/auth-server.ts"
+      issue: "getToken from convexBetterAuthReactStart may throw on missing request context"
+  missing:
+    - "Wrap fetchAuth() in try-catch, default to { isAuthenticated: false, token: null } on failure"
+  debug_session: ".planning/debug/protected-route-blink.md"
