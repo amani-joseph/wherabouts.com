@@ -1,5 +1,4 @@
-import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start";
-import { auth } from "@clerk/tanstack-react-start/server";
+import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
 import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -11,43 +10,21 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
-import { env } from "@wherabouts.com/env/web";
 import { Toaster } from "@wherabouts.com/ui/components/sonner";
-import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { authClient } from "@/lib/auth-client";
+import { getToken } from "@/lib/auth-server";
 
 import appCss from "../index.css?url";
 
-/** Clerk 404 when JWT template name is not configured in Dashboard */
-const CLERK_JWT_TEMPLATE_NOT_FOUND = /not found/i;
-
-const fetchClerkAuth = createServerFn({ method: "GET" }).handler(async () => {
-	const clerkAuth = await auth();
-	if (!clerkAuth.userId) {
-		return { userId: null, token: null };
-	}
-	let token: string | null = null;
-	try {
-		token = await clerkAuth.getToken({ template: "convex" });
-	} catch (tokenErr) {
-		const te = tokenErr as Error;
-		// Clerk returns 404 / "Not Found" when JWT template name (e.g. "convex") is missing in Dashboard
-		const isMissingJwtTemplate =
-			te.name === "ClerkAPIResponseError" &&
-			CLERK_JWT_TEMPLATE_NOT_FOUND.test(String(te.message));
-		if (isMissingJwtTemplate) {
-			token = null;
-		} else {
-			throw tokenErr;
-		}
-	}
-	return { userId: clerkAuth.userId, token };
+const fetchAuth = createServerFn({ method: "GET" }).handler(async () => {
+	return await getToken();
 });
 
 export interface RouterAppContext {
 	convexQueryClient: ConvexQueryClient;
+	isAuthenticated?: boolean;
 	queryClient: QueryClient;
 	token?: string | null;
-	userId?: string | null;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
@@ -83,36 +60,35 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 	component: RootDocument,
 	beforeLoad: async (ctx) => {
-		const { userId, token } = await fetchClerkAuth();
+		const token = await fetchAuth();
 		if (token) {
 			ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
 		}
-		return { userId, token };
+		return { isAuthenticated: !!token, token };
 	},
 });
 
 function RootDocument() {
 	const context = useRouteContext({ from: Route.id });
 	return (
-		<ClerkProvider publishableKey={env.VITE_CLERK_PUBLISHABLE_KEY}>
-			<ConvexProviderWithClerk
-				client={context.convexQueryClient.convexClient}
-				useAuth={useAuth}
-			>
-				<html className="dark" lang="en">
-					<head>
-						<HeadContent />
-					</head>
-					<body>
-						<div className="grid h-svh grid-rows-[auto_1fr]">
-							<Outlet />
-						</div>
-						<Toaster richColors />
-						<TanStackRouterDevtools position="bottom-left" />
-						<Scripts />
-					</body>
-				</html>
-			</ConvexProviderWithClerk>
-		</ClerkProvider>
+		<ConvexBetterAuthProvider
+			authClient={authClient}
+			client={context.convexQueryClient.convexClient}
+			initialToken={context.token}
+		>
+			<html className="dark" lang="en">
+				<head>
+					<HeadContent />
+				</head>
+				<body>
+					<div className="grid h-svh grid-rows-[auto_1fr]">
+						<Outlet />
+					</div>
+					<Toaster richColors />
+					<TanStackRouterDevtools position="bottom-left" />
+					<Scripts />
+				</body>
+			</html>
+		</ConvexBetterAuthProvider>
 	);
 }

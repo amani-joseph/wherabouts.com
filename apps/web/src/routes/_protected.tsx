@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 
 export const Route = createFileRoute("/_protected")({
 	beforeLoad: ({ context }) => {
-		if (!context.userId) {
+		if (!context.isAuthenticated) {
 			throw redirect({ to: "/sign-in/$" });
 		}
 	},
