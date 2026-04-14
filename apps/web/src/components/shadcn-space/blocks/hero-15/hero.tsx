@@ -7,9 +7,7 @@ import {
 	useReducedMotion,
 } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { Marquee } from "@/components/shadcn-space/animations/marquee";
-import ParticleSphereAnimation from "@/components/shadcn-space/blocks/hero-15/particalsphear";
-import { buttonVariants } from "@/components/ui/button";
+import { GlobeDemo } from "@/components/globe-demo";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -245,7 +243,8 @@ function DemoSuggestionRow({
 				x: isSelected ? 4 : 0,
 			}}
 			className={cn(
-				"flex items-start gap-3 rounded-[1.25rem] border px-3 py-3 transition-colors",
+				"items-start gap-3 rounded-[1.15rem] border px-3 py-2.5 transition-colors md:px-3.5",
+				index === 2 ? "hidden md:flex" : "flex",
 				rowClasses
 			)}
 			initial={reduceMotion ? false : { opacity: 0, y: 10 }}
@@ -257,7 +256,7 @@ function DemoSuggestionRow({
 		>
 			<div
 				className={cn(
-					"mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border transition-colors",
+					"mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border transition-colors md:size-8",
 					iconClasses
 				)}
 			>
@@ -269,16 +268,18 @@ function DemoSuggestionRow({
 			</div>
 
 			<div className="min-w-0 flex-1">
-				<p className="truncate text-foreground text-sm md:text-[15px]">
+				<p className="truncate text-[13px] text-foreground md:text-sm">
 					{renderSuggestionLabel(suggestion.label, query)}
 				</p>
-				<p className="mt-1 text-muted-foreground text-xs">{suggestion.meta}</p>
+				<p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground md:text-xs">
+					{suggestion.meta}
+				</p>
 			</div>
 
 			<div className="pt-0.5">
 				<div
 					className={cn(
-						"rounded-full border px-2 py-1 font-medium text-[10px] uppercase tracking-[0.18em] transition-colors",
+						"rounded-full border px-2 py-1 font-medium text-[9px] uppercase tracking-[0.18em] transition-colors md:text-[10px]",
 						pillClasses
 					)}
 				>
@@ -313,7 +314,7 @@ function DemoSuggestionsPanel({
 	return (
 		<motion.div
 			animate={{ opacity: 1, y: 0, scale: 1 }}
-			className="overflow-hidden rounded-[1.75rem] border border-border/80 bg-background/90 p-2 shadow-[0_34px_90px_-45px_rgba(0,0,0,0.95)] backdrop-blur-xl"
+			className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.92),rgba(2,6,23,0.82))] p-2.5 shadow-[0_34px_90px_-48px_rgba(0,0,0,1)] backdrop-blur-xl"
 			exit={{ opacity: 0, y: -8, scale: 0.985 }}
 			initial={{ opacity: 0, y: -10, scale: 0.985 }}
 			transition={{
@@ -321,15 +322,15 @@ function DemoSuggestionsPanel({
 				ease: [0.21, 0.47, 0.32, 0.98],
 			}}
 		>
-			<div className="flex items-center justify-between px-3 pt-1 pb-2">
+			<div className="flex items-center justify-between px-2.5 pt-0.5 pb-2">
 				<div className="flex items-center gap-2">
 					<div className="size-1.5 rounded-full bg-teal-300/80" />
 					<p className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.22em]">
 						Possible addresses
 					</p>
 				</div>
-				<div className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-emerald-300">
-					Developer-ready accuracy
+				<div className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-cyan-300">
+					Exact match confidence
 				</div>
 			</div>
 
@@ -436,7 +437,7 @@ async function playDemoScenario({
 }
 
 function AddressDemoInput() {
-	const shouldReduceMotion = useReducedMotion();
+	const shouldReduceMotion = useReducedMotion() ?? false;
 	const [value, setValue] = useState("");
 	const [scenarioIndex, setScenarioIndex] = useState(0);
 	const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -508,17 +509,15 @@ function AddressDemoInput() {
 	const currentPhase: DemoPhase = shouldReduceMotion ? "resting" : phase;
 
 	return (
-		<div aria-hidden="true" className="mx-auto w-full max-w-md text-left">
-			<div className="relative pb-[13.5rem]">
-				<Search className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
-				<Input
-					aria-label="Example address autocomplete"
-					className="h-11 rounded-full border-border/80 bg-background/80 pr-14 pl-11 text-left text-sm shadow-[0_20px_50px_-28px_rgba(0,0,0,0.85)] backdrop-blur-sm md:h-12 md:text-base"
-					readOnly
-					tabIndex={-1}
-					value={displayValue}
-				/>
-				<div className="absolute inset-y-0 right-3 flex items-center">
+		<div aria-hidden="true" className="mx-auto w-full max-w-xl text-left">
+			<div className="relative h-96 overflow-visible rounded-[2rem] border border-white/10 bg-background/70 p-3 shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl md:p-4">
+				<div className="mb-3 flex items-center justify-between gap-3 px-1">
+					<div className="flex items-center gap-2">
+						<div className="size-1.5 rounded-full bg-cyan-300" />
+						<p className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.22em]">
+							Live address search
+						</p>
+					</div>
 					<div
 						className={cn(
 							"rounded-full border px-2.5 py-1 font-medium text-[10px] uppercase tracking-[0.18em] transition-colors",
@@ -529,18 +528,40 @@ function AddressDemoInput() {
 					</div>
 				</div>
 
-				<div className="absolute inset-x-0 top-full mt-3">
-					<AnimatePresence initial={false}>
-						<DemoSuggestionsPanel
-							highlightedIndex={displayHighlightedIndex}
-							query={displayQuery}
-							reduceMotion={shouldReduceMotion}
-							scenario={displayScenario}
-							selectedIndex={displaySelectedIndex}
-							showPanel={showPanel}
-						/>
-					</AnimatePresence>
+				<div className="relative">
+					<Search className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+					<Input
+						aria-label="Example address autocomplete"
+						className="h-12 rounded-[1.35rem] border-white/10 bg-background/80 pr-4 pl-11 text-left text-sm shadow-[0_18px_40px_-30px_rgba(0,0,0,0.95)] backdrop-blur-sm md:h-13 md:text-[15px]"
+						readOnly
+						tabIndex={-1}
+						value={displayValue}
+					/>
 				</div>
+
+				<AnimatePresence initial={false}>
+					{showPanel ? (
+						<motion.div
+							animate={{ opacity: 1, y: 0 }}
+							className="mt-3"
+							exit={{ opacity: 0, y: -6 }}
+							initial={{ opacity: 0, y: -8 }}
+							transition={{
+								duration: shouldReduceMotion ? 0 : 0.18,
+								ease: [0.21, 0.47, 0.32, 0.98],
+							}}
+						>
+							<DemoSuggestionsPanel
+								highlightedIndex={displayHighlightedIndex}
+								query={displayQuery}
+								reduceMotion={shouldReduceMotion}
+								scenario={displayScenario}
+								selectedIndex={displaySelectedIndex}
+								showPanel={showPanel}
+							/>
+						</motion.div>
+					) : null}
+				</AnimatePresence>
 			</div>
 		</div>
 	);
@@ -551,7 +572,7 @@ export interface BrandList {
 	name: string;
 }
 
-const HeroSection = ({ brandList }: { brandList: BrandList[] }) => {
+const HeroSection = () => {
 	const sectionRef = useRef<HTMLElement>(null);
 	const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
 
@@ -600,14 +621,20 @@ const HeroSection = ({ brandList }: { brandList: BrandList[] }) => {
 	};
 
 	return (
-		<section id="top" ref={sectionRef}>
+		<section className="relative" id="top" ref={sectionRef}>
 			<motion.div
 				animate={isInView ? "visible" : "hidden"}
-				className="relative mx-auto flex max-w-7xl flex-col items-center justify-center gap-6 overflow-hidden px-4 py-7 text-center md:min-h-fit md:gap-12 md:py-24 lg:px-8 xl:px-16"
+				className="relative mx-auto flex min-h-[80vh] max-w-7xl flex-col items-center justify-center gap-4 px-4 py-10 text-center md:min-h-[85vh] md:gap-8 md:py-14 lg:px-8 xl:px-16"
 				initial="hidden"
 				variants={containerVariants}
 			>
-				<div className="relative z-10 flex flex-col items-center justify-center gap-6 text-center">
+				<div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+					<div className="absolute top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl md:h-72 md:w-72" />
+					<div className="absolute bottom-0 left-1/2 h-96 w-208 -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.18),rgba(6,32,86,0.04)_52%,transparent_76%)]" />
+					<div className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-b from-transparent via-background/30 to-background" />
+				</div>
+
+				<div className="relative z-10 flex max-w-3xl flex-col items-center justify-center gap-3 text-center md:gap-4">
 					<motion.div
 						className="flex w-fit items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1"
 						variants={itemVariants}
@@ -618,9 +645,9 @@ const HeroSection = ({ brandList }: { brandList: BrandList[] }) => {
 						</p>
 						<ArrowRight className="text-foreground" size={16} />
 					</motion.div>
-					<div className="flex flex-col items-center gap-4 text-center">
+					<div className="flex flex-col items-center gap-3 text-center">
 						<motion.h1
-							className="text-center font-normal text-3xl text-foreground sm:text-4xl md:text-5xl lg:text-5xl"
+							className="max-w-4xl overflow-visible text-balance rounded-[2rem] border border-white/10 bg-background/70 p-2 text-center font-normal text-3xl text-foreground tracking-tight shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl sm:text-4xl md:p-4 md:text-5xl lg:text-6xl"
 							variants={h1Variants}
 						>
 							{"Build ".split("").map((char, i, chars) => (
@@ -651,7 +678,7 @@ const HeroSection = ({ brandList }: { brandList: BrandList[] }) => {
 							))}
 						</motion.h1>
 						<motion.p
-							className="max-w-lg font-normal text-base text-muted-foreground"
+							className="max-w-2xl text-pretty font-normal text-base text-muted-foreground md:text-lg"
 							variants={itemVariants}
 						>
 							Address autocomplete and geocoding API. Ship location features
@@ -659,12 +686,13 @@ const HeroSection = ({ brandList }: { brandList: BrandList[] }) => {
 						</motion.p>
 					</div>
 					<motion.div
-						className="w-full max-w-lg py-4 md:py-8"
+						className="w-full max-w-2xl pt-2 md:pt-4"
 						variants={itemVariants}
 					>
 						<AddressDemoInput />
 					</motion.div>
-					<motion.div
+				</div>
+				{/* <motion.div
 						className="flex flex-wrap justify-center gap-2"
 						variants={itemVariants}
 					>
@@ -687,9 +715,8 @@ const HeroSection = ({ brandList }: { brandList: BrandList[] }) => {
 							Get API access
 							<ArrowRight className="text-foreground" size={16} />
 						</a>
-					</motion.div>
-				</div>
-				<motion.div
+					</motion.div> */}
+				{/* <motion.div
 					className="relative z-10 flex flex-col items-center justify-center gap-2 overflow-hidden text-center md:mx-auto md:max-w-2xl md:gap-4"
 					variants={itemVariants}
 				>
@@ -713,9 +740,13 @@ const HeroSection = ({ brandList }: { brandList: BrandList[] }) => {
 							</Marquee>
 						</div>
 					)}
-				</motion.div>
-				<div className="absolute z-0 flex justify-center">
-					<ParticleSphereAnimation />
+				</motion.div> */}
+				<div className="pointer-events-none absolute inset-x-0 -bottom-32 z-0 flex justify-center opacity-85">
+					<GlobeDemo
+						className="-translate-x-8 md:-translate-x-12"
+						decorative
+						globeHeightClassName="h-[78rem] md:h-[78rem]"
+					/>
 					<div className="pointer-events-none absolute inset-0 bg-linear-to-b from-background/50 via-transparent to-background" />
 				</div>
 			</motion.div>
