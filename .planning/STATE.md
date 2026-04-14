@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-14)
 Phase: 2
 Plan: Not started
 Status: Executing Phase 01
-Last activity: 2026-04-13
+Last activity: 2026-04-14 - Completed quick task 260414-ght: Realign hero section layout to center the animated address input demo
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -71,6 +71,12 @@ None yet.
 ### Blockers/Concerns
 
 None yet.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260414-ght | Realign hero section layout to center the animated address input demo | 2026-04-14 | b9d5b16 | [260414-ght-realign-hero-section-layout-to-center-th](./quick/260414-ght-realign-hero-section-layout-to-center-th/) |
 
 ## Session Continuity
 
