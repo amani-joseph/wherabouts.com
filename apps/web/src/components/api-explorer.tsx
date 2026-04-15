@@ -1,10 +1,12 @@
 "use client";
 
+import { Link } from "@tanstack/react-router";
 import { Badge } from "@wherabouts.com/ui/components/badge";
 import { Button } from "@wherabouts.com/ui/components/button";
 import {
 	Card,
 	CardContent,
+	CardDescription,
 	CardHeader,
 	CardTitle,
 } from "@wherabouts.com/ui/components/card";
@@ -13,149 +15,44 @@ import {
 	ChevronDownIcon,
 	ChevronRightIcon,
 	CopyIcon,
+	KeyRoundIcon,
 	LoaderIcon,
 	PlayIcon,
+	ShieldCheckIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+	type ApiEndpoint,
+	apiExplorerEndpoints,
+	buildApiExplorerUrl,
+} from "@/lib/api-explorer-endpoints";
+import { orpcClient } from "@/lib/orpc";
 
-type ApiParam = {
-	name: string;
-	type: string;
-	required: boolean;
-	description: string;
-	example?: string;
-};
+type ApiKeyListItem = Awaited<ReturnType<typeof orpcClient.apiKeys.list>>[number];
 
-type ApiEndpoint = {
-	method: "GET" | "POST" | "PUT" | "DELETE";
-	path: string;
-	summary: string;
-	description: string;
-	params: ApiParam[];
-};
+type ExplorerAuthMode = "managed" | "raw";
 
-const endpoints: ApiEndpoint[] = [
-	{
-		method: "GET",
-		path: "/api/v1/addresses/autocomplete",
-		summary: "Autocomplete addresses",
-		description:
-			"Search for addresses matching a partial query string. Returns up to 20 results ordered by relevance.",
-		params: [
-			{
-				name: "q",
-				type: "string",
-				required: true,
-				description: "Search query (minimum 2 characters)",
-				example: "123 Main",
-			},
-			{
-				name: "country",
-				type: "string",
-				required: false,
-				description: "Filter by country code (e.g. AU)",
-				example: "AU",
-			},
-			{
-				name: "state",
-				type: "string",
-				required: false,
-				description: "Filter by state (e.g. VIC, NSW)",
-				example: "VIC",
-			},
-			{
-				name: "limit",
-				type: "number",
-				required: false,
-				description: "Maximum results to return (1-20, default 10)",
-				example: "10",
-			},
-		],
-	},
-	{
-		method: "GET",
-		path: "/api/v1/addresses/{id}",
-		summary: "Get address by ID",
-		description:
-			"Retrieve a single address record by its unique numeric identifier.",
-		params: [
-			{
-				name: "id",
-				type: "number",
-				required: true,
-				description: "Unique address ID",
-				example: "1",
-			},
-		],
-	},
-	{
-		method: "GET",
-		path: "/api/v1/addresses/nearby",
-		summary: "Find nearby addresses",
-		description:
-			"Find addresses within a given radius of a geographic coordinate. Results are ordered by distance.",
-		params: [
-			{
-				name: "lat",
-				type: "number",
-				required: true,
-				description: "Latitude (-90 to 90)",
-				example: "-37.8136",
-			},
-			{
-				name: "lng",
-				type: "number",
-				required: true,
-				description: "Longitude (-180 to 180)",
-				example: "144.9631",
-			},
-			{
-				name: "radius",
-				type: "number",
-				required: false,
-				description: "Search radius in meters (max 50000, default 1000)",
-				example: "500",
-			},
-			{
-				name: "limit",
-				type: "number",
-				required: false,
-				description: "Maximum results to return (1-50, default 10)",
-				example: "10",
-			},
-			{
-				name: "country",
-				type: "string",
-				required: false,
-				description: "Filter by country code",
-				example: "AU",
-			},
-		],
-	},
-	{
-		method: "GET",
-		path: "/api/v1/addresses/reverse",
-		summary: "Reverse geocode",
-		description:
-			"Find the closest address to a given coordinate. Searches within 200 meters and returns the single nearest match.",
-		params: [
-			{
-				name: "lat",
-				type: "number",
-				required: true,
-				description: "Latitude (-90 to 90)",
-				example: "-37.8136",
-			},
-			{
-				name: "lng",
-				type: "number",
-				required: true,
-				description: "Longitude (-180 to 180)",
-				example: "144.9631",
-			},
-		],
-	},
-];
+interface ExplorerAuthState {
+	isReady: boolean;
+	managedKeyId: string;
+	mode: ExplorerAuthMode;
+	rawApiKey: string;
+}
+
+const buildMissingParamError = (
+	missingRequiredParams: ApiEndpoint["params"]
+): string =>
+	`Missing required parameter${missingRequiredParams.length === 1 ? "" : "s"}: ${missingRequiredParams
+		.map((param) => param.name)
+		.join(", ")}`;
+
+const buildAuthNotReadyError = (mode: ExplorerAuthMode): string =>
+	mode === "managed"
+		? "Choose a managed API key before sending a test request."
+		: "Paste a raw API key before sending a test request.";
+
+const getApiKeyLoadErrorMessage = (error: unknown): string =>
+	error instanceof Error ? error.message : "Failed to load managed API keys.";
 
 function methodColor(method: string): string {
 	switch (method) {
@@ -172,59 +69,143 @@ function methodColor(method: string): string {
 	}
 }
 
-function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
+function useExplorerApiKeys() {
+	const [apiKeys, setApiKeys] = useState<ApiKeyListItem[]>([]);
+	const [authMode, setAuthMode] = useState<ExplorerAuthMode>("managed");
+	const [selectedManagedKeyId, setSelectedManagedKeyId] = useState("");
+	const [rawApiKey, setRawApiKey] = useState("");
+	const [loadingKeys, setLoadingKeys] = useState(true);
+	const [keyLoadError, setKeyLoadError] = useState<string | null>(null);
+
+	useEffect(() => {
+		let isMounted = true;
+
+		const loadKeys = async () => {
+			setLoadingKeys(true);
+			setKeyLoadError(null);
+
+			try {
+				const keys = await orpcClient.apiKeys.list();
+				if (!isMounted) {
+					return;
+				}
+
+				setApiKeys(keys);
+				setSelectedManagedKeyId((current) => current || keys[0]?.id || "");
+				if (keys.length === 0) {
+					setAuthMode("raw");
+				}
+			} catch (error) {
+				if (!isMounted) {
+					return;
+				}
+
+				setKeyLoadError(getApiKeyLoadErrorMessage(error));
+			} finally {
+				if (isMounted) {
+					setLoadingKeys(false);
+				}
+			}
+		};
+
+		loadKeys();
+
+		return () => {
+			isMounted = false;
+		};
+	}, []);
+
+	useEffect(() => {
+		if (
+			selectedManagedKeyId &&
+			apiKeys.some((key) => key.id === selectedManagedKeyId)
+		) {
+			return;
+		}
+
+		setSelectedManagedKeyId(apiKeys[0]?.id ?? "");
+	}, [apiKeys, selectedManagedKeyId]);
+
+	return {
+		apiKeys,
+		authMode,
+		keyLoadError,
+		loadingKeys,
+		rawApiKey,
+		selectedManagedKeyId,
+		setAuthMode,
+		setRawApiKey,
+		setSelectedManagedKeyId,
+	};
+}
+
+function EndpointCard({
+	authState,
+	endpoint,
+}: {
+	authState: ExplorerAuthState;
+	endpoint: ApiEndpoint;
+}) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [paramValues, setParamValues] = useState<Record<string, string>>({});
 	const [response, setResponse] = useState<string | null>(null);
 	const [statusCode, setStatusCode] = useState<number | null>(null);
+	const [durationMs, setDurationMs] = useState<number | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [copied, setCopied] = useState(false);
-
-	const buildUrl = () => {
-		let url = endpoint.path;
-
-		// Replace path params like {id}
-		for (const param of endpoint.params) {
-			const pathToken = `{${param.name}}`;
-			if (url.includes(pathToken)) {
-				url = url.replace(pathToken, paramValues[param.name] ?? "");
-			}
-		}
-
-		// Build query string for non-path params
-		const queryParams = endpoint.params.filter(
-			(p) => !endpoint.path.includes(`{${p.name}}`)
-		);
-		const searchParts: string[] = [];
-		for (const param of queryParams) {
-			const value = paramValues[param.name];
-			if (value) {
-				searchParts.push(
-					`${encodeURIComponent(param.name)}=${encodeURIComponent(value)}`
-				);
-			}
-		}
-
-		if (searchParts.length > 0) {
-			url = `${url}?${searchParts.join("&")}`;
-		}
-
-		return url;
-	};
+	const requestUrl = buildApiExplorerUrl(endpoint, paramValues);
+	const missingRequiredParams = endpoint.params.filter(
+		(param) => param.required && !paramValues[param.name]?.trim()
+	);
 
 	const handleSend = async () => {
+		if (!authState.isReady) {
+			setStatusCode(0);
+			setDurationMs(null);
+			setResponse(
+				JSON.stringify(
+					{ error: buildAuthNotReadyError(authState.mode) },
+					null,
+					2
+				)
+			);
+			return;
+		}
+
+		if (missingRequiredParams.length > 0) {
+			setStatusCode(0);
+			setDurationMs(null);
+			setResponse(
+				JSON.stringify(
+					{ error: buildMissingParamError(missingRequiredParams) },
+					null,
+					2
+				)
+			);
+			return;
+		}
+
 		setLoading(true);
 		setResponse(null);
 		setStatusCode(null);
+		setDurationMs(null);
 
 		try {
-			const url = buildUrl();
-			const res = await fetch(url);
-			setStatusCode(res.status);
-			const data = await res.json();
-			setResponse(JSON.stringify(data, null, 2));
+			const result = await orpcClient.apiExplorer.sendRequest({
+				authMode: authState.mode,
+				endpointId: endpoint.id,
+				managedKeyId:
+					authState.mode === "managed" ? authState.managedKeyId : undefined,
+				paramValues,
+				rawApiKey:
+					authState.mode === "raw" ? authState.rawApiKey : undefined,
+			});
+			setStatusCode(result.statusCode);
+			setDurationMs(result.durationMs);
+			setResponse(JSON.stringify(result.body, null, 2));
 		} catch (err) {
 			setStatusCode(0);
+			setDurationMs(null);
 			setResponse(
 				JSON.stringify(
 					{ error: err instanceof Error ? err.message : "Request failed" },
@@ -348,21 +329,49 @@ function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
 
 					{/* Request URL Preview */}
 					<div className="mb-4 rounded-md bg-muted/50 p-3">
-						<div className="mb-1 font-medium text-muted-foreground text-xs uppercase tracking-wider">
+						<div className="mb-1 flex items-center justify-between gap-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">
 							Request URL
+							<Badge className="gap-1" variant="outline">
+								<ShieldCheckIcon className="size-3" />
+								Test request
+							</Badge>
 						</div>
-						<code className="break-all font-mono text-sm">{buildUrl()}</code>
+						<code className="break-all font-mono text-sm">{requestUrl}</code>
 					</div>
 
 					{/* Send Button */}
-					<Button className="mb-4" disabled={loading} onClick={handleSend}>
-						{loading ? (
-							<LoaderIcon className="size-4 animate-spin" />
-						) : (
-							<PlayIcon className="size-4" />
-						)}
-						{loading ? "Sending..." : "Send Request"}
-					</Button>
+					<div className="mb-4 flex flex-col gap-3">
+						<div className="flex flex-wrap items-center gap-2">
+							<Badge variant="secondary">
+								{authState.mode === "managed"
+									? "Managed key proxy"
+									: "Raw key proxy"}
+							</Badge>
+							<Badge variant="outline">Usage: explorer_test</Badge>
+						</div>
+						<Button
+							disabled={
+								loading ||
+								!authState.isReady ||
+								missingRequiredParams.length > 0
+							}
+							onClick={handleSend}
+						>
+							{loading ? (
+								<LoaderIcon className="size-4 animate-spin" />
+							) : (
+								<PlayIcon className="size-4" />
+							)}
+							{loading ? "Sending..." : "Send Test Request"}
+						</Button>
+						{missingRequiredParams.length > 0 ? (
+							<p className="text-muted-foreground text-xs">
+								Add{" "}
+								{missingRequiredParams.map((param) => param.name).join(", ")}{" "}
+								before sending this request.
+							</p>
+						) : null}
+					</div>
 
 					{/* Response */}
 					{response !== null && (
@@ -383,6 +392,11 @@ function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
 										>
 											{statusCode === 0 ? "Error" : statusCode}
 										</Badge>
+									)}
+									{durationMs === null ? null : (
+										<span className="text-muted-foreground text-xs">
+											{durationMs} ms
+										</span>
 									)}
 								</div>
 								<Button
@@ -408,6 +422,48 @@ function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
 
 export function ApiExplorer() {
 	const baseUrl = typeof window === "undefined" ? "" : window.location.origin;
+	const {
+		apiKeys,
+		authMode,
+		keyLoadError,
+		loadingKeys,
+		rawApiKey,
+		selectedManagedKeyId,
+		setAuthMode,
+		setRawApiKey,
+		setSelectedManagedKeyId,
+	} = useExplorerApiKeys();
+
+	const selectedManagedKey = useMemo(
+		() => apiKeys.find((key) => key.id === selectedManagedKeyId) ?? null,
+		[apiKeys, selectedManagedKeyId]
+	);
+	const authState: ExplorerAuthState = {
+		isReady:
+			authMode === "managed"
+				? Boolean(selectedManagedKeyId)
+				: rawApiKey.trim().length > 0,
+		managedKeyId: selectedManagedKeyId,
+		mode: authMode,
+		rawApiKey,
+	};
+	const managedSummary = selectedManagedKey
+		? `${selectedManagedKey.name} (${selectedManagedKey.displayLabel})`
+		: "Choose a managed API key";
+	let managedPlaceholder = "Choose an API key";
+	if (loadingKeys) {
+		managedPlaceholder = "Loading API keys...";
+	} else if (apiKeys.length === 0) {
+		managedPlaceholder = "No active API keys yet";
+	}
+
+	let managedStatusText = `Current proxy key: ${managedSummary}`;
+	if (keyLoadError) {
+		managedStatusText = keyLoadError;
+	} else if (apiKeys.length === 0) {
+		managedStatusText =
+			"Create an API key first, or switch to raw key mode for a temporary manual test.";
+	}
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -426,10 +482,116 @@ export function ApiExplorer() {
 				</CardContent>
 			</Card>
 
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-base">Interactive testing auth</CardTitle>
+					<CardDescription>
+						Use a managed key by default so the explorer can proxy requests
+						safely without asking for the raw secret. All explorer traffic is
+						labeled as test traffic and tracked separately from production
+						usage.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="flex flex-wrap gap-2">
+						<Button
+							onClick={() => setAuthMode("managed")}
+							size="sm"
+							variant={authMode === "managed" ? "default" : "outline"}
+						>
+							<KeyRoundIcon className="size-4" />
+							Managed key
+						</Button>
+						<Button
+							onClick={() => setAuthMode("raw")}
+							size="sm"
+							variant={authMode === "raw" ? "default" : "outline"}
+						>
+							<ShieldCheckIcon className="size-4" />
+							Raw key
+						</Button>
+					</div>
+
+					<div className="rounded-lg border bg-muted/30 p-4">
+						<div className="mb-2 flex flex-wrap items-center gap-2">
+							<Badge variant="secondary">
+								{authMode === "managed" ? "Recommended" : "Temporary fallback"}
+							</Badge>
+							<Badge variant="outline">Traffic type: explorer_test</Badge>
+						</div>
+						<p className="text-muted-foreground text-sm leading-6">
+							{authMode === "managed"
+								? "Choose one of your active API keys. The explorer sends the request through an authenticated server-side proxy, so your raw key never has to be pasted for routine testing."
+								: "Paste a raw API key only for manual validation. The key is kept in this page state only and is cleared when the tab refreshes or closes."}
+						</p>
+					</div>
+
+					{authMode === "managed" ? (
+						<div className="space-y-3">
+							<div className="space-y-2">
+								<label
+									className="font-medium text-sm"
+									htmlFor="managed-api-key"
+								>
+									Managed API key
+								</label>
+								<select
+									className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+									disabled={loadingKeys || apiKeys.length === 0}
+									id="managed-api-key"
+									onChange={(event) =>
+										setSelectedManagedKeyId(event.target.value)
+									}
+									value={selectedManagedKeyId}
+								>
+									<option value="">{managedPlaceholder}</option>
+									{apiKeys.map((apiKey) => (
+										<option key={apiKey.id} value={apiKey.id}>
+											{apiKey.name} ({apiKey.displayLabel})
+										</option>
+									))}
+								</select>
+							</div>
+							<p className="text-muted-foreground text-xs">
+								{managedStatusText}
+							</p>
+							{apiKeys.length === 0 ? (
+								<Link to="/api-keys">
+									<Button size="sm" variant="outline">
+										Create API key
+									</Button>
+								</Link>
+							) : null}
+						</div>
+					) : (
+						<div className="space-y-3">
+							<div className="space-y-2">
+								<label className="font-medium text-sm" htmlFor="raw-api-key">
+									Raw API key
+								</label>
+								<Input
+									id="raw-api-key"
+									onChange={(event) => setRawApiKey(event.target.value)}
+									placeholder="wh_<id>_<secret>"
+									type="password"
+									value={rawApiKey}
+								/>
+							</div>
+							<p className="text-muted-foreground text-xs">
+								Raw keys are never saved to the database from this explorer. Use
+								this only when you need to verify a specific bearer token
+								manually.
+							</p>
+						</div>
+					)}
+				</CardContent>
+			</Card>
+
 			{/* Endpoints */}
 			<div className="flex flex-col gap-2">
-				{endpoints.map((endpoint) => (
+				{apiExplorerEndpoints.map((endpoint) => (
 					<EndpointCard
+						authState={authState}
 						endpoint={endpoint}
 						key={`${endpoint.method}-${endpoint.path}`}
 					/>
