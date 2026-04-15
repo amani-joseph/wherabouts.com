@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button } from "@wherabouts.com/ui/components/button";
+import { Badge } from "@wherabouts.com/ui/components/badge";
+import { Button, buttonVariants } from "@wherabouts.com/ui/components/button";
 import {
 	Card,
 	CardContent,
@@ -31,6 +32,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import type { ApiKeyListItem } from "@/lib/api-keys-server";
 import { createApiKey, listApiKeys, revokeApiKey } from "@/lib/api-keys-server";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_protected/api-keys")({
 	component: RouteComponent,
@@ -85,7 +87,7 @@ function KeyRow({
 }) {
 	const [revoking, setRevoking] = useState(false);
 
-	const handleRevoke = async () => {
+	const handleRevoke = () => {
 		setRevoking(true);
 		try {
 			onRevoke(apiKey.id);
@@ -100,8 +102,19 @@ function KeyRow({
 				<div className="flex size-9 items-center justify-center rounded-md bg-muted">
 					<KeyRoundIcon className="size-4 text-muted-foreground" />
 				</div>
-				<div>
-					<p className="font-medium text-sm">{apiKey.name}</p>
+				<div className="space-y-1">
+					<div className="flex flex-wrap items-center gap-2">
+						<p className="font-medium text-sm">{apiKey.name}</p>
+						<Badge
+							variant={
+								apiKey.assignmentStatus === "assigned" ? "default" : "secondary"
+							}
+						>
+							{apiKey.assignmentStatus === "assigned"
+								? `In use by ${apiKey.assignedProjectName ?? "project"}`
+								: "Unassigned"}
+						</Badge>
+					</div>
 					<p className="font-mono text-muted-foreground text-xs">
 						{apiKey.displayLabel}
 					</p>
@@ -170,11 +183,11 @@ function CreateKeyDialog({ onCreated }: { onCreated: () => void }) {
 			onOpenChange={(v) => (v ? setOpen(true) : handleClose())}
 			open={open}
 		>
-			<DialogTrigger asChild>
-				<Button>
-					<PlusIcon className="size-4" />
-					Create Key
-				</Button>
+			<DialogTrigger
+				className={cn(buttonVariants({ variant: "default" }), "gap-2")}
+			>
+				<PlusIcon className="size-4" />
+				Create Key
 			</DialogTrigger>
 			<DialogContent>
 				{newKey ? (
@@ -210,7 +223,8 @@ function CreateKeyDialog({ onCreated }: { onCreated: () => void }) {
 						<DialogHeader>
 							<DialogTitle>Create API Key</DialogTitle>
 							<DialogDescription>
-								Give your key a name to identify it later.
+								Give your key a name to identify it later. Keys created here
+								stay unassigned until you attach them to a project.
 							</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-3">
@@ -321,7 +335,8 @@ function RouteComponent() {
 						</p>
 						<p className="text-amber-700 text-xs dark:text-amber-300">
 							Never expose keys in client-side code or public repositories. Use
-							environment variables and server-side requests.
+							environment variables and server-side requests. Revoking a key
+							assigned to a project will leave that project unassigned.
 						</p>
 					</div>
 				</CardContent>
@@ -345,25 +360,26 @@ function RouteComponent() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					{loading ? (
-						<KeysLoadingSkeleton />
-					) : keys.length === 0 ? (
+					{loading ? <KeysLoadingSkeleton /> : null}
+					{!loading && keys.length === 0 ? (
 						<div className="flex flex-col items-center gap-3 py-8 text-center">
 							<KeyRoundIcon className="size-10 text-muted-foreground" />
 							<div>
 								<p className="font-medium text-sm">No API keys yet</p>
 								<p className="text-muted-foreground text-xs">
-									Create your first key to start making API requests
+									Create your first key to start making API requests or attach
+									it to a project later
 								</p>
 							</div>
 						</div>
-					) : (
+					) : null}
+					{!loading && keys.length > 0 ? (
 						<div className="space-y-3">
 							{keys.map((key) => (
 								<KeyRow apiKey={key} key={key.id} onRevoke={handleRevoke} />
 							))}
 						</div>
-					)}
+					) : null}
 				</CardContent>
 			</Card>
 

@@ -14,17 +14,15 @@ export const apiKeys = pgTable(
 	"api_keys",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		clerkUserId: text("clerk_user_id").notNull(),
+		userId: text("user_id").notNull(),
 		name: text("name").notNull(),
 		secretHash: text("secret_hash").notNull(),
 		secretSalt: text("secret_salt").notNull(),
 		/** Last 4 characters of the secret segment for display (e.g. wh_<uuid>_...abcd) */
 		secretDisplaySuffix: text("secret_display_suffix").notNull(),
-		projectId: uuid("project_id")
-			.notNull()
-			.references(() => projects.id, {
-				onDelete: "cascade",
-			}),
+		projectId: uuid("project_id").references(() => projects.id, {
+			onDelete: "cascade",
+		}),
 		createdAt: timestamp("created_at", { withTimezone: true })
 			.notNull()
 			.defaultNow(),
@@ -33,7 +31,7 @@ export const apiKeys = pgTable(
 		lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
 	},
 	(table) => [
-		index("idx_api_keys_clerk_user_id").on(table.clerkUserId),
+		index("idx_api_keys_user_id").on(table.userId),
 		index("idx_api_keys_project_id").on(table.projectId),
 	]
 );
@@ -45,23 +43,36 @@ export const apiUsageDaily = pgTable(
 		apiKeyId: uuid("api_key_id")
 			.notNull()
 			.references(() => apiKeys.id, { onDelete: "cascade" }),
-		clerkUserId: text("clerk_user_id").notNull(),
+		userId: text("user_id").notNull(),
 		projectId: uuid("project_id").references(() => projects.id, {
 			onDelete: "cascade",
 		}),
 		usageDate: date("usage_date", { mode: "string" }).notNull(),
 		endpoint: text("endpoint").notNull(),
+		requestSource: text("request_source").notNull().default("production"),
 		requestCount: integer("request_count").notNull().default(0),
 	},
 	(table) => [
 		uniqueIndex("api_usage_daily_key_date_endpoint").on(
 			table.apiKeyId,
 			table.usageDate,
-			table.endpoint
+			table.endpoint,
+			table.requestSource
 		),
-		index("idx_api_usage_daily_clerk_user_id").on(table.clerkUserId),
+		index("idx_api_usage_daily_user_id").on(table.userId),
 		index("idx_api_usage_daily_api_key_id").on(table.apiKeyId),
 		index("idx_api_usage_daily_project_id").on(table.projectId),
+		index("idx_api_usage_daily_user_date").on(table.userId, table.usageDate),
+		index("idx_api_usage_daily_user_date_source").on(
+			table.userId,
+			table.usageDate,
+			table.requestSource
+		),
+		index("idx_api_usage_daily_user_date_endpoint").on(
+			table.userId,
+			table.usageDate,
+			table.endpoint
+		),
 	]
 );
 

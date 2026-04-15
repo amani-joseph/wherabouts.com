@@ -1,0 +1,26 @@
+{
+  "name": "@wherabouts.com/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@orpc/server": "^1.9.0",
+    "better-auth": "^1.5.6",
+    "drizzle-orm": "^0.44.7",
+    "@wherabouts.com/database": "workspace:*",
+    "@wherabouts.com/env": "workspace:*",
+    "hono": "^4.10.4",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@wherabouts.com/config": "workspace:*",
+    "typescript": "^5"
+  }
+}
