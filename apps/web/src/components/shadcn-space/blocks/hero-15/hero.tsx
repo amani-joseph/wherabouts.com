@@ -248,7 +248,6 @@ function DemoSuggestionRow({
 				rowClasses
 			)}
 			initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-			layout
 			transition={{
 				duration: reduceMotion ? 0 : 0.18,
 				ease: [0.21, 0.47, 0.32, 0.98],
@@ -510,7 +509,7 @@ function AddressDemoInput() {
 
 	return (
 		<div aria-hidden="true" className="mx-auto w-full max-w-xl text-left">
-			<div className="relative h-auto min-h-[22rem] overflow-visible rounded-[2rem] border border-white/10 bg-background/70 p-2.5 shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl md:min-h-[24rem] md:p-4">
+			<div className="relative h-[22rem] overflow-visible rounded-[2rem] border border-white/10 bg-background/70 p-2.5 shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl md:h-[24rem] md:p-4">
 				<div className="mb-3 flex items-center justify-between gap-3 px-1">
 					<div className="flex items-center gap-2">
 						<div className="size-1.5 rounded-full bg-cyan-300" />
@@ -539,29 +538,31 @@ function AddressDemoInput() {
 					/>
 				</div>
 
-				<AnimatePresence initial={false}>
-					{showPanel ? (
-						<motion.div
-							animate={{ opacity: 1, y: 0 }}
-							className="mt-3"
-							exit={{ opacity: 0, y: -6 }}
-							initial={{ opacity: 0, y: -8 }}
-							transition={{
-								duration: shouldReduceMotion ? 0 : 0.18,
-								ease: [0.21, 0.47, 0.32, 0.98],
-							}}
-						>
-							<DemoSuggestionsPanel
-								highlightedIndex={displayHighlightedIndex}
-								query={displayQuery}
-								reduceMotion={shouldReduceMotion}
-								scenario={displayScenario}
-								selectedIndex={displaySelectedIndex}
-								showPanel={showPanel}
-							/>
-						</motion.div>
-					) : null}
-				</AnimatePresence>
+				<div className="relative">
+					<AnimatePresence initial={false}>
+						{showPanel ? (
+							<motion.div
+								animate={{ opacity: 1, y: 0 }}
+								className="absolute inset-x-0 top-3"
+								exit={{ opacity: 0, y: -6 }}
+								initial={{ opacity: 0, y: -8 }}
+								transition={{
+									duration: shouldReduceMotion ? 0 : 0.18,
+									ease: [0.21, 0.47, 0.32, 0.98],
+								}}
+							>
+								<DemoSuggestionsPanel
+									highlightedIndex={displayHighlightedIndex}
+									query={displayQuery}
+									reduceMotion={shouldReduceMotion}
+									scenario={displayScenario}
+									selectedIndex={displaySelectedIndex}
+									showPanel={showPanel}
+								/>
+							</motion.div>
+						) : null}
+					</AnimatePresence>
+				</div>
 			</div>
 		</div>
 	);
@@ -662,7 +663,7 @@ const HeroSection = () => {
 								))}
 						</motion.h1>
 						<motion.p
-							className="max-w-2xl text-pretty font-normal text-sm text-foreground sm:text-base md:text-lg"
+							className="max-w-2xl text-pretty font-normal text-foreground text-sm sm:text-base md:text-lg"
 							variants={itemVariants}
 						>
 							Address autocomplete and geocoding API. Ship location features
