@@ -66,13 +66,29 @@ Plans:
 Plans:
 - [ ] 03-01: TBD
 
+### Phase 4: Implement APIs using oRPC with mutations and procedures
+**Goal**: All data fetching and mutations consolidated through oRPC procedures with TanStack Query integration -- no createServerFn wrappers or thin proxy files remain
+**Depends on**: Phase 3
+**Requirements**: ORPC-01, ORPC-02, ORPC-03, ORPC-04
+**Success Criteria** (what must be TRUE):
+  1. API explorer requests execute through an oRPC protectedProcedure
+  2. TanStack Query utils (createTanstackQueryUtils) are wired up for cache key management
+  3. All route components fetch data via orpcClient directly (no thin wrapper files)
+  4. Only one createServerFn remains (fetchSession in __root.tsx for SSR optimization)
+**Plans**: 2 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Create api-explorer oRPC procedure and wire TanStack Query utils
+- [ ] 04-02-PLAN.md — Remove thin wrapper files and migrate all consumers to direct orpcClient
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. BetterAuth Infrastructure | 0/3 | In progress | - |
 | 2. Auth Flows | 0/3 | Not started | - |
 | 3. Legacy Auth Removal | 0/1 | Not started | - |
+| 4. oRPC API Layer | 0/2 | Not started | - |

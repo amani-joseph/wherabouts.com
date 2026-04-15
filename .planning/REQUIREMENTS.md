@@ -33,6 +33,13 @@ Requirements for the migration. Each maps to roadmap phases.
 - [ ] **MIGR-03**: All legacy auth environment variables removed
 - [ ] **MIGR-04**: User profile/metadata accessible via BetterAuth
 
+### oRPC API Layer
+
+- [ ] **ORPC-01**: API explorer requests execute through oRPC procedure instead of createServerFn
+- [ ] **ORPC-02**: TanStack Query utils wired up via createTanstackQueryUtils for cache key management
+- [ ] **ORPC-03**: All data fetching uses orpcClient directly (no thin wrapper files)
+- [ ] **ORPC-04**: Only one justified createServerFn remains (fetchSession in __root.tsx for SSR)
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -73,12 +80,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MIGR-02 | Phase 3 | Pending |
 | MIGR-03 | Phase 3 | Pending |
 | MIGR-04 | Phase 3 | Pending |
+| ORPC-01 | Phase 4 | Pending |
+| ORPC-02 | Phase 4 | Pending |
+| ORPC-03 | Phase 4 | Pending |
+| ORPC-04 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 14 total
-- Mapped to phases: 14
+- v1 requirements: 18 total
+- Mapped to phases: 18
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-14*
-*Last updated: 2026-04-14 after roadmap creation*
+*Last updated: 2026-04-15 after Phase 4 planning*
