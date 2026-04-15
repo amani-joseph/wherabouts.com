@@ -78,7 +78,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Create api-explorer oRPC procedure and wire TanStack Query utils
+- [x] 04-01-PLAN.md — Create api-explorer oRPC procedure and wire TanStack Query utils
 - [ ] 04-02-PLAN.md — Remove thin wrapper files and migrate all consumers to direct orpcClient
 
 ## Progress
