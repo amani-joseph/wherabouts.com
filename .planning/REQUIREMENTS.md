@@ -37,8 +37,8 @@ Requirements for the migration. Each maps to roadmap phases.
 
 - [x] **ORPC-01**: API explorer requests execute through oRPC procedure instead of createServerFn
 - [x] **ORPC-02**: TanStack Query utils wired up via createTanstackQueryUtils for cache key management
-- [ ] **ORPC-03**: All data fetching uses orpcClient directly (no thin wrapper files)
-- [ ] **ORPC-04**: Only one justified createServerFn remains (fetchSession in __root.tsx for SSR)
+- [x] **ORPC-03**: All data fetching uses orpcClient directly (no thin wrapper files)
+- [x] **ORPC-04**: Only one justified createServerFn remains (fetchSession in __root.tsx for SSR)
 
 ## v2 Requirements
 
@@ -82,8 +82,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MIGR-04 | Phase 3 | Pending |
 | ORPC-01 | Phase 4 | Complete |
 | ORPC-02 | Phase 4 | Complete |
-| ORPC-03 | Phase 4 | Pending |
-| ORPC-04 | Phase 4 | Pending |
+| ORPC-03 | Phase 4 | Complete |
+| ORPC-04 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 18 total
