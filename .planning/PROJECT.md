@@ -1,8 +1,8 @@
-# Wherabouts.com — Clerk to BetterAuth Migration
+# Wherabouts.com — BetterAuth Migration
 
 ## What This Is
 
-Wherabouts.com is an existing application built on TanStack Start + Convex. This project migrates the authentication system from Clerk (hosted, third-party) to BetterAuth (self-hosted, open-source), giving full ownership of auth data and infrastructure. The mydeffo.com-web project serves as architectural inspiration for BetterAuth patterns.
+Wherabouts.com is an existing application built on TanStack Start + Convex. This project uses BetterAuth (self-hosted, open-source) for authentication, giving full ownership of auth data and infrastructure. The mydeffo.com-web project serves as architectural inspiration for BetterAuth patterns.
 
 ## Core Value
 
@@ -12,19 +12,19 @@ Users can authenticate seamlessly — login, signup, OAuth, and session persiste
 
 ### Validated
 
-- ✓ Email/password authentication — existing (Clerk)
-- ✓ OAuth login (Google, GitHub) — existing (Clerk)
-- ✓ Session management and persistence — existing (Clerk)
-- ✓ User profiles and metadata — existing (Clerk)
+- ✓ Email/password authentication — existing
+- ✓ OAuth login (Google, GitHub) — existing
+- ✓ Session management and persistence — existing
+- ✓ User profiles and metadata — existing
 
 ### Active
 
-- [ ] Replace Clerk with BetterAuth for email/password authentication
-- [ ] Replace Clerk OAuth with BetterAuth OAuth (Google, GitHub)
+- [ ] Replace legacy email/password auth with BetterAuth
+- [ ] Replace legacy OAuth with BetterAuth OAuth (Google, GitHub)
 - [ ] Migrate session management to BetterAuth
 - [ ] Store auth data (users, sessions) in Convex
-- [ ] Migrate user profiles/metadata from Clerk to BetterAuth
-- [ ] Remove all Clerk dependencies and code
+- [ ] Migrate user profiles/metadata to BetterAuth
+- [ ] Remove all legacy auth dependencies and code
 - [ ] Adapt BetterAuth patterns from mydeffo.com-web for TanStack Start
 
 ### Out of Scope
@@ -37,7 +37,7 @@ Users can authenticate seamlessly — login, signup, OAuth, and session persiste
 ## Context
 
 - **Current stack:** TanStack Start frontend, Convex backend
-- **Current auth:** Clerk (email/password, Google OAuth, GitHub OAuth, sessions, user profiles)
+- **Current auth:** BetterAuth (email/password, Google OAuth, GitHub OAuth, sessions, user profiles)
 - **Reference project:** `/Users/mac/Developer/projects/mydeffo.com-web` — has working BetterAuth implementation
 - **Key adaptation needed:** mydeffo.com-web is likely a different framework; patterns must be adapted for TanStack Start's routing, server functions, and middleware
 - **Convex integration:** Auth data (users, sessions) should live in Convex, not a separate database
@@ -46,8 +46,8 @@ Users can authenticate seamlessly — login, signup, OAuth, and session persiste
 
 - **Stack:** Must remain on TanStack Start + Convex — no framework changes
 - **Data storage:** Auth data must be stored in Convex (not a separate DB)
-- **Feature parity:** All current Clerk auth features must work identically on BetterAuth
-- **Zero Clerk residue:** Full replacement — no Clerk code or dependency should remain
+- **Feature parity:** Existing auth features must work identically on BetterAuth
+- **Zero legacy auth residue:** Full replacement — no legacy auth code or dependency should remain
 
 ## Key Decisions
 
@@ -75,4 +75,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 after initialization*
+*Last updated: 2026-04-15 after Phase 4 completion — oRPC API migration complete*
