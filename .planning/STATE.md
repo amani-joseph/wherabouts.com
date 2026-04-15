@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-14)
 Phase: 2
 Plan: Not started
 Status: Executing Phase 01
-Last activity: 2026-04-14 - Completed quick task 260414-ght: Realign hero section layout to center the animated address input demo
+Last activity: 2026-04-15 - Completed quick task 260415-hwm: Fix hero section mobile responsiveness and viewport fitting
 
 Progress: [░░░░░░░░░░] 0%
 
