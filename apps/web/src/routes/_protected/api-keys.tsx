@@ -30,9 +30,10 @@ import {
 	TrashIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import type { ApiKeyListItem } from "@/lib/api-keys-server";
-import { createApiKey, listApiKeys, revokeApiKey } from "@/lib/api-keys-server";
+import { orpcClient } from "@/lib/orpc";
 import { cn } from "@/lib/utils";
+
+type ApiKeyListItem = Awaited<ReturnType<typeof orpcClient.apiKeys.list>>[number];
 
 export const Route = createFileRoute("/_protected/api-keys")({
 	component: RouteComponent,
@@ -161,7 +162,7 @@ function CreateKeyDialog({ onCreated }: { onCreated: () => void }) {
 		setCreating(true);
 		setError(null);
 		try {
-			const result = await createApiKey({ data: { name: name.trim() } });
+			const result = await orpcClient.apiKeys.create({ name: name.trim() });
 			setNewKey(result.key);
 			onCreated();
 		} catch (err) {
@@ -291,7 +292,7 @@ function RouteComponent() {
 
 	const fetchKeys = useCallback(async () => {
 		try {
-			const result = await listApiKeys();
+			const result = await orpcClient.apiKeys.list();
 			setKeys(result);
 			setError(null);
 		} catch (err) {
@@ -307,7 +308,7 @@ function RouteComponent() {
 
 	const handleRevoke = async (id: string) => {
 		try {
-			await revokeApiKey({ data: { id } });
+			await orpcClient.apiKeys.revoke({ id });
 			setKeys((prev) => prev.filter((k) => k.id !== id));
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to revoke key");
@@ -392,7 +393,7 @@ function RouteComponent() {
 				</CardHeader>
 				<CardContent>
 					<pre className="overflow-x-auto rounded-lg bg-muted p-4 font-mono text-sm">
-						<code>{`curl -X GET "https://api.wherabouts.com/v1/autocomplete?q=123+Main" \\
+						<code>{`curl -X GET "https://api.wherabouts.com/api/v1/addresses/autocomplete?q=123+Main&country=AU" \\
   -H "Authorization: Bearer YOUR_API_KEY"`}</code>
 					</pre>
 				</CardContent>

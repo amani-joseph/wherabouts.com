@@ -43,14 +43,11 @@ import {
 	useMemo,
 	useState,
 } from "react";
-import type { ApiKeyListItem, CreateApiKeyResult } from "@/lib/api-keys-server";
-import {
-	assignProjectApiKey,
-	createProject,
-	listProjectApiKeyOptions,
-	listProjects,
-	type ProjectListItem,
-} from "@/lib/projects-server";
+import { orpcClient } from "@/lib/orpc";
+
+type ApiKeyListItem = Awaited<ReturnType<typeof orpcClient.apiKeys.list>>[number];
+type CreateApiKeyResult = Awaited<ReturnType<typeof orpcClient.apiKeys.create>>;
+type ProjectListItem = Awaited<ReturnType<typeof orpcClient.projects.list>>[number];
 
 export const Route = createFileRoute("/_protected/projects")({
 	component: RouteComponent,
@@ -148,14 +145,12 @@ function CreateProjectDialog({
 		setError(null);
 
 		try {
-			const result = await createProject({
-				data: {
-					name: name.trim(),
-					selectedApiKeyId:
-						selectedApiKeyId === AUTO_GENERATE_VALUE
-							? undefined
-							: selectedApiKeyId,
-				},
+			const result = await orpcClient.projects.create({
+				name: name.trim(),
+				selectedApiKeyId:
+					selectedApiKeyId === AUTO_GENERATE_VALUE
+						? undefined
+						: selectedApiKeyId,
 			});
 
 			await onCreated();
@@ -347,11 +342,9 @@ function AssignApiKeyDialog({
 		setError(null);
 
 		try {
-			await assignProjectApiKey({
-				data: {
-					projectId: project.id,
-					apiKeyId: selectedApiKeyId,
-				},
+			await orpcClient.projects.assignApiKey({
+				projectId: project.id,
+				apiKeyId: selectedApiKeyId,
 			});
 			await onAssigned();
 			setOpen(false);
@@ -579,8 +572,8 @@ function RouteComponent() {
 	const fetchData = useCallback(async () => {
 		try {
 			const [projectResults, keyResults] = await Promise.all([
-				listProjects(),
-				listProjectApiKeyOptions(),
+				orpcClient.projects.list(),
+				orpcClient.projects.listApiKeyOptions(),
 			]);
 			setProjects(projectResults);
 			setApiKeyOptions(keyResults);

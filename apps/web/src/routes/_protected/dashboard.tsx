@@ -1,4 +1,3 @@
-import { useUser } from "@clerk/tanstack-react-start";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Badge } from "@wherabouts.com/ui/components/badge";
 import { Button } from "@wherabouts.com/ui/components/button";
@@ -21,9 +20,11 @@ import {
 	RocketIcon,
 	ZapIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import type { DashboardStats } from "@/lib/dashboard-server";
-import { getDashboardStats } from "@/lib/dashboard-server";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { useSession } from "@/lib/auth-client";
+import { orpcClient } from "@/lib/orpc";
+
+type DashboardStats = Awaited<ReturnType<typeof orpcClient.dashboard.getStats>>;
 
 export const Route = createFileRoute("/_protected/dashboard")({
 	component: RouteComponent,
@@ -107,7 +108,7 @@ function EmptyDashboard() {
 
 function DashboardContent({ stats }: { stats: DashboardStats }) {
 	const usagePct = Math.min((stats.recentRequests / PLAN_LIMIT) * 100, 100);
-	const hasUsage = stats.totalRequests > 0;
+	const hasUsage = stats.recentRequests > 0;
 
 	return (
 		<>
@@ -184,7 +185,7 @@ function DashboardContent({ stats }: { stats: DashboardStats }) {
 					<CardTitle className="text-base">Monthly Usage</CardTitle>
 					<CardDescription>
 						{stats.recentRequests.toLocaleString()} /{" "}
-						{PLAN_LIMIT.toLocaleString()} requests used this period
+						{PLAN_LIMIT.toLocaleString()} production requests used this period
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -195,6 +196,31 @@ function DashboardContent({ stats }: { stats: DashboardStats }) {
 							{(PLAN_LIMIT - stats.recentRequests).toLocaleString()} remaining
 						</span>
 					</div>
+				</CardContent>
+			</Card>
+
+			<Card>
+				<CardHeader className="pb-3">
+					<CardTitle className="text-base">Explorer Test Traffic</CardTitle>
+					<CardDescription>
+						Interactive API explorer requests are counted separately from
+						production usage.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="flex items-center justify-between gap-4">
+					<div>
+						<p className="font-bold text-2xl">
+							{stats.explorerTestRequests.toLocaleString()}
+						</p>
+						<p className="text-muted-foreground text-xs">
+							test requests in the last 30 days
+						</p>
+					</div>
+					<Link to="/api-docs">
+						<Button size="sm" variant="outline">
+							API Explorer
+						</Button>
+					</Link>
 				</CardContent>
 			</Card>
 
@@ -258,7 +284,9 @@ function DashboardContent({ stats }: { stats: DashboardStats }) {
 								</Button>
 							</Link>
 						</div>
-						<CardDescription>Request distribution (30 days)</CardDescription>
+						<CardDescription>
+							Production request distribution (30 days)
+						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						{hasUsage ? (
@@ -302,11 +330,14 @@ function DashboardContent({ stats }: { stats: DashboardStats }) {
 			<Card>
 				<CardHeader>
 					<CardTitle className="text-base">Quick Start</CardTitle>
-					<CardDescription>Make your first API call</CardDescription>
+					<CardDescription>
+						Make your first production API call, or use the explorer for
+						separately tracked test traffic
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<pre className="overflow-x-auto rounded-lg bg-muted p-4 font-mono text-sm">
-						<code>{`curl "https://api.wherabouts.com/v1/autocomplete?q=123+Main+St" \\
+						<code>{`curl "https://api.wherabouts.com/api/v1/addresses/autocomplete?q=123+Main+St&country=AU" \\
   -H "Authorization: Bearer YOUR_API_KEY"`}</code>
 					</pre>
 					<div className="mt-3 flex gap-2">
@@ -328,13 +359,14 @@ function DashboardContent({ stats }: { stats: DashboardStats }) {
 }
 
 function RouteComponent() {
-	const { user } = useUser();
+	const { data: session } = useSession();
+	const user = session?.user;
 	const [stats, setStats] = useState<DashboardStats | null>(null);
 	const [loading, setLoading] = useState(true);
 
 	const fetchStats = useCallback(async () => {
 		try {
-			const result = await getDashboardStats();
+			const result = await orpcClient.dashboard.getStats();
 			setStats(result);
 		} catch {
 			// Silently handle — dashboard shows empty state
@@ -348,26 +380,31 @@ function RouteComponent() {
 	}, [fetchStats]);
 
 	const isNewUser =
-		stats && stats.activeKeys === 0 && stats.totalRequests === 0;
+		stats &&
+		stats.activeKeys === 0 &&
+		stats.totalRequests === 0 &&
+		stats.explorerTestRequests === 0;
+	let dashboardBody: ReactNode = null;
+	if (loading) {
+		dashboardBody = <StatsLoadingSkeleton />;
+	} else if (isNewUser) {
+		dashboardBody = <EmptyDashboard />;
+	} else if (stats) {
+		dashboardBody = <DashboardContent stats={stats} />;
+	}
 
 	return (
 		<div className="flex flex-col gap-6">
 			<div>
 				<h1 className="font-semibold text-2xl tracking-tight">Dashboard</h1>
 				<p className="text-muted-foreground text-sm">
-					{user?.fullName
-						? `Welcome back, ${user.fullName}`
+					{user?.name
+						? `Welcome back, ${user.name}`
 						: "Your API overview at a glance"}
 				</p>
 			</div>
 
-			{loading ? (
-				<StatsLoadingSkeleton />
-			) : isNewUser ? (
-				<EmptyDashboard />
-			) : stats ? (
-				<DashboardContent stats={stats} />
-			) : null}
+			{dashboardBody}
 		</div>
 	);
 }
