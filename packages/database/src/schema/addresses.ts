@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import {
 	customType,
 	index,
@@ -37,7 +36,10 @@ export const addresses = pgTable(
 		latitude: real().notNull(),
 		confidence: integer(),
 		gnafPid: varchar("gnaf_pid", { length: 30 }),
+		searchText: text("search_text"),
 		geom: geometry("geom"),
+		populationScore: integer("population_score").notNull().default(0),
+		adminLevel: integer("admin_level").notNull().default(5),
 	},
 	(table) => [
 		index("idx_addresses_country").on(table.country),
@@ -50,6 +52,12 @@ export const addresses = pgTable(
 		),
 		index("idx_addresses_street").on(table.locality, table.streetName),
 		index("idx_addresses_gnaf_pid").on(table.gnafPid),
+		index("idx_addresses_country_state_postcode").on(
+			table.country,
+			table.state,
+			table.postcode
+		),
+		index("idx_addresses_geom").using("gist", table.geom),
 	]
 );
 
