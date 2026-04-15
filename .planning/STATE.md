@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
+status: executing
 stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-04-15T06:51:02.111Z"
-last_activity: 2026-04-15
+last_updated: "2026-04-15T08:20:32.783Z"
+last_activity: 2026-04-15 -- Phase 05 execution started
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 8
+  completed_plans: 6
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-14)
 
 **Core value:** Users can authenticate seamlessly -- login, signup, OAuth, and session persistence must work without disruption after the migration.
-**Current focus:** Phase 04 — implement-apis-using-orpc-with-mutations-and-procedures
+**Current focus:** Phase 05 — optimize-autocomplete-search-with-tiered-strategy
 
 ## Current Position
 
-Phase: 04
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-15
+Phase: 05 (optimize-autocomplete-search-with-tiered-strategy) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 05
+Last activity: 2026-04-15 -- Phase 05 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -67,6 +67,7 @@ Recent decisions affecting current work:
 - [Phase 01]: router.invalidate() before navigate() for post-auth redirect to update isAuthenticated context
 - [Phase 04]: Inline endpoint config and auth constants in api-explorer.ts to avoid cross-package imports from apps/web
 - [Phase 04]: Use Awaited<ReturnType<...>> for type inference from orpcClient instead of duplicating interfaces
+- [Phase 05]: Hand-written migrations for indexes requiring operator classes (text_pattern_ops) since Drizzle cannot express them
 
 ### Pending Todos
 
@@ -75,6 +76,7 @@ None yet.
 ### Roadmap Evolution
 
 - Phase 4 added: Implement APIs using oRPC with mutations and procedures
+- Phase 5 added: Optimize autocomplete search with tiered strategy
 
 ### Blockers/Concerns
 
