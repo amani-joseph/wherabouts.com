@@ -84,7 +84,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -92,3 +92,22 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 2. Auth Flows | 0/3 | Not started | - |
 | 3. Legacy Auth Removal | 0/1 | Not started | - |
 | 4. oRPC API Layer | 0/2 | Not started | - |
+| 5. Tiered Autocomplete Search | 0/3 | Not started | - |
+
+### Phase 5: Optimize autocomplete search with tiered strategy
+
+**Goal:** Autocomplete returns ranked, relevant results in <100ms using tiered search (prefix, trigram, fuzzy, phonetic) with population/proximity boosting -- no Elasticsearch
+**Depends on:** Phase 4
+**Requirements**: SEARCH-01, SEARCH-02, SEARCH-03, SEARCH-04, SEARCH-05, SEARCH-06
+**Success Criteria** (what must be TRUE):
+  1. pg_trgm and fuzzystrmatch extensions enabled in PostgreSQL
+  2. Queries 3-4 chars use fast prefix search, 5+ use trigram+fuzzy, 8+ widen fuzzy tolerance
+  3. Results ranked by population score, admin level, similarity, and optional proximity
+  4. Phonetic fallback (dmetaphone) fires when fuzzy returns zero results for 8+ char queries
+  5. API accepts optional lat/lon for proximity boosting
+**Plans:** 3 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Enable pg_trgm/fuzzystrmatch extensions, add population_score/admin_level columns and indexes
+- [ ] 05-02-PLAN.md — Rewrite autocomplete query with tiered search strategy and result ranking
+- [ ] 05-03-PLAN.md — Wire lat/lon proximity parameters through the API endpoint
