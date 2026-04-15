@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-04-15T08:20:32.783Z"
+last_updated: "2026-04-15T08:25:45.318Z"
 last_activity: 2026-04-15 -- Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -68,6 +68,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Inline endpoint config and auth constants in api-explorer.ts to avoid cross-package imports from apps/web
 - [Phase 04]: Use Awaited<ReturnType<...>> for type inference from orpcClient instead of duplicating interfaces
 - [Phase 05]: Hand-written migrations for indexes requiring operator classes (text_pattern_ops) since Drizzle cannot express them
+- [Phase 05]: Used Drizzle sql template literals for raw SQL since trigram operators cannot be expressed in query builder
 
 ### Pending Todos
 
