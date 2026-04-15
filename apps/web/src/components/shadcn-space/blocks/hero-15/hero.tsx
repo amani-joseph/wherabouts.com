@@ -243,7 +243,7 @@ function DemoSuggestionRow({
 				x: isSelected ? 4 : 0,
 			}}
 			className={cn(
-				"items-start gap-3 rounded-[1.15rem] border px-3 py-2.5 transition-colors md:px-3.5",
+				"items-start gap-3 rounded-[1.15rem] border px-2.5 py-2 transition-colors md:px-3.5",
 				index === 2 ? "hidden md:flex" : "flex",
 				rowClasses
 			)}
@@ -510,7 +510,7 @@ function AddressDemoInput() {
 
 	return (
 		<div aria-hidden="true" className="mx-auto w-full max-w-xl text-left">
-			<div className="relative h-96 overflow-visible rounded-[2rem] border border-white/10 bg-background/70 p-3 shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl md:p-4">
+			<div className="relative h-auto min-h-[22rem] overflow-visible rounded-[2rem] border border-white/10 bg-background/70 p-2.5 shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl md:min-h-[24rem] md:p-4">
 				<div className="mb-3 flex items-center justify-between gap-3 px-1">
 					<div className="flex items-center gap-2">
 						<div className="size-1.5 rounded-full bg-cyan-300" />
@@ -624,7 +624,7 @@ const HeroSection = () => {
 		<section className="relative" id="top" ref={sectionRef}>
 			<motion.div
 				animate={isInView ? "visible" : "hidden"}
-				className="relative mx-auto flex min-h-[80vh] max-w-7xl flex-col items-center justify-center gap-4 px-4 py-10 text-center md:min-h-[85vh] md:gap-8 md:py-14 lg:px-8 xl:px-16"
+				className="relative mx-auto flex min-h-[70vh] max-w-7xl flex-col items-center justify-center gap-3 px-4 py-6 text-center md:min-h-[85vh] md:gap-6 md:py-14 lg:px-8 xl:px-16"
 				initial="hidden"
 				variants={containerVariants}
 			>
@@ -647,38 +647,22 @@ const HeroSection = () => {
 					</motion.div>
 					<div className="flex flex-col items-center gap-3 text-center">
 						<motion.h1
-							className="max-w-4xl overflow-visible text-balance rounded-[2rem] border border-white/10 bg-background/70 p-2 text-center font-normal text-3xl text-foreground tracking-tight shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl sm:text-4xl md:p-4 md:text-5xl lg:text-6xl"
+							className="max-w-7xl overflow-visible text-wrap text-balance rounded-[1rem] border border-white/10 bg-background/70 px-3 py-2 text-center font-normal text-foreground text-lg tracking-tight shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl sm:text-xl md:px-4 md:py-3 md:text-2xl"
 							variants={h1Variants}
 						>
-							{"Build ".split("").map((char, i, chars) => (
-								<motion.span
-									key={`h1-a-${chars.slice(0, i + 1).join("")}`}
-									variants={charVariants}
-								>
-									{char}
-								</motion.span>
-							))}
-							<span className="italic">
-								{"smarter location UX".split("").map((char, i, chars) => (
+							{"Production-ready APIs for every location workflow"
+								.split("")
+								.map((char, i, chars) => (
 									<motion.span
-										key={`h1-b-${chars.slice(0, i + 1).join("")}`}
+										key={`h1-${chars.slice(0, i + 1).join("")}`}
 										variants={charVariants}
 									>
 										{char}
 									</motion.span>
 								))}
-							</span>
-							{" in your product".split("").map((char, i, chars) => (
-								<motion.span
-									key={`h1-c-${chars.slice(0, i + 1).join("")}`}
-									variants={charVariants}
-								>
-									{char}
-								</motion.span>
-							))}
 						</motion.h1>
 						<motion.p
-							className="max-w-2xl text-pretty font-normal text-base text-muted-foreground md:text-lg"
+							className="max-w-2xl text-pretty font-normal text-sm text-foreground sm:text-base md:text-lg"
 							variants={itemVariants}
 						>
 							Address autocomplete and geocoding API. Ship location features
@@ -741,11 +725,11 @@ const HeroSection = () => {
 						</div>
 					)}
 				</motion.div> */}
-				<div className="pointer-events-none absolute inset-x-0 -bottom-32 z-0 flex justify-center opacity-85">
+				<div className="pointer-events-none absolute inset-x-0 -bottom-32 z-0 flex justify-center overflow-hidden opacity-85">
 					<GlobeDemo
 						className="-translate-x-8 md:-translate-x-12"
 						decorative
-						globeHeightClassName="h-[78rem] md:h-[78rem]"
+						globeHeightClassName="h-[20rem] sm:h-[30rem] md:h-[60rem]"
 					/>
 					<div className="pointer-events-none absolute inset-0 bg-linear-to-b from-background/50 via-transparent to-background" />
 				</div>
