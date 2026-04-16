@@ -10,7 +10,7 @@ Wherabouts is an Australian address geocoding API service. Users sign up, create
 ### Constraints
 
 - **Tech stack**: TanStack Start, React 19, Drizzle ORM, Neon PostgreSQL — must use existing stack
-- **Auth**: Clerk — all protected routes require Clerk session
+- **Auth**: Better Auth — all protected routes require an authenticated session
 - **Database**: Neon PostgreSQL with PostGIS — API keys and projects stored here (not Convex)
 - **API compatibility**: Existing `/api/v1/addresses/*` endpoints must continue working with current API keys
 <!-- GSD:project-end -->
@@ -51,7 +51,7 @@ Wherabouts is an Australian address geocoding API service. Users sign up, create
 - jsdom 26.x - DOM environment for tests
 - web-vitals 5.x - Performance metrics
 ## Monorepo Packages
-- Convex backend with Clerk auth integration
+- Convex backend with Better Auth integration
 - Scripts: `convex dev`, `convex dev --configure --until-success`
 - Drizzle ORM schema and queries
 - Exports: `.` (client/types), `./schema` (table definitions), `./queries` (query functions)
@@ -63,7 +63,7 @@ Wherabouts is an Australian address geocoding API service. Users sign up, create
 - Uses class-variance-authority, clsx, tailwind-merge for styling
 - Shared TypeScript config (`tsconfig.base.json`)
 ## Key Dependencies
-- `@clerk/tanstack-react-start` 1.x - Authentication (SSR middleware + React provider)
+- `better-auth` 1.x - Authentication library
 - `@neondatabase/serverless` 1.x - Neon PostgreSQL HTTP driver (serverless-compatible)
 - `drizzle-orm` 0.44.x - Database query layer
 - `convex` (catalog) - Realtime backend (currently empty schema, wired for future use)
@@ -86,12 +86,12 @@ Wherabouts is an Australian address geocoding API service. Users sign up, create
 - Node.js (ES2022 compatible)
 - pnpm 10.12.4+
 - Neon PostgreSQL database with PostGIS extension
-- Clerk account (publishable key + JWT template named "convex")
+- Better Auth configuration and secret values
 - Convex account and deployment
 - TanStack Start SSR deployment (Vite-based, needs Node.js runtime)
 - Neon serverless PostgreSQL (PostGIS-enabled)
 - Convex cloud backend
-- Clerk authentication service
+- Better Auth authentication service
 <!-- GSD:stack-end -->
 
 <!-- GSD:conventions-start source:CONVENTIONS.md -->
@@ -183,7 +183,7 @@ Wherabouts is an Australian address geocoding API service. Users sign up, create
 - Local state with `useState` + `useEffect` for data fetching in dashboard components
 - `useCallback` for memoized fetch functions passed to `useEffect`
 - Convex + React Query for real-time data via `ConvexQueryClient`
-- Clerk hooks for auth state: `useUser()`, `useClerk()`, `useAuth()`
+- Better Auth hooks for auth state: `useSession()`, `signIn()`, `signOut()`
 ## Tailwind CSS Patterns
 - Use Tailwind v4 with `@tailwindcss/vite` plugin
 - Dark mode: hardcoded `className="dark"` on `<html>` element
@@ -199,7 +199,7 @@ Wherabouts is an Australian address geocoding API service. Users sign up, create
 - Monorepo managed by Turborepo with pnpm workspaces
 - TanStack Router file-based routing with SSR via TanStack Start + Vite
 - Dual data layer: Convex (real-time, via React Query bridge) + Neon Postgres (geocoding data, API keys, usage tracking)
-- Clerk authentication with JWT template bridging to Convex
+- Better Auth authentication bridged to Convex
 - API routes served from the same TanStack Start app (no separate API server)
 - Server functions (`createServerFn`) for authenticated dashboard data fetching
 ## Monorepo Packages
@@ -220,19 +220,19 @@ Wherabouts is an Australian address geocoding API service. Users sign up, create
 - Used by: Router in `src/router.tsx`
 - Purpose: Server-side data fetching called from client components via RPC
 - Location: `src/lib/*-server.ts`
-- Contains: `createServerFn` wrappers that authenticate via Clerk and query Neon DB
-- Depends on: `@clerk/tanstack-react-start/server`, `@wherabouts.com/database`
+- Contains: `createServerFn` wrappers that authenticate via Better Auth and query Neon DB
+- Depends on: `@/lib/auth-server`, `@wherabouts.com/database`
 - Used by: Protected route components (dashboard, api-keys)
 - Key files:
-- Purpose: Public geocoding API authenticated via API keys (not Clerk)
+- Purpose: Public geocoding API authenticated via API keys (not session auth)
 - Location: `src/routes/api/v1/`
 - Contains: TanStack Router server handlers using `Route.server.handlers.GET`
 - Depends on: `src/lib/with-api-key.ts`, `src/lib/api-key-auth.ts`, `@wherabouts.com/database`
 - Used by: External API consumers
-- Purpose: User authentication (Clerk) and API key authentication (custom)
+- Purpose: User authentication (Better Auth) and API key authentication (custom)
 - Location: `src/start.ts` (middleware), `src/routes/__root.tsx` (providers), `src/lib/api-key-auth.ts`
-- Contains: Clerk middleware, Convex auth bridge, API key validation with scrypt hashing
-- Key detail: API routes (`/api/v1/*`) are excluded from Clerk middleware via `ignoredRoutes`
+- Contains: Better Auth integration, Convex auth bridge, API key validation with scrypt hashing
+- Key detail: API routes (`/api/v1/*`) bypass session auth and use API-key auth instead
 - Purpose: Schema definitions, query functions, DB client factory
 - Location: `packages/database/src/`
 - Contains: Drizzle schema, typed query functions, Neon HTTP client
@@ -240,7 +240,7 @@ Wherabouts is an Australian address geocoding API service. Users sign up, create
 - Purpose: React UI components for the dashboard shell and marketing pages
 - Location: `src/components/`
 - Contains: App shell (sidebar + header), navigation, marketing blocks
-- Depends on: `@wherabouts.com/ui`, TanStack Router, Clerk React
+- Depends on: `@wherabouts.com/ui`, TanStack Router, Better Auth client hooks
 - Key files:
 ## Data Flow
 - No global state store. Component-local `useState` + `useEffect` for dashboard/API key data
@@ -263,13 +263,13 @@ Wherabouts is an Australian address geocoding API service. Users sign up, create
 ## Entry Points
 - Location: `src/start.ts`
 - Triggers: Vite dev server / production build
-- Responsibilities: Creates TanStack Start instance, registers Clerk middleware with API route exclusions
+- Responsibilities: Creates TanStack Start instance and initializes the server runtime
 - Location: `src/router.tsx`
 - Triggers: Called during SSR and client hydration
 - Responsibilities: Creates TanStack Router with Convex Query Client, React Query client, SSR query integration, route tree from codegen
 - Location: `src/routes/__root.tsx`
 - Triggers: Every navigation
-- Responsibilities: SSR auth fetch, HTML document shell, Clerk + Convex providers, Toaster, devtools
+- Responsibilities: SSR auth fetch, HTML document shell, Better Auth + Convex providers, Toaster, devtools
 - Location: `src/routeTree.gen.ts`
 - Generated: Yes, by `@tanstack/router-plugin` Vite plugin
 - Contains: Auto-generated route tree from file-based routes
@@ -283,9 +283,9 @@ Wherabouts is an Australian address geocoding API service. Users sign up, create
 - API route params: Manual validation with early-return error responses
 - Server function inputs: Zod schemas via `inputValidator` (see `src/lib/api-keys-server.ts`)
 - Environment variables: T3 Env with Zod schemas (`packages/env/src/web.ts`)
-- Dashboard routes: Clerk auth via `beforeLoad` guard in `_protected.tsx`
+- Dashboard routes: Better Auth via `beforeLoad` guard in `_protected.tsx`
 - API routes: Custom API key auth via `withApiKeyGET` wrapper (scrypt hash verification)
-- Clerk middleware applied globally except API routes
+- Session auth applies to protected routes while API routes use API keys
 - Turborepo orchestrates `dev` and `build` across packages
 - Vite 7 with TanStack Start plugin, React plugin, Tailwind CSS v4 plugin, tsconfig-paths plugin
 - Config: `vite.config.ts`, dev server on port 3001

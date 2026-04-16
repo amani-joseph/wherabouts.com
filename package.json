@@ -11,13 +11,11 @@
     "build": "turbo build",
     "check-types": "turbo check-types",
     "dev:web": "turbo -F web dev",
-    "dev:server": "turbo -F @wherabouts.com/backend dev",
-    "dev:setup": "turbo -F @wherabouts.com/backend dev:setup",
+    "dev:server": "turbo -F @wherabouts.com/server dev",
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "deploy": "turbo -F @wherabouts.com/backend deploy && turbo -F web deploy",
-    "deploy:web": "turbo -F web deploy",
-    "deploy:convex": "turbo -F @wherabouts.com/backend deploy"
+    "deploy": "turbo -F web deploy",
+    "deploy:web": "turbo -F web deploy"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

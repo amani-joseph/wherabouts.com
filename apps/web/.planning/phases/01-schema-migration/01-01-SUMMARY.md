@@ -8,7 +8,7 @@ requires:
   - phase: none
     provides: greenfield database schema
 provides:
-  - projects table with id, clerk_user_id, name, slug, created_at, archived_at
+  - projects table with id, user_id, name, slug, created_at, archived_at
   - api_keys.project_id NOT NULL FK to projects
   - api_keys.expires_at nullable column
   - api_usage_daily.project_id nullable FK to projects
@@ -57,7 +57,7 @@ completed: 2026-04-12
 - **Files modified:** 6
 
 ## Accomplishments
-- Created projects table with id, clerk_user_id, name, slug, timestamps, and unique index on (user, slug)
+- Created projects table with id, user_id, name, slug, timestamps, and unique index on (user, slug)
 - Added project_id FK and expires_at to api_keys; project_id FK to api_usage_daily
 - Backfilled 1 existing user with "My First Project" and assigned 1 orphaned API key
 - Enforced NOT NULL on api_keys.project_id via second migration

@@ -1,11 +1,10 @@
-import { sql } from "drizzle-orm";
+import { type SQL, sql } from "drizzle-orm";
 import type { Database } from "../client.ts";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.3;
 const LEVENSHTEIN_SHORT_MAX_DISTANCE = 1;
 const LEVENSHTEIN_LONG_MAX_DISTANCE = 2;
 const PREFIX_SEARCH_MAX_LEN = 4;
-const TRIGRAM_SEARCH_MIN_LEN = 5;
 const WIDE_FUZZY_MIN_LEN = 8;
 
 export interface AutocompleteResult {
@@ -21,24 +20,24 @@ export interface AutocompleteResult {
 }
 
 interface RawAddressRow {
-	id: number;
-	country: string;
-	state: string;
-	locality: string;
-	postcode: string;
-	street_name: string;
-	street_type: string | null;
-	street_suffix: string | null;
 	building_name: string | null;
-	flat_type: string | null;
+	country: string;
 	flat_number: string | null;
-	level_type: string | null;
+	flat_type: string | null;
+	id: number;
+	latitude: number;
 	level_number: string | null;
+	level_type: string | null;
+	locality: string;
+	longitude: number;
 	number_first: string | null;
 	number_last: string | null;
-	longitude: number;
-	latitude: number;
+	postcode: string;
 	similarity_score: number;
+	state: string;
+	street_name: string;
+	street_suffix: string | null;
+	street_type: string | null;
 }
 
 function formatStreetAddress(row: {
@@ -85,8 +84,8 @@ function formatStreetAddress(row: {
 	return parts.join(", ");
 }
 
-function buildFilterClauses(country?: string, state?: string): typeof sql[] {
-	const clauses: (ReturnType<typeof sql>)[] = [];
+function buildFilterClauses(country?: string, state?: string): SQL<unknown>[] {
+	const clauses: SQL<unknown>[] = [];
 	if (country) {
 		clauses.push(sql`country = ${country.toUpperCase()}`);
 	}
@@ -97,9 +96,9 @@ function buildFilterClauses(country?: string, state?: string): typeof sql[] {
 }
 
 function buildWhereClause(
-	searchCondition: ReturnType<typeof sql>,
-	filterClauses: (ReturnType<typeof sql>)[]
-): ReturnType<typeof sql> {
+	searchCondition: SQL<unknown>,
+	filterClauses: SQL<unknown>[]
+): SQL<unknown> {
 	const allConditions = [searchCondition, ...filterClauses];
 	return sql.join(allConditions, sql` AND `);
 }
@@ -107,12 +106,14 @@ function buildWhereClause(
 function buildOrderBy(
 	latitude?: number,
 	longitude?: number,
-	similarityColumn?: string
-): ReturnType<typeof sql> {
-	const orderParts: (ReturnType<typeof sql>)[] = [
-		sql`population_score DESC`,
-		sql`admin_level ASC`,
-	];
+	similarityColumn?: string,
+	useRankingColumns = false
+): SQL<unknown> {
+	const orderParts: SQL<unknown>[] = [];
+
+	if (useRankingColumns) {
+		orderParts.push(sql`population_score DESC`, sql`admin_level ASC`);
+	}
 
 	if (latitude !== undefined && longitude !== undefined) {
 		orderParts.push(
@@ -122,6 +123,10 @@ function buildOrderBy(
 
 	if (similarityColumn === "similarity_score") {
 		orderParts.push(sql`similarity_score DESC`);
+	}
+
+	if (orderParts.length === 0) {
+		orderParts.push(sql`1`);
 	}
 
 	return sql.join(orderParts, sql`, `);
@@ -187,13 +192,45 @@ export async function autocompleteAddresses(
 	}
 
 	const filterClauses = buildFilterClauses(country, state);
+
+	// Always try fast prefix search first (uses B-tree index, works without extensions)
+	const prefixResults = await prefixSearch(db, trimmed, filterClauses, {
+		limit,
+		latitude,
+		longitude,
+	});
+	if (prefixResults.length > 0) {
+		return prefixResults;
+	}
+
+	// Try tiered fuzzy search (requires pg_trgm + fuzzystrmatch extensions)
+	// Falls back to optimized ILIKE if extensions aren't available
+	try {
+		return await tieredSearch(db, trimmed, len, filterClauses, {
+			limit,
+			latitude,
+			longitude,
+		});
+	} catch {
+		return ilikeFallback(db, trimmed, filterClauses, { limit });
+	}
+}
+
+async function tieredSearch(
+	db: Database,
+	trimmed: string,
+	len: number,
+	filterClauses: SQL<unknown>[],
+	opts: { limit: number; latitude?: number; longitude?: number }
+): Promise<AutocompleteResult[]> {
+	const { limit, latitude, longitude } = opts;
 	const orderBy = buildOrderBy(latitude, longitude, "similarity_score");
 
 	// Tier 1 (3-4 chars): Prefix search only (uses B-tree text_pattern_ops index)
 	if (len <= PREFIX_SEARCH_MAX_LEN) {
 		const prefixPattern = `${trimmed}%`;
 		const whereClause = buildWhereClause(
-			sql`search_text LIKE ${prefixPattern}`,
+			sql`search_text ILIKE ${prefixPattern}`,
 			filterClauses
 		);
 
@@ -210,19 +247,16 @@ export async function autocompleteAddresses(
 
 	// Tier 2 (5-7 chars): Trigram similarity + levenshtein fallback
 	if (len < WIDE_FUZZY_MIN_LEN) {
-		// Set trigram similarity threshold
-		await db.execute(
-			sql`SELECT set_limit(${TRIGRAM_SIMILARITY_THRESHOLD})`
-		);
+		await db.execute(sql`SELECT set_limit(${TRIGRAM_SIMILARITY_THRESHOLD})`);
 
 		const whereClause = buildWhereClause(
-			sql`search_text % ${trimmed}`,
+			sql`search_text % ${trimmed}::text`,
 			filterClauses
 		);
 
 		const result = await db.execute(sql`
 			SELECT ${SELECT_COLUMNS},
-				similarity(search_text, ${trimmed}) as similarity_score
+				similarity(search_text, ${trimmed}::text) as similarity_score
 			FROM addresses
 			WHERE ${whereClause}
 			ORDER BY ${orderBy}
@@ -258,13 +292,13 @@ export async function autocompleteAddresses(
 	await db.execute(sql`SELECT set_limit(${TRIGRAM_SIMILARITY_THRESHOLD})`);
 
 	const tier3Where = buildWhereClause(
-		sql`search_text <%% ${trimmed}`,
+		sql`search_text <%% ${trimmed}::text`,
 		filterClauses
 	);
 
 	const result = await db.execute(sql`
 		SELECT ${SELECT_COLUMNS},
-			word_similarity(search_text, ${trimmed}) as similarity_score
+			word_similarity(search_text, ${trimmed}::text) as similarity_score
 		FROM addresses
 		WHERE ${tier3Where}
 		ORDER BY ${orderBy}
@@ -291,8 +325,7 @@ export async function autocompleteAddresses(
 		LIMIT ${limit}
 	`);
 
-	const levenshteinRows =
-		levenshteinResult.rows as unknown as RawAddressRow[];
+	const levenshteinRows = levenshteinResult.rows as unknown as RawAddressRow[];
 
 	if (levenshteinRows.length > 0) {
 		return levenshteinRows.map(mapRowToResult);
@@ -315,4 +348,74 @@ export async function autocompleteAddresses(
 	return (phoneticResult.rows as unknown as RawAddressRow[]).map(
 		mapRowToResult
 	);
+}
+
+/**
+ * Fast prefix search that works without any extensions.
+ * Uses `search_text ILIKE 'query%'` which can leverage a B-tree index
+ * with text_pattern_ops or the default collation.
+ */
+async function prefixSearch(
+	db: Database,
+	trimmed: string,
+	filterClauses: SQL<unknown>[],
+	opts: { limit: number; latitude?: number; longitude?: number }
+): Promise<AutocompleteResult[]> {
+	const { limit, latitude, longitude } = opts;
+	const prefixPattern = `${trimmed}%`;
+	const whereClause = buildWhereClause(
+		sql`search_text ILIKE ${prefixPattern}`,
+		filterClauses
+	);
+
+	const result = await db.execute(sql`
+		SELECT ${SELECT_COLUMNS}, 1.0 as similarity_score
+		FROM addresses
+		WHERE ${whereClause}
+		ORDER BY ${buildOrderBy(latitude, longitude)}
+		LIMIT ${limit}
+	`);
+
+	return (result.rows as unknown as RawAddressRow[]).map(mapRowToResult);
+}
+
+/**
+ * ILIKE fallback when pg_trgm extensions aren't available.
+ * Uses prefix matching on the first token (indexable) and filters
+ * remaining tokens with substring matching on the narrowed result set.
+ */
+async function ilikeFallback(
+	db: Database,
+	trimmed: string,
+	filterClauses: SQL<unknown>[],
+	opts: { limit: number }
+): Promise<AutocompleteResult[]> {
+	const { limit } = opts;
+	const tokens = trimmed.split(/\s+/).filter(Boolean);
+
+	// First token uses prefix match (can use B-tree index)
+	const firstTokenCondition = sql`search_text ILIKE ${`${tokens[0]}%`}`;
+
+	// Additional tokens use substring match but operate on the
+	// already-narrowed result set from the first token's index scan
+	const additionalConditions = tokens
+		.slice(1)
+		.map((token) => sql`search_text ILIKE ${`%${token}%`}`);
+
+	const allConditions = [firstTokenCondition, ...additionalConditions];
+	const searchCondition =
+		allConditions.length > 1
+			? sql.join(allConditions, sql` AND `)
+			: firstTokenCondition;
+
+	const whereClause = buildWhereClause(searchCondition, filterClauses);
+
+	const result = await db.execute(sql`
+		SELECT ${SELECT_COLUMNS}, 1.0 as similarity_score
+		FROM addresses
+		WHERE ${whereClause}
+		LIMIT ${limit}
+	`);
+
+	return (result.rows as unknown as RawAddressRow[]).map(mapRowToResult);
 }

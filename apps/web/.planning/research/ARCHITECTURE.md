@@ -9,7 +9,7 @@
 The existing system uses a **flat user-to-key model**:
 
 ```
-Clerk User ──1:N──> API Keys ──1:N──> Usage Records (daily)
+Authenticated User ──1:N──> API Keys ──1:N──> Usage Records (daily)
 ```
 
 ### Current Components
@@ -50,7 +50,7 @@ No expiration, no rotation, no scoping -- keys grant full access to all endpoint
 Introduce a `projects` table as an organizational container. API keys become project-scoped. Usage tracking gains project context.
 
 ```
-Clerk User ──1:N──> Projects ──1:N──> API Keys ──1:N──> Usage Records
+Authenticated User ──1:N──> Projects ──1:N──> API Keys ──1:N──> Usage Records
                         |
                         +──> Project Settings (rate limits, allowed endpoints, etc.)
 ```
@@ -61,13 +61,13 @@ Clerk User ──1:N──> Projects ──1:N──> API Keys ──1:N──> 
 -- projects table
 projects (
   id              uuid PK DEFAULT gen_random_uuid(),
-  clerk_user_id   text NOT NULL,              -- owner
+  user_id         text NOT NULL,              -- owner
   name            text NOT NULL,              -- "Production", "Staging"
   slug            text NOT NULL,              -- URL-safe identifier
   environment     text NOT NULL DEFAULT 'development',  -- 'production' | 'staging' | 'development'
   created_at      timestamptz NOT NULL DEFAULT now(),
   archived_at     timestamptz,                -- soft delete
-  UNIQUE(clerk_user_id, slug)
+  UNIQUE(user_id, slug)
 )
 
 -- Modify api_keys: add project_id column
@@ -101,8 +101,8 @@ Phase 4: Update all queries to filter by project_id
 | Component | Responsibility | Communicates With |
 |-----------|---------------|-------------------|
 | **Project Schema** (`packages/database/src/schema/projects.ts`) | Drizzle table definition for `projects` | Referenced by api-keys schema |
-| **Project Server Fns** (`apps/web/src/lib/projects-server.ts`) | CRUD for projects (list, create, archive, rename) | DB client, Clerk auth |
-| **API Key Server Fns** (`apps/web/src/lib/api-keys-server.ts`) | Extended CRUD -- now project-scoped | DB client, Clerk auth, Projects |
+| **Project Server Fns** (`apps/web/src/lib/projects-server.ts`) | CRUD for projects (list, create, archive, rename) | DB client, Better Auth session |
+| **API Key Server Fns** (`apps/web/src/lib/api-keys-server.ts`) | Extended CRUD -- now project-scoped | DB client, Better Auth session, Projects |
 | **Key Validation** (`apps/web/src/lib/api-key-auth.ts`) | Add project context to `ValidatedApiKey` return | DB client |
 | **Auth Middleware** (`apps/web/src/lib/with-api-key.ts`) | Unchanged interface, but `ValidatedApiKey` now carries `projectId` | Key validation |
 | **Dashboard Server** (`apps/web/src/lib/dashboard-server.ts`) | Stats become project-filterable | DB client |
@@ -126,20 +126,20 @@ Client Request
     |   |-- Check not revoked
     |   |-- Check not expired (NEW)
     |   |-- scrypt verify secret
-    |   |-- Return { apiKeyId, clerkUserId, projectId } (projectId is NEW)
+  |   |-- Return { apiKeyId, userId, projectId } (projectId is NEW)
     |
     v
 [Handler executes] --> Response
     |
     v
-[recordUsage(db, { apiKeyId, clerkUserId, projectId, endpoint })]
+[recordUsage(db, { apiKeyId, userId, projectId, endpoint })]
     (fire-and-forget, non-blocking)
 ```
 
 #### Dashboard Management Flow
 
 ```
-User authenticates via Clerk
+User authenticates via Better Auth
     |
     v
 [Projects List Page]
@@ -197,21 +197,21 @@ The existing `revokedAt` pattern is correct. Extend it to projects with `archive
 const activeProjects = await db
   .select()
   .from(projects)
-  .where(and(eq(projects.clerkUserId, userId), isNull(projects.archivedAt)));
+  .where(and(eq(projects.userId, userId), isNull(projects.archivedAt)));
 ```
 
 #### Pattern 2: Server Functions as API Layer
 
-Continue using TanStack `createServerFn` for all dashboard operations. These provide RPC-style calls with automatic serialization, Clerk auth integration, and type safety across client/server boundary.
+Continue using TanStack `createServerFn` for all dashboard operations. These provide RPC-style calls with automatic serialization, Better Auth session integration, and type safety across client/server boundary.
 
 ```typescript
 // Pattern: project-scoped server function
 export const listApiKeys = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => z.object({ projectId: z.string().uuid() }).parse(data))
   .handler(async ({ data }): Promise<ApiKeyListItem[]> => {
-    const { userId } = await auth();
+    const session = await getSession();
     // Verify project belongs to user before returning keys
-    const project = await verifyProjectOwnership(db, data.projectId, userId);
+    const project = await verifyProjectOwnership(db, data.projectId, session.user.id);
     // ...fetch keys for this project
   });
 ```
@@ -230,7 +230,7 @@ export async function verifyProjectOwnership(
   const [project] = await db
     .select()
     .from(projects)
-    .where(and(eq(projects.id, projectId), eq(projects.clerkUserId, userId)))
+    .where(and(eq(projects.id, projectId), eq(projects.userId, userId)))
     .limit(1);
 
   if (!project) {

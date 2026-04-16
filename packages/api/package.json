@@ -10,11 +10,12 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
+    "@orpc/openapi": "^1.13.14",
     "@orpc/server": "^1.9.0",
-    "better-auth": "^1.5.6",
-    "drizzle-orm": "^0.44.7",
     "@wherabouts.com/database": "workspace:*",
     "@wherabouts.com/env": "workspace:*",
+    "better-auth": "^1.5.6",
+    "drizzle-orm": "^0.44.7",
     "hono": "^4.10.4",
     "zod": "catalog:"
   },

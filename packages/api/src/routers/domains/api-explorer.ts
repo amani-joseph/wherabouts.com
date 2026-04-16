@@ -85,7 +85,7 @@ const explorerRequestSchema = z.object({
 
 const buildUrl = (
 	endpoint: ApiEndpoint,
-	paramValues: Record<string, string>,
+	paramValues: Record<string, string>
 ): string => {
 	let url = endpoint.path;
 	for (const param of endpoint.params) {
@@ -99,7 +99,7 @@ const buildUrl = (
 			const value = paramValues[param.name];
 			if (value) {
 				queryParts.push(
-					`${encodeURIComponent(param.name)}=${encodeURIComponent(value)}`,
+					`${encodeURIComponent(param.name)}=${encodeURIComponent(value)}`
 				);
 			}
 		}
@@ -142,8 +142,7 @@ export const apiExplorerRouter = {
 			if (input.authMode === "managed") {
 				if (!input.managedKeyId) {
 					throw new ORPCError("BAD_REQUEST", {
-						message:
-							"Choose a managed API key before sending a test request.",
+						message: "Choose a managed API key before sending a test request.",
 					});
 				}
 
@@ -157,15 +156,14 @@ export const apiExplorerRouter = {
 					.where(
 						and(
 							eq(apiKeys.id, input.managedKeyId),
-							eq(apiKeys.userId, authUserId),
-						),
+							eq(apiKeys.userId, authUserId)
+						)
 					)
 					.limit(1);
 
 				if (!managedKey) {
 					throw new ORPCError("BAD_REQUEST", {
-						message:
-							"The selected API key does not belong to your account.",
+						message: "The selected API key does not belong to your account.",
 					});
 				}
 				if (managedKey.revokedAt) {
@@ -187,14 +185,12 @@ export const apiExplorerRouter = {
 				const rawApiKey = input.rawApiKey?.trim();
 				if (!rawApiKey) {
 					throw new ORPCError("BAD_REQUEST", {
-						message:
-							"Paste a raw API key before sending a test request.",
+						message: "Paste a raw API key before sending a test request.",
 					});
 				}
 				if (!RAW_KEY_FORMAT_RE.test(rawApiKey)) {
 					throw new ORPCError("BAD_REQUEST", {
-						message:
-							"Raw API keys must match the wh_<id>_<secret> format.",
+						message: "Raw API keys must match the wh_<id>_<secret> format.",
 					});
 				}
 				headers.set("Authorization", `Bearer ${rawApiKey}`);

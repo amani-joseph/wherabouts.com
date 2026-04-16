@@ -11,6 +11,7 @@ build
 # Environment variables
 .env
 .env*.local
+.dev.vars
 
 # IDEs and editors
 .vscode/*
@@ -49,3 +50,9 @@ coverage
 .cache
 tmp
 temp
+
+# Local datasets (large)
+apps/web/data-resources/
+
+# Wrangler dev state outside apps/web (which has its own .gitignore)
+.wrangler/

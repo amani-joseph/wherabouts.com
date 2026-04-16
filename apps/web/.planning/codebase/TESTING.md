@@ -89,9 +89,9 @@ describe("parseApiKeyFromRequest", () => {
 ```typescript
 import { vi, describe, it, expect } from "vitest";
 
-// Mock Clerk auth
-vi.mock("@clerk/tanstack-react-start/server", () => ({
-  auth: vi.fn().mockResolvedValue({ userId: "user_test123" }),
+// Mock Better Auth session
+vi.mock("@/lib/auth-server", () => ({
+  getSession: vi.fn().mockResolvedValue({ user: { id: "user_test123" } }),
 }));
 
 // Mock database
@@ -123,7 +123,7 @@ vi.mock("@/lib/db", () => ({
 // Recommended: src/test/fixtures.ts
 export const testApiKey = {
   id: "550e8400-e29b-41d4-a716-446655440000",
-  clerkUserId: "user_test123",
+  userId: "user_test123",
   name: "Test Key",
   secretHash: "testhash",
   secretSalt: "testsalt",

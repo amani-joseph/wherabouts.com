@@ -1,0 +1,21 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "wherabouts-server",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-04-14",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"nodejs_compat_populate_process_env"
+	],
+	"dev": {
+		"port": 3003
+	},
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 1
+	},
+	"vars": {
+		"BETTER_AUTH_URL": "https://wherabouts-server.mr-amanijoseph.workers.dev",
+		"WEB_BASE_URL": "https://wherabouts-web.mr-amanijoseph.workers.dev"
+	}
+}

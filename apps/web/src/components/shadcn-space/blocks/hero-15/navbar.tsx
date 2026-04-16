@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import Logo from "@/assets/logo/logo";
+import { NavUser } from "@/components/nav-user";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -17,6 +18,7 @@ import {
 	NavigationMenuLink,
 	NavigationMenuList,
 } from "@/components/ui/navigation-menu";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 export interface NavigationSection {
@@ -69,6 +71,9 @@ const NavLink = ({
 
 const Navbar = ({ navigationData }: NavbarProps) => {
 	const [menuOpen, setMenuOpen] = useState(false);
+	const { data: session } = useSession();
+	const isAuthenticated = Boolean(session?.user);
+
 	useEffect(() => {
 		const handleResize = () => {
 			if (window.innerWidth >= 1024) {
@@ -103,28 +108,35 @@ const Navbar = ({ navigationData }: NavbarProps) => {
 						</NavigationMenuList>
 					</NavigationMenu>
 					<div className="flex items-center gap-2 max-lg:hidden">
-						<Link
-							className={cn(
-								buttonVariants({ variant: "outline" }),
-								"h-auto cursor-pointer rounded-full px-5 py-2.5"
-							)}
-							to="/sign-in/$"
-						>
-							Log in
-						</Link>
-						<Link
-							className={cn(
-								buttonVariants({ variant: "default" }),
-								"h-auto cursor-pointer rounded-full px-5 py-2.5"
-							)}
-							to="/sign-up/$"
-						>
-							Sign up
-						</Link>
+						{isAuthenticated ? (
+							<NavUser />
+						) : (
+							<>
+								<Link
+									className={cn(
+										buttonVariants({ variant: "outline" }),
+										"h-auto cursor-pointer rounded-full px-5 py-2.5"
+									)}
+									to="/sign-in"
+								>
+									Log in
+								</Link>
+								<Link
+									className={cn(
+										buttonVariants({ variant: "default" }),
+										"h-auto cursor-pointer rounded-full px-5 py-2.5"
+									)}
+									to="/sign-up"
+								>
+									Sign up
+								</Link>
+							</>
+						)}
 					</div>
 
 					{/* Mobile Menu */}
-					<div className="relative lg:hidden">
+					<div className="relative flex items-center gap-2 lg:hidden">
+						{isAuthenticated ? <NavUser /> : null}
 						<DropdownMenu onOpenChange={setMenuOpen} open={menuOpen}>
 							<AnimatePresence>
 								{menuOpen && (
@@ -170,28 +182,30 @@ const Navbar = ({ navigationData }: NavbarProps) => {
 											/>
 										))}
 									</ul>
-									<div className="flex w-full flex-col gap-2">
-										<Link
-											className={cn(
-												buttonVariants({ variant: "outline" }),
-												"h-auto w-full cursor-pointer rounded-full px-5 py-2.5 text-center"
-											)}
-											onClick={() => setMenuOpen(false)}
-											to="/sign-in/$"
-										>
-											Log in
-										</Link>
-										<Link
-											className={cn(
-												buttonVariants({ variant: "default" }),
-												"h-auto w-full cursor-pointer rounded-full px-5 py-2.5 text-center"
-											)}
-											onClick={() => setMenuOpen(false)}
-											to="/sign-up/$"
-										>
-											Sign up
-										</Link>
-									</div>
+									{isAuthenticated ? null : (
+										<div className="flex w-full flex-col gap-2">
+											<Link
+												className={cn(
+													buttonVariants({ variant: "outline" }),
+													"h-auto w-full cursor-pointer rounded-full px-5 py-2.5 text-center"
+												)}
+												onClick={() => setMenuOpen(false)}
+												to="/sign-in"
+											>
+												Log in
+											</Link>
+											<Link
+												className={cn(
+													buttonVariants({ variant: "default" }),
+													"h-auto w-full cursor-pointer rounded-full px-5 py-2.5 text-center"
+												)}
+												onClick={() => setMenuOpen(false)}
+												to="/sign-up"
+											>
+												Sign up
+											</Link>
+										</div>
+									)}
 								</div>
 							</DropdownMenuContent>
 						</DropdownMenu>

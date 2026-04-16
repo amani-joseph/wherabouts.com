@@ -15,6 +15,11 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "10.0.0-alpha.2",
+    "@zxcvbn-ts/core": "^3.0.4",
+    "@zxcvbn-ts/language-common": "^3.0.4",
+    "@zxcvbn-ts/language-en": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "catalog:",
@@ -24,11 +29,15 @@
     "shadcn": "^3.6.2",
     "sonner": "catalog:",
     "tailwind-merge": "^3.3.1",
+    "three": "^0.183.2",
+    "three-globe": "^2.45.2",
     "tw-animate-css": "^1.3.4"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@types/three": "^0.183.1",
     "@wherabouts.com/config": "workspace:*",
     "tailwindcss": "catalog:",
     "typescript": "^5.9.3"

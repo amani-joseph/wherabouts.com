@@ -33,7 +33,9 @@ import { useCallback, useEffect, useState } from "react";
 import { orpcClient } from "@/lib/orpc";
 import { cn } from "@/lib/utils";
 
-type ApiKeyListItem = Awaited<ReturnType<typeof orpcClient.apiKeys.list>>[number];
+type ApiKeyListItem = Awaited<
+	ReturnType<typeof orpcClient.apiKeys.list>
+>[number];
 
 export const Route = createFileRoute("/_protected/api-keys")({
 	component: RouteComponent,
@@ -59,7 +61,13 @@ function timeAgo(dateStr: string | null): string {
 	return `${days}d ago`;
 }
 
-function CopyButton({ text }: { text: string }) {
+function CopyButton({
+	ariaLabel = "Copy to clipboard",
+	text,
+}: {
+	ariaLabel?: string;
+	text: string;
+}) {
 	const [copied, setCopied] = useState(false);
 
 	const copy = async () => {
@@ -69,7 +77,13 @@ function CopyButton({ text }: { text: string }) {
 	};
 
 	return (
-		<Button className="size-8" onClick={copy} size="icon" variant="ghost">
+		<Button
+			aria-label={ariaLabel}
+			className="size-8"
+			onClick={copy}
+			size="icon"
+			variant="ghost"
+		>
 			{copied ? (
 				<CheckIcon className="size-4 text-green-500" />
 			) : (
@@ -130,6 +144,7 @@ function KeyRow({
 				<span className="hidden text-muted-foreground text-xs sm:block">
 					Created {timeAgo(apiKey.createdAt)}
 				</span>
+				<CopyButton ariaLabel="Copy key preview" text={apiKey.displayLabel} />
 				<Button
 					className="size-8 text-destructive"
 					disabled={revoking}

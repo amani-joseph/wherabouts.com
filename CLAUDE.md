@@ -1,18 +1,18 @@
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**Wherabouts.com — Clerk to BetterAuth Migration**
+**Wherabouts.com — BetterAuth Migration**
 
-Wherabouts.com is an existing application built on TanStack Start + Convex. This project migrates the authentication system from Clerk (hosted, third-party) to BetterAuth (self-hosted, open-source), giving full ownership of auth data and infrastructure. The mydeffo.com-web project serves as architectural inspiration for BetterAuth patterns.
+Wherabouts.com is an existing application built on TanStack Start + Convex. This project uses BetterAuth (self-hosted, open-source) for authentication, giving full ownership of auth data and infrastructure. The mydeffo.com-web project serves as architectural inspiration for BetterAuth patterns.
 
-**Core Value:** Users can authenticate seamlessly — login, signup, OAuth, and session persistence must work without disruption after the migration.
+**Core Value:** Users can authenticate seamlessly — login, signup, OAuth, and session persistence must work without disruption.
 
 ### Constraints
 
 - **Stack:** Must remain on TanStack Start + Convex — no framework changes
 - **Data storage:** Auth data must be stored in Convex (not a separate DB)
-- **Feature parity:** All current Clerk auth features must work identically on BetterAuth
-- **Zero Clerk residue:** Full replacement — no Clerk code or dependency should remain
+- **Feature parity:** Existing auth features must work identically on BetterAuth
+- **Zero legacy auth residue:** Full replacement — no legacy auth code or dependency should remain
 <!-- GSD:project-end -->
 
 <!-- GSD:stack-start source:STACK.md -->

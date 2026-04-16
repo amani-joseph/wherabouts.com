@@ -23,7 +23,7 @@ CREATE TABLE "addresses" (
 --> statement-breakpoint
 CREATE TABLE "api_keys" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"clerk_user_id" text NOT NULL,
+	"user_id" text NOT NULL,
 	"name" text NOT NULL,
 	"secret_hash" text NOT NULL,
 	"secret_salt" text NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE "api_keys" (
 CREATE TABLE "api_usage_daily" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"api_key_id" uuid NOT NULL,
-	"clerk_user_id" text NOT NULL,
+	"user_id" text NOT NULL,
 	"usage_date" date NOT NULL,
 	"endpoint" text NOT NULL,
 	"request_count" integer DEFAULT 0 NOT NULL
@@ -49,7 +49,7 @@ CREATE INDEX "idx_addresses_postcode" ON "addresses" USING btree ("postcode");--
 CREATE INDEX "idx_addresses_locality" ON "addresses" USING btree ("country","state","locality");--> statement-breakpoint
 CREATE INDEX "idx_addresses_street" ON "addresses" USING btree ("locality","street_name");--> statement-breakpoint
 CREATE INDEX "idx_addresses_gnaf_pid" ON "addresses" USING btree ("gnaf_pid");--> statement-breakpoint
-CREATE INDEX "idx_api_keys_clerk_user_id" ON "api_keys" USING btree ("clerk_user_id");--> statement-breakpoint
+CREATE INDEX "idx_api_keys_user_id" ON "api_keys" USING btree ("user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "api_usage_daily_key_date_endpoint" ON "api_usage_daily" USING btree ("api_key_id","usage_date","endpoint");--> statement-breakpoint
-CREATE INDEX "idx_api_usage_daily_clerk_user_id" ON "api_usage_daily" USING btree ("clerk_user_id");--> statement-breakpoint
+CREATE INDEX "idx_api_usage_daily_user_id" ON "api_usage_daily" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "idx_api_usage_daily_api_key_id" ON "api_usage_daily" USING btree ("api_key_id");

@@ -359,7 +359,7 @@ export default {
 |--------------|------------------|--------------|--------|
 | `ConvexProviderWithClerk` | `ConvexBetterAuthProvider` | With `@convex-dev/better-auth` | Provider swap in root route |
 | Clerk JWT template for Convex | BetterAuth token via `getToken()` | With `@convex-dev/better-auth` | No more Clerk Dashboard JWT config needed |
-| `@clerk/tanstack-react-start` middleware | No global middleware needed | With BetterAuth | Auth checked via `beforeLoad` guards, not middleware |
+| Legacy TanStack Start auth middleware | No global middleware needed | With BetterAuth | Auth checked via `beforeLoad` guards, not middleware |
 | `better-auth` with Drizzle adapter | `@convex-dev/better-auth` Convex Component | 2025 | Purpose-built Convex integration |
 
 ## Open Questions

@@ -1,15 +1,16 @@
 # wherabouts.com
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Convex, and more.
+This project is a TanStack Start monorepo for `wherabouts.com`, with a separate ORPC server, Better Auth, Drizzle, and Neon Postgres.
 
 ## Features
 
 - **TypeScript** - For type safety and improved developer experience
 - **TanStack Start** - SSR framework with TanStack Router
+- **ORPC + Hono** - Typed RPC layer and standalone server app
+- **Drizzle + Neon Postgres** - Database schema, queries, and auth storage
 - **TailwindCSS** - Utility-first CSS for rapid UI development
 - **Shared UI package** - shadcn/ui primitives live in `packages/ui`
-- **Convex** - Reactive backend-as-a-service platform
-- **Authentication** - Clerk
+- **Authentication** - Better Auth
 - **Biome** - Linting and formatting
 - **Turborepo** - Optimized monorepo build system
 
@@ -21,24 +22,28 @@ First, install the dependencies:
 pnpm install
 ```
 
-## Convex Setup
+## Environment Setup
 
-This project uses Convex as a backend. You'll need to set up Convex before running the app:
+Create the environment files expected by the web app and the ORPC server.
 
-```bash
-pnpm run dev:setup
-```
+### Required values
 
-Follow the prompts to create a new Convex project and connect it to your application.
+- `DATABASE_URL` - Neon Postgres connection string
+- `BETTER_AUTH_SECRET` - Better Auth signing secret
+- `BETTER_AUTH_URL` - Public auth base URL for the server, for example `http://localhost:3003`
+- `VITE_SERVER_URL` - ORPC server base URL used by the web app, for example `http://localhost:3003`
+- Any OAuth provider secrets you intend to use
 
-Copy environment variables from `packages/backend/.env.local` to `apps/*/.env`.
+### Local development ports
 
-### Clerk Authentication Setup
+- Web app: `http://localhost:3001`
+- ORPC server: `http://localhost:3003`
 
-- Follow the guide: [Convex + Clerk](https://docs.convex.dev/auth/clerk)
-- Set `CLERK_JWT_ISSUER_DOMAIN` in Convex Dashboard
-- Set `VITE_CLERK_PUBLISHABLE_KEY` in `apps/web/.env`
-- Set `CLERK_SECRET_KEY` in `apps/web/.env` for Clerk server middleware
+### Better Auth Setup
+
+- Ensure the Better Auth variables are available to `apps/server` and `apps/web`
+- Point the web app at the ORPC server with `VITE_SERVER_URL`
+- Configure any Better Auth provider secrets before running auth flows
 
 Then, run the development server:
 
@@ -47,7 +52,6 @@ pnpm run dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-Your app will connect to the Convex cloud backend automatically.
 
 ## UI Customization
 
@@ -85,11 +89,12 @@ If you want to add app-specific blocks instead of shared primitives, run the sha
 wherabouts.com/
 ├── apps/
 │   ├── web/         # Frontend application (React + TanStack Start)
+│   └── server/      # ORPC + Better Auth server
 ├── packages/
 │   ├── ui/          # Shared shadcn/ui components and styles
-│   ├── backend/     # Convex backend functions and schema
-│   │   ├── convex/    # Convex functions and schema
-│   │   └── .env.local # Convex environment variables
+│   ├── api/         # Shared ORPC contract and procedures
+│   ├── database/    # Drizzle schema, migrations, and DB helpers
+│   └── env/         # Shared environment parsing
 ```
 
 ## Available Scripts
@@ -97,6 +102,6 @@ wherabouts.com/
 - `pnpm run dev`: Start all applications in development mode
 - `pnpm run build`: Build all applications
 - `pnpm run dev:web`: Start only the web application
-- `pnpm run dev:setup`: Setup and configure your Convex project
+- `pnpm run dev:server`: Start only the ORPC server
 - `pnpm run check-types`: Check TypeScript types across all apps
 - `pnpm run check`: Run Biome formatting and linting

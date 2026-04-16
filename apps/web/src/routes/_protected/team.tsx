@@ -1,4 +1,3 @@
-import { useUser } from "@clerk/tanstack-react-start";
 import { createFileRoute } from "@tanstack/react-router";
 import { Avatar, AvatarFallback } from "@wherabouts.com/ui/components/avatar";
 import { Badge } from "@wherabouts.com/ui/components/badge";
@@ -16,6 +15,7 @@ import {
 	ShieldIcon,
 	UserPlusIcon,
 } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_protected/team")({
 	component: RouteComponent,
@@ -57,7 +57,8 @@ const roleColors: Record<string, string> = {
 };
 
 function RouteComponent() {
-	const { user } = useUser();
+	const { data: session } = useSession();
+	const user = session?.user;
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -88,10 +89,10 @@ function RouteComponent() {
 					<div className="divide-y">
 						{teamMembers.map((member) => {
 							const displayName = member.isSelf
-								? (user?.fullName ?? "You")
+								? (user?.name ?? "You")
 								: member.name;
 							const displayEmail = member.isSelf
-								? (user?.primaryEmailAddress?.emailAddress ?? "")
+								? (user?.email ?? "")
 								: member.email;
 							const initials = displayName
 								.split(" ")

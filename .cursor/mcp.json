@@ -8,16 +8,9 @@
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp"]
     },
-    "convex": {
-      "command": "npx",
-      "args": ["-y", "convex@latest", "mcp", "start"]
-    },
     "shadcn": {
       "command": "npx",
       "args": ["-y", "shadcn@latest", "mcp"]
-    },
-    "clerk": {
-      "url": "https://mcp.clerk.com/mcp"
     }
   }
 }

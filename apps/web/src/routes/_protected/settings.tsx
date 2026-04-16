@@ -1,4 +1,3 @@
-import { useUser } from "@clerk/tanstack-react-start";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@wherabouts.com/ui/components/button";
 import {
@@ -25,13 +24,15 @@ import {
 	ShieldIcon,
 	UserIcon,
 } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_protected/settings")({
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { user } = useUser();
+	const { data: session } = useSession();
+	const user = session?.user;
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -75,7 +76,7 @@ function RouteComponent() {
 								<div className="space-y-2">
 									<Label htmlFor="firstName">First Name</Label>
 									<Input
-										defaultValue={user?.firstName ?? ""}
+										defaultValue={user?.name?.split(" ")[0] ?? ""}
 										id="firstName"
 										placeholder="First name"
 									/>
@@ -83,7 +84,9 @@ function RouteComponent() {
 								<div className="space-y-2">
 									<Label htmlFor="lastName">Last Name</Label>
 									<Input
-										defaultValue={user?.lastName ?? ""}
+										defaultValue={
+											user?.name?.split(" ").slice(1).join(" ") ?? ""
+										}
 										id="lastName"
 										placeholder="Last name"
 									/>
@@ -92,7 +95,7 @@ function RouteComponent() {
 							<div className="space-y-2">
 								<Label htmlFor="email">Email</Label>
 								<Input
-									defaultValue={user?.primaryEmailAddress?.emailAddress ?? ""}
+									defaultValue={user?.email ?? ""}
 									disabled
 									id="email"
 									type="email"

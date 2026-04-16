@@ -58,7 +58,7 @@
 ## Monorepo Packages
 
 **`@wherabouts.com/backend`** (`../../packages/backend/`):
-- Convex backend with Clerk auth integration
+- Convex backend with Better Auth integration
 - Scripts: `convex dev`, `convex dev --configure --until-success`
 
 **`@wherabouts.com/database`** (`../../packages/database/`):
@@ -81,7 +81,7 @@
 ## Key Dependencies
 
 **Critical:**
-- `@clerk/tanstack-react-start` 1.x - Authentication (SSR middleware + React provider)
+- `better-auth` 1.x - Authentication library
 - `@neondatabase/serverless` 1.x - Neon PostgreSQL HTTP driver (serverless-compatible)
 - `drizzle-orm` 0.44.x - Database query layer
 - `convex` (catalog) - Realtime backend (currently empty schema, wired for future use)
@@ -99,11 +99,11 @@
 - `.env` file at `apps/web/.env` - contains runtime configuration
 - Client-side vars prefixed with `VITE_` (validated in `../../packages/env/src/web.ts`):
   - `VITE_CONVEX_URL` - Convex deployment URL
-  - `VITE_CLERK_PUBLISHABLE_KEY` - Clerk public key
+  - `VITE_CONVEX_SITE_URL` - Better Auth site URL
 - Server-side vars (validated in `../../packages/env/src/server.ts`):
   - `DATABASE_URL` - Neon PostgreSQL connection string
 - Convex env vars:
-  - `CLERK_JWT_ISSUER_DOMAIN` - Set via `npx convex env set`
+  - `BETTER_AUTH_SECRET` - Better Auth secret
 
 **TypeScript:**
 - `tsconfig.json` at app root - strict mode, bundler module resolution, ES2022 target
@@ -120,14 +120,14 @@
 - Node.js (ES2022 compatible)
 - pnpm 10.12.4+
 - Neon PostgreSQL database with PostGIS extension
-- Clerk account (publishable key + JWT template named "convex")
+- Better Auth configuration and secret values
 - Convex account and deployment
 
 **Production:**
 - TanStack Start SSR deployment (Vite-based, needs Node.js runtime)
 - Neon serverless PostgreSQL (PostGIS-enabled)
 - Convex cloud backend
-- Clerk authentication service
+- Better Auth authentication service
 
 ---
 

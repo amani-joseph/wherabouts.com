@@ -14,6 +14,3 @@ args = ["-y", "convex@latest", "mcp", "start"]
 command = "npx"
 args = ["-y", "shadcn@latest", "mcp"]
 
-[mcp_servers.clerk]
-type = "http"
-url = "https://mcp.clerk.com/mcp"

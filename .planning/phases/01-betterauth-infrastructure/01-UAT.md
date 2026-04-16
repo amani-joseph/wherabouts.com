@@ -1,5 +1,5 @@
 ---
-status: diagnosed
+status: testing
 phase: 01-betterauth-infrastructure
 source: 01-01-SUMMARY.md, 01-02-SUMMARY.md
 started: 2026-04-14T12:00:00Z
@@ -8,7 +8,12 @@ updated: 2026-04-14T12:00:00Z
 
 ## Current Test
 
-[testing complete]
+number: 2
+name: Sign Up with Email/Password
+expected: |
+  Navigate to the sign-up page. Fill in email and password. Submit the form.
+  You should be redirected to the dashboard or authenticated area. No errors displayed.
+awaiting: user response
 
 ## Tests
 
@@ -18,42 +23,32 @@ result: pass
 
 ### 2. Sign Up with Email/Password
 expected: Navigate to the sign-up page. Fill in email and password. Submit the form. You should be redirected to the dashboard or authenticated area. No errors displayed.
-result: issue
-reported: "After a successful sign up, I only get notified that a successful sign up, but I'm not being redirected to the dashboard or authenticated area. No errors are being displayed"
-severity: major
+result: [pending]
 
 ### 3. Sign In with Email/Password
 expected: Sign out if logged in. Navigate to the sign-in page. Enter the credentials you just created. Submit. You should be authenticated and redirected to the protected area.
-result: issue
-reported: "No redirection, no error message, no response from the page. It just stays on the sign-in page."
-severity: major
+result: [pending]
 
 ### 4. Protected Route Guard
 expected: Open a new incognito/private window. Navigate directly to a protected route (e.g., /dashboard). You should be redirected to the sign-in page instead of seeing the dashboard content.
-result: issue
-reported: "Some behavior: no response, no error message, just blinks and stays on the same sign-in page."
-severity: major
+result: [pending]
 
 ### 5. Session Persistence
 expected: Sign in successfully. Close the browser tab. Open a new tab and navigate back to the app. You should still be authenticated — no need to sign in again.
-result: blocked
-blocked_by: prior-phase
-reason: "Cannot sign in to test persistence. Console shows BetterAuth session cookie is being set, but sign-in doesn't redirect/complete."
+result: [pending]
 
 ### 6. Sign Out
 expected: While authenticated, click the sign-out / logout button. You should be redirected to the public page. Navigating to a protected route should redirect to sign-in.
-result: blocked
-blocked_by: prior-phase
-reason: "Cannot test sign-out — sign-in does not complete, so never reaches authenticated state."
+result: [pending]
 
 ## Summary
 
 total: 6
 passed: 1
-issues: 3
-pending: 0
+issues: 0
+pending: 5
 skipped: 0
-blocked: 2
+blocked: 0
 
 ## Gaps
 

@@ -45,9 +45,13 @@ import {
 } from "react";
 import { orpcClient } from "@/lib/orpc";
 
-type ApiKeyListItem = Awaited<ReturnType<typeof orpcClient.apiKeys.list>>[number];
+type ApiKeyListItem = Awaited<
+	ReturnType<typeof orpcClient.apiKeys.list>
+>[number];
 type CreateApiKeyResult = Awaited<ReturnType<typeof orpcClient.apiKeys.create>>;
-type ProjectListItem = Awaited<ReturnType<typeof orpcClient.projects.list>>[number];
+type ProjectListItem = Awaited<
+	ReturnType<typeof orpcClient.projects.list>
+>[number];
 
 export const Route = createFileRoute("/_protected/projects")({
 	component: RouteComponent,

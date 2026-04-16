@@ -1,44 +1,21 @@
-import type { Database } from "@wherabouts.com/database";
-import {
+/**
+ * @deprecated The v1 API endpoints now live on apps/server via oRPC OpenAPIHandler.
+ * This file is kept only while any non-proxied route still references it.
+ * Once all v1 routes are removed, delete this file.
+ */
+export {
+	INTERNAL_API_AUTH_HEADER,
+	INTERNAL_API_KEY_ID_HEADER,
+	INTERNAL_REQUEST_SOURCE_HEADER,
 	parseApiKeyFromRequest,
+	REQUEST_SOURCE_EXPLORER_TEST,
+	REQUEST_SOURCE_PRODUCTION,
 	recordUsage,
+	type ValidatedApiKey,
 	validateApiKey,
-} from "./api-key-auth.ts";
-import { getDb } from "./db.ts";
-
-const UNAUTHORIZED = (message: string) =>
-	Response.json({ error: "unauthorized", message }, { status: 401 });
-
-export function withApiKeyGET<C extends { request: Request }>(
-	endpointKey: string,
-	handler: (ctx: C & { db: Database }) => Promise<Response>
-): (ctx: C) => Promise<Response> {
-	return async (ctx) => {
-		const token = parseApiKeyFromRequest(ctx.request);
-		if (!token) {
-			return UNAUTHORIZED(
-				"API key required. Send Authorization: Bearer <key> or X-API-Key."
-			);
-		}
-
-		const db = getDb();
-		const authResult = await validateApiKey(db, token);
-		if (!authResult) {
-			return UNAUTHORIZED("Invalid or revoked API key.");
-		}
-
-		const response = await handler({ ...ctx, db });
-
-		if (response.status >= 200 && response.status < 300) {
-			void recordUsage(db, {
-				apiKeyId: authResult.apiKeyId,
-				clerkUserId: authResult.clerkUserId,
-				endpoint: endpointKey,
-			}).catch(() => {
-				// Usage accounting must not fail the client response
-			});
-		}
-
-		return response;
-	};
-}
+	validateApiKeyById,
+} from "@wherabouts.com/api/api-key-auth";
+export {
+	applyServerTiming,
+	jsonApiError,
+} from "@wherabouts.com/api/api-response";

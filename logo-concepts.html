@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>wherabouts.com — Variant 02 Color Themes</title>
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+			rel="stylesheet"
+		>
+		<style>
+		*,
+		*::before,
+		*::after {
+			box-sizing: border-box;
+			padding: 0;
+			margin: 0;
+		}
+
+		body {
+			font-family: "JetBrains Mono", ui-monospace, monospace;
+			background: #cdd4dc;
+		}
+
+		/* ── Header ── */
+		header {
+			display: flex;
+			align-items: flex-end;
+			justify-content: space-between;
+			padding: 48px 56px;
+			background: #04080f;
+		}
+		.eye {
+			margin-bottom: 10px;
+			font-size: 10px;
+			font-weight: 600;
+			color: #1e3048;
+			text-transform: uppercase;
+			letter-spacing: 0.18em;
+		}
+		.h1 {
+			font-size: 30px;
+			font-weight: 300;
+			color: #c8dcf0;
+			letter-spacing: -0.03em;
+		}
+		.meta {
+			font-size: 11px;
+			line-height: 2.4;
+			color: #1e3048;
+			text-align: right;
+		}
+
+		/* ── Grid ── */
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 2px;
+			padding: 2px;
+		}
+		@media (max-width: 1000px) {
+			.grid {
+				grid-template-columns: repeat(2, 1fr);
+			}
+		}
+		@media (max-width: 520px) {
+			.grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		/* ── Card ── */
+		.card {
+			display: flex;
+			flex-direction: column;
+			min-height: 360px;
+			padding: 44px 38px 36px;
+			/* CSS vars set per-card inline */
+		}
+
+		.logo-area {
+			display: flex;
+			flex: 1;
+			flex-direction: column;
+			gap: 18px;
+			align-items: center;
+			justify-content: center;
+			padding: 8px 0 28px;
+		}
+
+		/* SVG mark — uses CSS vars */
+		.route {
+			fill: none;
+			stroke: var(--mk);
+			stroke-width: 11;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+			stroke-dasharray: 15 11;
+		}
+		.origin {
+			fill: none;
+			stroke: var(--ac);
+			stroke-width: 3.5;
+		}
+		.dest {
+			fill: var(--ac);
+		}
+		.wm {
+			fill: var(--mk);
+		}
+
+		.divider {
+			width: 100%;
+			height: 1px;
+			margin-bottom: 18px;
+			background: var(--div-c, rgba(255, 255, 255, 0.12));
+		}
+
+		.theme-name {
+			margin-bottom: 5px;
+			font-size: 15px;
+			font-weight: 500;
+			color: var(--label-h);
+		}
+
+		.theme-mood {
+			margin-bottom: 14px;
+			font-size: 11px;
+			font-weight: 400;
+			color: var(--label-s);
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+		}
+
+		.hex-row {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			align-items: center;
+		}
+
+		.hex-chip {
+			display: flex;
+			gap: 6px;
+			align-items: center;
+			font-size: 11px;
+			color: var(--label-s);
+			letter-spacing: 0.03em;
+		}
+
+		.hex-dot {
+			flex-shrink: 0;
+			width: 13px;
+			height: 13px;
+			border-radius: 50%;
+		}
+
+		@media (max-width: 520px) {
+			header {
+				flex-direction: column;
+				gap: 16px;
+				align-items: flex-start;
+			}
+			.meta {
+				text-align: left;
+			}
+		}
+		</style>
+	</head>
+	<body>
+		<header>
+			<div>
+				<p class="eye">Variant 02 — Dashed Route W</p>
+				<h1 class="h1">wherabouts.com · Color Themes</h1>
+			</div>
+			<div class="meta">
+				<p>8 Palettes</p>
+				<p>April 2026</p>
+			</div>
+		</header>
+
+		<!-- ══════════════════════════════════════════════════════════
+     REUSABLE MARK TEMPLATE (inline per-card, colours from CSS vars)
+     Origin ring   → class="origin"
+     Dashed route  → class="route"
+     Destination   → class="dest"
+     Wordmark text → class="wm"
+══════════════════════════════════════════════════════════ -->
+
+		<div class="grid">
+			<!-- ── 1. FOREST (signature) ── -->
+			<div
+				class="card"
+				style="
+    background: #1A7852;
+    --mk: rgba(255,255,255,0.92);
+    --ac: #8EEDC3;
+    --label-h: rgba(255,255,255,0.9);
+    --label-s: rgba(255,255,255,0.4);
+    --div-c: rgba(255,255,255,0.14);
+  "
+			>
+				<div class="logo-area">
+					<svg
+						viewBox="0 0 152 84"
+						width="152"
+						height="84"
+						xmlns="http://www.w3.org/2000/svg"
+						aria-label="wherabouts forest theme"
+					>
+						<circle cx="14" cy="16" r="9.5" class="origin" />
+						<path d="M14,16 L38,72 L76,30 L114,72 L138,16" class="route" />
+						<circle cx="138" cy="16" r="6.5" class="dest" />
+						<path d="M131,16 L145,16 L138,34 Z" class="dest" />
+					</svg>
+					<svg
+						viewBox="0 0 212 28"
+						width="212"
+						height="28"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<text
+							x="0"
+							y="22"
+							class="wm"
+							font-family="'JetBrains Mono', ui-monospace, monospace"
+							font-size="24"
+							font-weight="300"
+							letter-spacing="-0.2"
+						>
+							wherabouts
+						</text>
+					</svg>
+				</div>
+				<div class="divider"></div>
+				<p class="theme-name">Forest</p>
+				<p class="theme-mood">Natural · Trustworthy · Signature</p>
+				<div class="hex-row">
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#1A7852; border:1px solid rgba(255,255,255,.2);"
+						></div>
+						#1A7852
+					</div>
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#8EEDC3; border:1px solid rgba(255,255,255,.2);"
+						></div>
+						#8EEDC3
+					</div>
+				</div>
+			</div>
+
+			<!-- ── 2. OCEAN ── -->
+			<div
+				class="card"
+				style="
+    background: #1249A2;
+    --mk: rgba(255,255,255,0.92);
+    --ac: #7BB8FF;
+    --label-h: rgba(255,255,255,0.9);
+    --label-s: rgba(255,255,255,0.38);
+    --div-c: rgba(255,255,255,0.13);
+  "
+			>
+				<div class="logo-area">
+					<svg
+						viewBox="0 0 152 84"
+						width="152"
+						height="84"
+						xmlns="http://www.w3.org/2000/svg"
+						aria-label="wherabouts ocean theme"
+					>
+						<circle cx="14" cy="16" r="9.5" class="origin" />
+						<path d="M14,16 L38,72 L76,30 L114,72 L138,16" class="route" />
+						<circle cx="138" cy="16" r="6.5" class="dest" />
+						<path d="M131,16 L145,16 L138,34 Z" class="dest" />
+					</svg>
+					<svg
+						viewBox="0 0 212 28"
+						width="212"
+						height="28"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<text
+							x="0"
+							y="22"
+							class="wm"
+							font-family="'JetBrains Mono', ui-monospace, monospace"
+							font-size="24"
+							font-weight="300"
+							letter-spacing="-0.2"
+						>
+							wherabouts
+						</text>
+					</svg>
+				</div>
+				<div class="divider"></div>
+				<p class="theme-name">Ocean</p>
+				<p class="theme-mood">Reliable · Deep · Trustworthy</p>
+				<div class="hex-row">
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#1249A2; border:1px solid rgba(255,255,255,.2);"
+						></div>
+						#1249A2
+					</div>
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#7BB8FF; border:1px solid rgba(255,255,255,.2);"
+						></div>
+						#7BB8FF
+					</div>
+				</div>
+			</div>
+
+			<!-- ── 3. OBSIDIAN ── -->
+			<div
+				class="card"
+				style="
+    background: #0C0C0C;
+    --mk: rgba(255,255,255,0.9);
+    --ac: #C8C8C8;
+    --label-h: rgba(255,255,255,0.82);
+    --label-s: rgba(255,255,255,0.28);
+    --div-c: rgba(255,255,255,0.07);
+  "
+			>
+				<div class="logo-area">
+					<svg
+						viewBox="0 0 152 84"
+						width="152"
+						height="84"
+						xmlns="http://www.w3.org/2000/svg"
+						aria-label="wherabouts obsidian theme"
+					>
+						<circle cx="14" cy="16" r="9.5" class="origin" />
+						<path d="M14,16 L38,72 L76,30 L114,72 L138,16" class="route" />
+						<circle cx="138" cy="16" r="6.5" class="dest" />
+						<path d="M131,16 L145,16 L138,34 Z" class="dest" />
+					</svg>
+					<svg
+						viewBox="0 0 212 28"
+						width="212"
+						height="28"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<text
+							x="0"
+							y="22"
+							class="wm"
+							font-family="'JetBrains Mono', ui-monospace, monospace"
+							font-size="24"
+							font-weight="300"
+							letter-spacing="-0.2"
+						>
+							wherabouts
+						</text>
+					</svg>
+				</div>
+				<div class="divider"></div>
+				<p class="theme-name">Obsidian</p>
+				<p class="theme-mood">Technical · Bold · Dark-mode</p>
+				<div class="hex-row">
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#0C0C0C; border:1px solid rgba(255,255,255,.1);"
+						></div>
+						#0C0C0C
+					</div>
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#C8C8C8; border:1px solid rgba(255,255,255,.15);"
+						></div>
+						#C8C8C8
+					</div>
+				</div>
+			</div>
+
+			<!-- ── 4. EMBER ── -->
+			<div
+				class="card"
+				style="
+    background: #BE2D1A;
+    --mk: rgba(255,255,255,0.92);
+    --ac: #FFB8A8;
+    --label-h: rgba(255,255,255,0.9);
+    --label-s: rgba(255,255,255,0.38);
+    --div-c: rgba(255,255,255,0.14);
+  "
+			>
+				<div class="logo-area">
+					<svg
+						viewBox="0 0 152 84"
+						width="152"
+						height="84"
+						xmlns="http://www.w3.org/2000/svg"
+						aria-label="wherabouts ember theme"
+					>
+						<circle cx="14" cy="16" r="9.5" class="origin" />
+						<path d="M14,16 L38,72 L76,30 L114,72 L138,16" class="route" />
+						<circle cx="138" cy="16" r="6.5" class="dest" />
+						<path d="M131,16 L145,16 L138,34 Z" class="dest" />
+					</svg>
+					<svg
+						viewBox="0 0 212 28"
+						width="212"
+						height="28"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<text
+							x="0"
+							y="22"
+							class="wm"
+							font-family="'JetBrains Mono', ui-monospace, monospace"
+							font-size="24"
+							font-weight="300"
+							letter-spacing="-0.2"
+						>
+							wherabouts
+						</text>
+					</svg>
+				</div>
+				<div class="divider"></div>
+				<p class="theme-name">Ember</p>
+				<p class="theme-mood">Energetic · Direct · Startup</p>
+				<div class="hex-row">
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#BE2D1A; border:1px solid rgba(255,255,255,.2);"
+						></div>
+						#BE2D1A
+					</div>
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#FFB8A8; border:1px solid rgba(255,255,255,.2);"
+						></div>
+						#FFB8A8
+					</div>
+				</div>
+			</div>
+
+			<!-- ── 5. AMBER ── -->
+			<div
+				class="card"
+				style="
+    background: #8B5300;
+    --mk: rgba(255,255,255,0.92);
+    --ac: #FFD080;
+    --label-h: rgba(255,255,255,0.9);
+    --label-s: rgba(255,255,255,0.38);
+    --div-c: rgba(255,255,255,0.13);
+  "
+			>
+				<div class="logo-area">
+					<svg
+						viewBox="0 0 152 84"
+						width="152"
+						height="84"
+						xmlns="http://www.w3.org/2000/svg"
+						aria-label="wherabouts amber theme"
+					>
+						<circle cx="14" cy="16" r="9.5" class="origin" />
+						<path d="M14,16 L38,72 L76,30 L114,72 L138,16" class="route" />
+						<circle cx="138" cy="16" r="6.5" class="dest" />
+						<path d="M131,16 L145,16 L138,34 Z" class="dest" />
+					</svg>
+					<svg
+						viewBox="0 0 212 28"
+						width="212"
+						height="28"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<text
+							x="0"
+							y="22"
+							class="wm"
+							font-family="'JetBrains Mono', ui-monospace, monospace"
+							font-size="24"
+							font-weight="300"
+							letter-spacing="-0.2"
+						>
+							wherabouts
+						</text>
+					</svg>
+				</div>
+				<div class="divider"></div>
+				<p class="theme-name">Amber</p>
+				<p class="theme-mood">Warm · Confident · Approachable</p>
+				<div class="hex-row">
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#8B5300; border:1px solid rgba(255,255,255,.2);"
+						></div>
+						#8B5300
+					</div>
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#FFD080; border:1px solid rgba(255,255,255,.2);"
+						></div>
+						#FFD080
+					</div>
+				</div>
+			</div>
+
+			<!-- ── 6. IRIS ── -->
+			<div
+				class="card"
+				style="
+    background: #2D1FA0;
+    --mk: rgba(255,255,255,0.92);
+    --ac: #BAB4FF;
+    --label-h: rgba(255,255,255,0.9);
+    --label-s: rgba(255,255,255,0.38);
+    --div-c: rgba(255,255,255,0.13);
+  "
+			>
+				<div class="logo-area">
+					<svg
+						viewBox="0 0 152 84"
+						width="152"
+						height="84"
+						xmlns="http://www.w3.org/2000/svg"
+						aria-label="wherabouts iris theme"
+					>
+						<circle cx="14" cy="16" r="9.5" class="origin" />
+						<path d="M14,16 L38,72 L76,30 L114,72 L138,16" class="route" />
+						<circle cx="138" cy="16" r="6.5" class="dest" />
+						<path d="M131,16 L145,16 L138,34 Z" class="dest" />
+					</svg>
+					<svg
+						viewBox="0 0 212 28"
+						width="212"
+						height="28"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<text
+							x="0"
+							y="22"
+							class="wm"
+							font-family="'JetBrains Mono', ui-monospace, monospace"
+							font-size="24"
+							font-weight="300"
+							letter-spacing="-0.2"
+						>
+							wherabouts
+						</text>
+					</svg>
+				</div>
+				<div class="divider"></div>
+				<p class="theme-name">Iris</p>
+				<p class="theme-mood">Modern · Developer · API-native</p>
+				<div class="hex-row">
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#2D1FA0; border:1px solid rgba(255,255,255,.2);"
+						></div>
+						#2D1FA0
+					</div>
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#BAB4FF; border:1px solid rgba(255,255,255,.2);"
+						></div>
+						#BAB4FF
+					</div>
+				</div>
+			</div>
+
+			<!-- ── 7. DUSK ── -->
+			<div
+				class="card"
+				style="
+    background: #213A5C;
+    --mk: rgba(255,255,255,0.9);
+    --ac: #88B0DA;
+    --label-h: rgba(255,255,255,0.88);
+    --label-s: rgba(255,255,255,0.36);
+    --div-c: rgba(255,255,255,0.11);
+  "
+			>
+				<div class="logo-area">
+					<svg
+						viewBox="0 0 152 84"
+						width="152"
+						height="84"
+						xmlns="http://www.w3.org/2000/svg"
+						aria-label="wherabouts dusk theme"
+					>
+						<circle cx="14" cy="16" r="9.5" class="origin" />
+						<path d="M14,16 L38,72 L76,30 L114,72 L138,16" class="route" />
+						<circle cx="138" cy="16" r="6.5" class="dest" />
+						<path d="M131,16 L145,16 L138,34 Z" class="dest" />
+					</svg>
+					<svg
+						viewBox="0 0 212 28"
+						width="212"
+						height="28"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<text
+							x="0"
+							y="22"
+							class="wm"
+							font-family="'JetBrains Mono', ui-monospace, monospace"
+							font-size="24"
+							font-weight="300"
+							letter-spacing="-0.2"
+						>
+							wherabouts
+						</text>
+					</svg>
+				</div>
+				<div class="divider"></div>
+				<p class="theme-name">Dusk</p>
+				<p class="theme-mood">Premium · Enterprise · Composed</p>
+				<div class="hex-row">
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#213A5C; border:1px solid rgba(255,255,255,.15);"
+						></div>
+						#213A5C
+					</div>
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#88B0DA; border:1px solid rgba(255,255,255,.15);"
+						></div>
+						#88B0DA
+					</div>
+				</div>
+			</div>
+
+			<!-- ── 8. PAPER (light mode) ── -->
+			<div
+				class="card"
+				style="
+    background: #F3EDE4;
+    --mk: rgba(26,60,42,0.88);
+    --ac: #1A7852;
+    --label-h: #1A2E22;
+    --label-s: #7A9880;
+    --div-c: rgba(26,120,82,0.14);
+  "
+			>
+				<div class="logo-area">
+					<svg
+						viewBox="0 0 152 84"
+						width="152"
+						height="84"
+						xmlns="http://www.w3.org/2000/svg"
+						aria-label="wherabouts paper theme"
+					>
+						<circle cx="14" cy="16" r="9.5" class="origin" />
+						<path d="M14,16 L38,72 L76,30 L114,72 L138,16" class="route" />
+						<circle cx="138" cy="16" r="6.5" class="dest" />
+						<path d="M131,16 L145,16 L138,34 Z" class="dest" />
+					</svg>
+					<svg
+						viewBox="0 0 212 28"
+						width="212"
+						height="28"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<text
+							x="0"
+							y="22"
+							class="wm"
+							font-family="'JetBrains Mono', ui-monospace, monospace"
+							font-size="24"
+							font-weight="300"
+							letter-spacing="-0.2"
+						>
+							wherabouts
+						</text>
+					</svg>
+				</div>
+				<div class="divider"></div>
+				<p class="theme-name">Paper</p>
+				<p class="theme-mood">Minimal · Clean · Light mode</p>
+				<div class="hex-row">
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#F3EDE4; border:1px solid rgba(0,0,0,.1);"
+						></div>
+						#F3EDE4
+					</div>
+					<div class="hex-chip">
+						<div
+							class="hex-dot"
+							style="background:#1A7852; border:1px solid rgba(0,0,0,.06);"
+						></div>
+						#1A7852
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

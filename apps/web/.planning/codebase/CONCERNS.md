@@ -20,7 +20,7 @@
 - Issue: The settings page at `src/routes/_protected/settings.tsx` renders form inputs (name, workspace, timezone) with `defaultValue` props but no `onChange` handlers, no form submission logic, and no server functions. The "Save Changes" button does nothing. Notification toggles use `defaultChecked` with no persistence. The "Delete Account" button has no handler.
 - Files: `src/routes/_protected/settings.tsx`
 - Impact: Users may attempt to change settings and believe they saved, only to find nothing persisted. The "Delete Account" button is especially dangerous as a placeholder since it sets user expectations.
-- Fix approach: Either wire up Clerk user profile updates for profile tab, implement notification preference storage, or remove/disable the settings page until ready.
+- Fix approach: Either wire up Better Auth profile updates for the profile tab, implement notification preference storage, or remove/disable the settings page until ready.
 
 **Hardcoded Plan Limit in Dashboard:**
 - Issue: `PLAN_LIMIT` is hardcoded to `100_000` at `src/routes/_protected/dashboard.tsx` (line 32). The billing page shows different plan tiers (1,000 / 100,000 / unlimited) but the dashboard always shows 100K as the limit.

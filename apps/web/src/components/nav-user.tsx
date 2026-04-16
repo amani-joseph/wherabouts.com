@@ -1,6 +1,5 @@
 "use client";
 
-import { useClerk, useUser } from "@clerk/tanstack-react-start";
 import {
 	Avatar,
 	AvatarFallback,
@@ -21,14 +20,15 @@ import {
 	SettingsIcon,
 	UserIcon,
 } from "lucide-react";
+import { signOut, useSession } from "@/lib/auth-client";
 
 export function NavUser() {
-	const { user } = useUser();
-	const { signOut } = useClerk();
+	const { data: session } = useSession();
+	const user = session?.user;
 
-	const name = user?.fullName ?? "User";
-	const email = user?.primaryEmailAddress?.emailAddress ?? "";
-	const avatarUrl = user?.imageUrl ?? "";
+	const name = user?.name ?? "User";
+	const email = user?.email ?? "";
+	const avatarUrl = user?.image ?? "";
 	const initials = name.charAt(0).toUpperCase();
 
 	return (
@@ -38,20 +38,23 @@ export function NavUser() {
 				<AvatarFallback>{initials}</AvatarFallback>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-60">
-				<DropdownMenuItem className="flex items-center justify-start gap-2">
-					<DropdownMenuLabel className="flex items-center gap-3">
-						<Avatar className="size-10">
-							<AvatarImage src={avatarUrl} />
-							<AvatarFallback>{initials}</AvatarFallback>
-						</Avatar>
-						<div>
-							<span className="font-medium text-foreground">{name}</span> <br />
-							<div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-muted-foreground text-xs">
-								{email}
+				<DropdownMenuGroup>
+					<DropdownMenuLabel className="px-2 py-2">
+						<div className="flex items-center gap-3">
+							<Avatar className="size-10">
+								<AvatarImage src={avatarUrl} />
+								<AvatarFallback>{initials}</AvatarFallback>
+							</Avatar>
+							<div>
+								<span className="font-medium text-foreground">{name}</span>{" "}
+								<br />
+								<div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-muted-foreground text-xs">
+									{email}
+								</div>
 							</div>
 						</div>
 					</DropdownMenuLabel>
-				</DropdownMenuItem>
+				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem>
@@ -74,7 +77,11 @@ export function NavUser() {
 				<DropdownMenuGroup>
 					<DropdownMenuItem
 						className="w-full cursor-pointer"
-						onClick={() => signOut({ redirectUrl: "/" })}
+						onClick={() => {
+							signOut()
+								.then(() => window.location.assign("/"))
+								.catch(() => undefined);
+						}}
 						variant="destructive"
 					>
 						<LogOutIcon />

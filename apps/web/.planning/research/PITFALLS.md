@@ -82,7 +82,7 @@ Mistakes that cause data loss, security incidents, or force rewrites.
 
 **What goes wrong:** When API keys become project-scoped, every key operation (create, list, revoke, delete) must verify that the authenticated user owns the project. Without this, a user could create keys in another user's project by guessing/enumerating the `project_id` UUID.
 
-**Why it happens:** The current code correctly scopes operations to `clerkUserId`. But once `project_id` is added, developers may validate only that the project exists (not that it belongs to the requesting user) since the user check feels redundant when a project ID is provided.
+**Why it happens:** The current code correctly scopes operations to `userId`. But once `project_id` is added, developers may validate only that the project exists (not that it belongs to the requesting user) since the user check feels redundant when a project ID is provided.
 
 **Consequences:**
 - IDOR vulnerability: User A creates API keys in User B's project
@@ -90,7 +90,7 @@ Mistakes that cause data loss, security incidents, or force rewrites.
 - Potential data access if project-level permissions are ever added
 
 **Prevention:**
-1. Every server function that accepts a `project_id` MUST join or subquery against `projects` to verify `projects.clerk_user_id = userId`
+1. Every server function that accepts a `project_id` MUST join or subquery against `projects` to verify `projects.user_id = userId`
 2. Create a reusable `assertProjectOwnership(db, projectId, userId)` helper used by all project-scoped operations
 3. Never trust `project_id` from client input without ownership verification
 4. Add this check in the `withApiKeyGET` middleware if project-level rate limiting is added later
@@ -120,7 +120,7 @@ Mistakes that cause data loss, security incidents, or force rewrites.
 
 ### Pitfall 6: Missing `project_id` in Usage Tracking
 
-**What goes wrong:** The `api_usage_daily` table tracks usage by `api_key_id` and `clerk_user_id`, but not by `project_id`. To show per-project usage on the dashboard, every query must JOIN through `api_keys` to get the project. This is slow and error-prone for aggregate queries.
+**What goes wrong:** The `api_usage_daily` table tracks usage by `api_key_id` and `user_id`, but not by `project_id`. To show per-project usage on the dashboard, every query must JOIN through `api_keys` to get the project. This is slow and error-prone for aggregate queries.
 
 **Why it happens:** The table was designed before projects existed. It is natural to think "we can derive project from the key" -- but aggregate queries across date ranges with GROUP BY project become expensive JOINs.
 
@@ -148,7 +148,7 @@ Mistakes that cause data loss, security incidents, or force rewrites.
 3. Return a clear error: "Maximum of 25 active API keys per project. Revoke unused keys first."
 4. Consider a per-user global limit as well (e.g., max 100 active keys across all projects)
 
-**Detection:** Query `SELECT clerk_user_id, COUNT(*) FROM api_keys WHERE revoked_at IS NULL GROUP BY clerk_user_id ORDER BY count DESC` periodically.
+**Detection:** Query `SELECT user_id, COUNT(*) FROM api_keys WHERE revoked_at IS NULL GROUP BY user_id ORDER BY count DESC` periodically.
 
 **Phase:** Server function implementation phase, in the `createApiKey` handler.
 

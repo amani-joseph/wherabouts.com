@@ -28,7 +28,9 @@ import {
 } from "@/lib/api-explorer-endpoints";
 import { orpcClient } from "@/lib/orpc";
 
-type ApiKeyListItem = Awaited<ReturnType<typeof orpcClient.apiKeys.list>>[number];
+type ApiKeyListItem = Awaited<
+	ReturnType<typeof orpcClient.apiKeys.list>
+>[number];
 
 type ExplorerAuthMode = "managed" | "raw";
 
@@ -197,8 +199,7 @@ function EndpointCard({
 				managedKeyId:
 					authState.mode === "managed" ? authState.managedKeyId : undefined,
 				paramValues,
-				rawApiKey:
-					authState.mode === "raw" ? authState.rawApiKey : undefined,
+				rawApiKey: authState.mode === "raw" ? authState.rawApiKey : undefined,
 			});
 			setStatusCode(result.statusCode);
 			setDurationMs(result.durationMs);

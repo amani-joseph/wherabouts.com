@@ -1,0 +1,25 @@
+{
+  "name": "@wherabouts.com/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "build": "tsc --noEmit",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@orpc/openapi": "^1.13.14",
+    "@orpc/server": "^1.9.0",
+    "@wherabouts.com/api": "workspace:*",
+    "@wherabouts.com/env": "workspace:*",
+    "hono": "^4.10.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@wherabouts.com/config": "workspace:*",
+    "tsx": "^4.21.0",
+    "typescript": "^5",
+    "wrangler": "^4.81.1"
+  }
+}

@@ -23,11 +23,6 @@
       "command": ["npx", "-y", "shadcn@latest", "mcp"],
       "enabled": true,
       "environment": {}
-    },
-    "clerk": {
-      "type": "remote",
-      "url": "https://mcp.clerk.com/mcp",
-      "enabled": true
     }
   }
 }

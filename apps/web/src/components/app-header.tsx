@@ -1,20 +1,21 @@
 "use client";
 
-import { SignInButton, UserButton, useUser } from "@clerk/tanstack-react-start";
-import { useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { DecorIcon } from "@wherabouts.com/ui/components/ui/decor-icon";
 import { cn } from "@wherabouts.com/ui/lib/utils";
 import { BellIcon, SendIcon } from "lucide-react";
 import { AppBreadcrumbs } from "@/components/app-breadcrumbs";
 import { navLinks } from "@/components/app-shared";
 import { CustomSidebarTrigger } from "@/components/custom-sidebar-trigger";
+import { NavUser } from "@/components/nav-user";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useSession } from "@/lib/auth-client";
 import { navItemMatchesPath } from "@/lib/nav-item-matches-path";
 
 export function AppHeader() {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
-	const { user } = useUser();
+	const { data: session } = useSession();
 	const activeItem =
 		navLinks.find((item) => navItemMatchesPath(pathname, item.path)) ?? null;
 
@@ -51,7 +52,15 @@ export function AppHeader() {
 					className="h-4 data-[orientation=vertical]:self-center"
 					orientation="vertical"
 				/>
-				{user ? <UserButton /> : <SignInButton />}
+				{session?.user ? (
+					<NavUser />
+				) : (
+					<Link to="/sign-in">
+						<Button size="sm" variant="outline">
+							Sign in
+						</Button>
+					</Link>
+				)}
 			</div>
 		</header>
 	);

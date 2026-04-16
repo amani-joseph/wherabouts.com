@@ -4,6 +4,7 @@ import { Icon } from "@iconify/react";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { Checkbox } from "@wherabouts.com/ui/components/checkbox";
 import { Label } from "@wherabouts.com/ui/components/label";
+import { PasswordInput } from "@wherabouts.com/ui/components/password-input";
 import { type FormEvent, useState } from "react";
 import { ShaderAnimation } from "@/components/shadcn-space/animations/shader-lines";
 import { Button } from "@/components/ui/button";
@@ -134,7 +135,7 @@ const LoginForm = () => {
 												>
 													Password*
 												</Label>
-												<Input
+												<PasswordInput
 													autoComplete="current-password"
 													className="h-9 rounded-md border-border bg-background text-foreground shadow-xs dark:bg-background"
 													disabled={isSubmitting || socialProvider !== null}
@@ -142,7 +143,6 @@ const LoginForm = () => {
 													name="password"
 													placeholder="Enter your password"
 													required
-													type="password"
 												/>
 											</div>
 											<div className="flex flex-wrap items-center justify-between gap-4 text-sm">

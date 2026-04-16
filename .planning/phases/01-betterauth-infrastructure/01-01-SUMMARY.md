@@ -8,7 +8,7 @@ completed: 2026-04-14
 
 ## Summary
 
-Installed BetterAuth packages and configured the Convex backend with component registration, auth factory, auth config provider, and HTTP route registration. Clerk auth config fully replaced.
+Installed BetterAuth packages and configured the Convex backend with component registration, auth factory, auth config provider, and HTTP route registration. Legacy auth config fully replaced.
 
 ## Tasks
 
@@ -25,7 +25,7 @@ Installed BetterAuth packages and configured the Convex backend with component r
 
 ### Modified
 - `packages/backend/convex/convex.config.ts` — Added BetterAuth component registration
-- `packages/backend/convex/auth.config.ts` — Replaced Clerk config with BetterAuth provider
+- `packages/backend/convex/auth.config.ts` — Replaced legacy auth config with BetterAuth provider
 - `apps/web/package.json` — Added better-auth and @convex-dev/better-auth
 - `packages/backend/package.json` — Added @convex-dev/better-auth
 
@@ -38,6 +38,6 @@ None. Plan executed as specified.
 All acceptance criteria verified:
 - convex.config.ts has `app.use(betterAuth)`
 - auth.ts exports `authComponent` and `createAuth`, imports from `better-auth/minimal`
-- auth.config.ts uses `getAuthConfigProvider`, no Clerk references
+- auth.config.ts uses `getAuthConfigProvider`, no legacy-auth references
 - http.ts has `authComponent.registerRoutes(http, createAuth)`
 - Packages installed in correct workspaces

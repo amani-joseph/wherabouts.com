@@ -1,6 +1,6 @@
 ---
 name: convex-setup-auth
-description: Sets up Convex authentication with user management, identity mapping, and access control. Use this skill when adding login or signup to a Convex app, configuring Convex Auth, Clerk, WorkOS AuthKit, Auth0, or custom JWT providers, wiring auth.config.ts, protecting queries and mutations with ctx.auth.getUserIdentity(), creating a users table with identity mapping, or setting up role-based access control, even if the user just says "add auth" or "make it require login."
+description: Sets up Convex authentication with user management, identity mapping, and access control. Use this skill when adding login or signup to a Convex app, configuring Convex Auth, Better Auth, WorkOS AuthKit, Auth0, or custom JWT providers, wiring auth.config.ts, protecting queries and mutations with ctx.auth.getUserIdentity(), creating a users table with identity mapping, or setting up role-based access control, even if the user just says "add auth" or "make it require login."
 ---
 
 # Convex Authentication Setup
@@ -12,7 +12,7 @@ Implement secure authentication in Convex with user management and access contro
 - Setting up authentication for the first time
 - Implementing user management (users table, identity mapping)
 - Creating authentication helper functions
-- Setting up auth providers (Convex Auth, Clerk, WorkOS AuthKit, Auth0, custom JWT)
+- Setting up auth providers (Convex Auth, Better Auth, WorkOS AuthKit, Auth0, custom JWT)
 
 ## When Not to Use
 
@@ -34,14 +34,14 @@ Before writing setup code:
 Common options:
 
 - [Convex Auth](https://docs.convex.dev/auth/convex-auth) - good default when the user wants auth handled directly in Convex
-- [Clerk](https://docs.convex.dev/auth/clerk) - use when the app already uses Clerk or the user wants Clerk's hosted auth features
+- [Better Auth](https://www.better-auth.com/docs) - use when the app already uses Better Auth or the user wants self-hosted auth features
 - [WorkOS AuthKit](https://docs.convex.dev/auth/authkit/) - use when the app already uses WorkOS or the user wants AuthKit specifically
 - [Auth0](https://docs.convex.dev/auth/auth0) - use when the app already uses Auth0
 - Custom JWT provider - use when integrating an existing auth system not covered above
 
 Look for signals in the repo before asking:
 
-- Dependencies such as `@clerk/*`, `@workos-inc/*`, `@auth0/*`, or Convex Auth packages
+- Dependencies such as `better-auth`, `@workos-inc/*`, `@auth0/*`, or Convex Auth packages
 - Existing files such as `convex/auth.config.ts`, auth middleware, provider wrappers, or login components
 - Environment variables that clearly point at a provider
 
@@ -50,7 +50,7 @@ Look for signals in the repo before asking:
 Read the provider's official guide and the matching local reference file:
 
 - Convex Auth: [official docs](https://docs.convex.dev/auth/convex-auth), then `references/convex-auth.md`
-- Clerk: [official docs](https://docs.convex.dev/auth/clerk), then `references/clerk.md`
+- Better Auth: [official docs](https://www.better-auth.com/docs), then project Better Auth references
 - WorkOS AuthKit: [official docs](https://docs.convex.dev/auth/authkit/), then `references/workos-authkit.md`
 - Auth0: [official docs](https://docs.convex.dev/auth/auth0), then `references/auth0.md`
 
@@ -130,7 +130,6 @@ If it does not, give the user a short manual validation checklist instead.
 ### Provider References
 
 - `references/convex-auth.md`
-- `references/clerk.md`
 - `references/workos-authkit.md`
 - `references/auth0.md`
 

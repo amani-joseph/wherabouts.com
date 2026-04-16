@@ -56,7 +56,7 @@
 
 **Order** (automatically enforced by Biome):
 1. Node built-ins (`node:crypto`)
-2. External packages (`@clerk/...`, `@tanstack/...`, `drizzle-orm`, `lucide-react`, `react`, `zod`)
+2. External packages (`better-auth`, `@tanstack/...`, `drizzle-orm`, `lucide-react`, `react`, `zod`)
 3. Workspace packages (`@wherabouts.com/ui/...`, `@wherabouts.com/database/...`, `@wherabouts.com/env/...`)
 4. Local aliases (`@/components/...`, `@/lib/...`)
 5. Relative imports (`../index.css?url`)
@@ -96,7 +96,8 @@
 
 **Server function auth pattern** (used consistently in `src/lib/*-server.ts`):
 ```typescript
-const { userId } = await auth();
+const session = await getSession();
+const userId = session?.user.id;
 if (!userId) {
   // Return empty data for GET, throw for POST
   return [];        // GET: return empty
@@ -123,7 +124,7 @@ if (!userId) {
   ```
 - Use inline comments to explain non-obvious business decisions:
   ```typescript
-  // Clerk returns 404 / "Not Found" when JWT template name is missing
+  // Better Auth may return a missing-session response when auth state is absent
   ```
 - Comment silenced errors to explain why they are safe to ignore
 
@@ -194,7 +195,7 @@ if (!userId) {
 - Local state with `useState` + `useEffect` for data fetching in dashboard components
 - `useCallback` for memoized fetch functions passed to `useEffect`
 - Convex + React Query for real-time data via `ConvexQueryClient`
-- Clerk hooks for auth state: `useUser()`, `useClerk()`, `useAuth()`
+- Better Auth hooks for auth state: `useSession()`, `signIn()`, `signOut()`
 
 ## Tailwind CSS Patterns
 

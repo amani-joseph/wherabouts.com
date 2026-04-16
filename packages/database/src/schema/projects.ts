@@ -11,7 +11,7 @@ export const projects = pgTable(
 	"projects",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		clerkUserId: text("clerk_user_id").notNull(),
+		userId: text("user_id").notNull(),
 		name: text("name").notNull(),
 		slug: text("slug").notNull(),
 		createdAt: timestamp("created_at", { withTimezone: true })
@@ -20,8 +20,8 @@ export const projects = pgTable(
 		archivedAt: timestamp("archived_at", { withTimezone: true }),
 	},
 	(table) => [
-		uniqueIndex("uq_projects_user_slug").on(table.clerkUserId, table.slug),
-		index("idx_projects_clerk_user_id").on(table.clerkUserId),
+		uniqueIndex("uq_projects_user_slug").on(table.userId, table.slug),
+		index("idx_projects_user_id").on(table.userId),
 	]
 );
 

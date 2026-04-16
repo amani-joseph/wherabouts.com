@@ -10,9 +10,9 @@
 - Auth: `VITE_CONVEX_URL` (client env var)
 - Config: `../../packages/backend/convex/convex.config.ts`
 - Schema: `../../packages/backend/convex/schema.ts` (empty `defineSchema({})`)
-- Integration: `ConvexProviderWithClerk` wraps app in `src/routes/__root.tsx`
+- Integration: `ConvexBetterAuthProvider` wraps app in `src/routes/__root.tsx`
 - Dev command: `convex dev` (from `@wherabouts.com/backend` package)
-- JWT tokens fetched from Clerk with template name `"convex"` for server-side auth
+- Session tokens fetched from Better Auth for server-side auth
 
 **Wherabouts Locations API (Self-hosted):**
 - Purpose: Core product - address geocoding and lookup API
@@ -43,9 +43,9 @@
   - Fields: country, state, locality, postcode, street components, lat/lng, geom (PostGIS Point), gnaf_pid
   - Indexes: country, state, postcode, locality, street, gnaf_pid
 - `api_keys` - API key storage with scrypt hashes (`../../packages/database/src/schema/api-keys.ts`)
-  - Fields: clerk_user_id, name, secret_hash, secret_salt, display_suffix, timestamps
+  - Fields: user_id, name, secret_hash, secret_salt, display_suffix, timestamps
 - `api_usage_daily` - Per-key daily usage tracking (`../../packages/database/src/schema/api-keys.ts`)
-  - Fields: api_key_id (FK), clerk_user_id, usage_date, endpoint, request_count
+  - Fields: api_key_id (FK), user_id, usage_date, endpoint, request_count
   - Upsert pattern: ON CONFLICT increment request_count
 
 **Convex (Realtime):**
@@ -61,25 +61,21 @@
 
 ## Authentication & Identity
 
-**Clerk (Primary Auth Provider):**
-- SDK: `@clerk/tanstack-react-start`
-- Client provider: `ClerkProvider` in `src/routes/__root.tsx`
-- Server middleware: `clerkMiddleware()` in `src/start.ts`
-  - Ignored routes: `/api/v1/(.*)` (API routes use API key auth instead)
-- Server auth: `auth()` from `@clerk/tanstack-react-start/server`
-- JWT template: `"convex"` - used to get tokens for Convex backend auth
-- Convex auth config: `../../packages/backend/convex/auth.config.ts`
-  - Provider domain: `CLERK_JWT_ISSUER_DOMAIN` env var
-  - Application ID: `"convex"`
+**Better Auth (Primary Auth Provider):**
+- SDK: `better-auth`, `@convex-dev/better-auth`
+- Client provider: `ConvexBetterAuthProvider` in `src/routes/__root.tsx`
+- Server auth helpers: `getToken()` / `getSession()` via `src/lib/auth-server.ts`
+- Auth proxy route: `/api/auth/$`
+- Convex auth integration: `../../packages/backend/convex/auth.ts`
 - Env vars:
-  - `VITE_CLERK_PUBLISHABLE_KEY` (client-side)
-  - `CLERK_JWT_ISSUER_DOMAIN` (Convex server-side)
+  - `VITE_CONVEX_SITE_URL` (client-safe site URL used by auth server)
+  - `BETTER_AUTH_SECRET` (server-side)
 
 **API Key Auth (API Routes):**
 - Custom implementation in `src/lib/api-key-auth.ts`
 - scrypt-based secret hashing (N=16384, r=8, p=1, keylen=64)
 - Timing-safe comparison to prevent timing attacks
-- Keys tied to Clerk user IDs (`clerk_user_id` column)
+- Keys tied to application user IDs (`user_id` column)
 - Token format: `wh_<uuid>_<base64url-secret>`
 - Accepted via: `Authorization: Bearer <token>` or `X-API-Key: <token>` headers
 - Usage tracking: daily per-key per-endpoint request counts
@@ -118,9 +114,9 @@
 
 **Required env vars:**
 - `VITE_CONVEX_URL` - Convex deployment URL (client)
-- `VITE_CLERK_PUBLISHABLE_KEY` - Clerk publishable key (client)
+- `VITE_CONVEX_SITE_URL` - Better Auth site URL (client-safe)
 - `DATABASE_URL` - Neon PostgreSQL connection string (server)
-- `CLERK_JWT_ISSUER_DOMAIN` - Clerk JWT issuer domain (Convex server)
+- `BETTER_AUTH_SECRET` - Better Auth secret (server)
 
 **Env var validation:**
 - Client vars: `../../packages/env/src/web.ts` (Zod + @t3-oss/env-core, `VITE_` prefix)

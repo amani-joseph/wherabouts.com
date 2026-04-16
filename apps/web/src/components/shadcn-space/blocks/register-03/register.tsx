@@ -3,6 +3,7 @@
 import { Icon } from "@iconify/react";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { Label } from "@wherabouts.com/ui/components/label";
+import { PasswordInput } from "@wherabouts.com/ui/components/password-input";
 import { type FormEvent, useState } from "react";
 import { ShaderAnimation } from "@/components/shadcn-space/animations/shader-lines";
 import { Button } from "@/components/ui/button";
@@ -149,7 +150,7 @@ const RegisterForm = () => {
 												>
 													Password*
 												</Label>
-												<Input
+												<PasswordInput
 													autoComplete="new-password"
 													className="h-9 border-border bg-background text-foreground dark:bg-background"
 													disabled={isSubmitting || socialProvider !== null}
@@ -157,7 +158,6 @@ const RegisterForm = () => {
 													name="password"
 													placeholder="Create a password"
 													required
-													type="password"
 												/>
 											</div>
 										</div>

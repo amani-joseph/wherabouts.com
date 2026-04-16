@@ -10,7 +10,7 @@
 - Monorepo managed by Turborepo with pnpm workspaces
 - TanStack Router file-based routing with SSR via TanStack Start + Vite
 - Dual data layer: Convex (real-time, via React Query bridge) + Neon Postgres (geocoding data, API keys, usage tracking)
-- Clerk authentication with JWT template bridging to Convex
+- Better Auth authentication bridged to Convex
 - API routes served from the same TanStack Start app (no separate API server)
 - Server functions (`createServerFn`) for authenticated dashboard data fetching
 
@@ -49,15 +49,15 @@
 **Server Functions Layer:**
 - Purpose: Server-side data fetching called from client components via RPC
 - Location: `src/lib/*-server.ts`
-- Contains: `createServerFn` wrappers that authenticate via Clerk and query Neon DB
-- Depends on: `@clerk/tanstack-react-start/server`, `@wherabouts.com/database`
+- Contains: `createServerFn` wrappers that authenticate via Better Auth and query Neon DB
+- Depends on: `@/lib/auth-server`, `@wherabouts.com/database`
 - Used by: Protected route components (dashboard, api-keys)
 - Key files:
   - `src/lib/dashboard-server.ts` - Dashboard stats aggregation
   - `src/lib/api-keys-server.ts` - CRUD for API keys (list, create, revoke)
 
 **API Layer (REST endpoints):**
-- Purpose: Public geocoding API authenticated via API keys (not Clerk)
+- Purpose: Public geocoding API authenticated via API keys (not Better Auth)
 - Location: `src/routes/api/v1/`
 - Contains: TanStack Router server handlers using `Route.server.handlers.GET`
 - Depends on: `src/lib/with-api-key.ts`, `src/lib/api-key-auth.ts`, `@wherabouts.com/database`

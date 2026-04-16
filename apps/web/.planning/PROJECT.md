@@ -1,5 +1,8 @@
 # Wherabouts — Projects & API Key Management
 
+> Tactical project definition for the current implementation track.
+> For the broader platform direction, see `PLATFORM-ROADMAP.md`.
+
 ## What This Is
 
 Wherabouts is an Australian address geocoding API service. Users sign up, create projects (workspaces representing their apps or environments), and generate API keys scoped to those projects. The API provides address autocomplete and reverse geocoding powered by GNAF data in a Neon PostgreSQL + PostGIS database.
@@ -12,7 +15,7 @@ Users can create projects and generate API keys to access the geocoding API, wit
 
 ### Validated
 
-- ✓ User authentication via Clerk — existing
+- ✓ User authentication via Better Auth — existing
 - ✓ Protected dashboard with stats overview — existing
 - ✓ API key generation (unscoped, not linked to projects) — existing
 - ✓ API endpoints for address autocomplete and reverse geocoding — existing
@@ -44,7 +47,7 @@ Users can create projects and generate API keys to access the geocoding API, wit
 
 ## Context
 
-- **Brownfield project** — existing TanStack Start app with Clerk auth, Drizzle ORM, Neon PostgreSQL
+- **Brownfield project** — existing TanStack Start app with Better Auth, Drizzle ORM, Neon PostgreSQL
 - **Monorepo** at `/Users/mac/Developer/projects/wherabouts.com` with packages for UI, database, backend, env
 - **Database schema** lives in `@wherabouts.com/database` package using Drizzle ORM
 - **API keys** currently exist but are not linked to projects — need to add `project_id` foreign key
@@ -56,7 +59,7 @@ Users can create projects and generate API keys to access the geocoding API, wit
 ## Constraints
 
 - **Tech stack**: TanStack Start, React 19, Drizzle ORM, Neon PostgreSQL — must use existing stack
-- **Auth**: Clerk — all protected routes require Clerk session
+- **Auth**: Better Auth — all protected routes require an authenticated session
 - **Database**: Neon PostgreSQL with PostGIS — API keys and projects stored here (not Convex)
 - **API compatibility**: Existing `/api/v1/addresses/*` endpoints must continue working with current API keys
 

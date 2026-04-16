@@ -5,7 +5,7 @@
 
 ## Approach: Extend, Don't Replace
 
-This milestone requires **zero new runtime dependencies**. The existing stack (Drizzle ORM 0.44, Neon PostgreSQL, TanStack Start, Clerk, Zod) already provides everything needed. The work is schema extension, server function additions, and UI build-out.
+This milestone requires **zero new runtime dependencies**. The existing stack (Drizzle ORM 0.44, Neon PostgreSQL, TanStack Start, Better Auth, Zod) already provides everything needed. The work is schema extension, server function additions, and UI build-out.
 
 ## Existing Stack (No Changes Needed)
 
@@ -15,7 +15,7 @@ This milestone requires **zero new runtime dependencies**. The existing stack (D
 | @neondatabase/serverless | ^1.0.0 | PostgreSQL driver | Already installed |
 | drizzle-kit | ^0.31.0 | Schema migrations | Already installed |
 | Zod | catalog | Input validation | Already installed |
-| Clerk | existing | Authentication | Already installed |
+| Better Auth | existing | Authentication | Already installed |
 | TanStack Start | existing | Server functions (`createServerFn`) | Already installed |
 | Node.js `crypto` | built-in | scrypt hashing, randomBytes, timingSafeEqual | Already used |
 
@@ -25,7 +25,7 @@ This milestone requires **zero new runtime dependencies**. The existing stack (D
 
 **Confidence: HIGH** -- straightforward Drizzle pgTable definition.
 
-The `projects` table needs: `id` (uuid), `clerk_user_id` (text), `name` (text), `description` (text, nullable), `created_at` (timestamp), `updated_at` (timestamp).
+The `projects` table needs: `id` (uuid), `user_id` (text), `name` (text), `description` (text, nullable), `created_at` (timestamp), `updated_at` (timestamp).
 
 Add to `packages/database/src/schema/` as a new `projects.ts` file and export from `index.ts`.
 
@@ -102,7 +102,7 @@ Migration order matters:
 | **node-cron / BullMQ** | Background job for expiration is unnecessary. Query-time checks are simpler and sufficient |
 | **Argon2** | Would require native addon or WASM. scrypt from Node.js crypto is already proven in the codebase |
 | **nanoid** | For key ID generation. UUID v4 via `crypto.randomUUID()` is already used and provides sufficient uniqueness + is database-friendly |
-| **Passport.js / next-auth** | Authentication is already handled by Clerk. API key auth is custom and intentionally separate |
+| **Passport.js / next-auth** | Authentication is already handled by Better Auth. API key auth is custom and intentionally separate |
 
 ## UI Components Needed
 

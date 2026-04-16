@@ -64,14 +64,14 @@ wherabouts.com/                    # Monorepo root
 - Purpose: File-based route definitions for TanStack Router
 - Contains: Page components, layout routes, API handlers
 - Key files:
-  - `__root.tsx`: Root layout with Clerk/Convex providers, SSR auth
+  - `__root.tsx`: Root layout with Better Auth/Convex providers, SSR auth
   - `_protected.tsx`: Layout route with auth guard + AppShell wrapper
   - `index.tsx`: Landing/marketing page
-  - `sign-in.$.tsx`, `sign-up.$.tsx`: Clerk auth pages (splat routes)
+  - `sign-in.$.tsx`, `sign-up.$.tsx`: Better Auth pages (splat routes)
   - `sitemap[.]xml.ts`: Server-only sitemap generator
 
 **`apps/web/src/routes/_protected/`:**
-- Purpose: Authenticated dashboard pages (all require Clerk sign-in)
+- Purpose: Authenticated dashboard pages (all require Better Auth sign-in)
 - Contains: Feature pages for the SaaS dashboard
 - Key files:
   - `dashboard.tsx`: Main dashboard with stats, usage, quick start
@@ -141,7 +141,7 @@ wherabouts.com/                    # Monorepo root
 **`packages/env/src/`:**
 - Purpose: Validated environment variable access via T3 Env
 - Key files:
-  - `web.ts`: Client-safe vars (`VITE_CONVEX_URL`, `VITE_CLERK_PUBLISHABLE_KEY`)
+  - `web.ts`: Client-safe vars (`VITE_CONVEX_URL`, `VITE_CONVEX_SITE_URL`)
   - `server.ts`: Server-only vars (exists but not yet read)
 
 **`packages/ui/src/components/`:**
@@ -231,7 +231,7 @@ wherabouts.com/                    # Monorepo root
 **New Server Function:**
 - Location: `apps/web/src/lib/{feature}-server.ts`
 - Pattern: `export const myFn = createServerFn({ method: "GET" }).handler(async () => { ... })`
-- Always call `auth()` from Clerk at top of handler for user identity
+- Always resolve session identity at the top of the handler for user identity
 
 **New Hook:**
 - Location: `apps/web/src/hooks/{hook-name}.ts`

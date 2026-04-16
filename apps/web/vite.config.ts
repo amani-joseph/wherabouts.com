@@ -13,10 +13,11 @@ export default defineConfig({
 		tanstackStart(),
 		viteReact(),
 	],
+	resolve: {
+		// Linked workspace packages can otherwise resolve their own React copy in SSR.
+		dedupe: ["react", "react-dom"],
+	},
 	server: {
 		port: 3001,
-	},
-	ssr: {
-		noExternal: ["@convex-dev/better-auth"],
 	},
 });

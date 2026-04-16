@@ -1,30 +1,25 @@
-import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
-import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
 	Scripts,
-	useRouteContext,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import { Toaster } from "@wherabouts.com/ui/components/sonner";
 import { authClient } from "@/lib/auth-client";
-import { getToken } from "@/lib/auth-server";
+import { type BetterAuthSession, getSession } from "@/lib/auth-server";
 
 import appCss from "../index.css?url";
 
-const fetchAuth = createServerFn({ method: "GET" }).handler(async () => {
-	return await getToken();
+const fetchSession = createServerFn({ method: "GET" }).handler(async () => {
+	return await getSession();
 });
 
 export interface RouterAppContext {
-	convexQueryClient: ConvexQueryClient;
 	isAuthenticated?: boolean;
 	queryClient: QueryClient;
-	token?: string | null;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
@@ -35,7 +30,8 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 			},
 			{
 				name: "viewport",
-				content: "width=device-width, initial-scale=1",
+				content:
+					"width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
 			},
 			{
 				title: "Wherabouts — Locations API for developers",
@@ -59,42 +55,42 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 	}),
 
 	component: RootDocument,
-	beforeLoad: async (ctx) => {
-		let token: string | null = null;
+	beforeLoad: async () => {
+		// Server-side (SSR): forward incoming request headers to the auth server.
+		if (typeof window === "undefined") {
+			let session: BetterAuthSession | null = null;
+			try {
+				session = await fetchSession();
+			} catch {
+				// fetchSession may throw when request context is unavailable.
+			}
+			return { isAuthenticated: Boolean(session?.session) };
+		}
+
+		// Client-side (SPA navigation): check the session directly with the
+		// auth server. The browser includes the cross-origin auth cookie
+		// (SameSite=None) which the server function route cannot forward.
 		try {
-			token = await fetchAuth();
+			const { data } = await authClient.getSession();
+			return { isAuthenticated: Boolean(data?.session) };
 		} catch {
-			// fetchAuth may throw when getToken() lacks request context
-			// (e.g., client-side SPA transitions). Default to unauthenticated.
+			return { isAuthenticated: false };
 		}
-		if (token) {
-			ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
-		}
-		return { isAuthenticated: !!token, token };
 	},
 });
 
 function RootDocument() {
-	const context = useRouteContext({ from: Route.id });
 	return (
-		<ConvexBetterAuthProvider
-			authClient={authClient}
-			client={context.convexQueryClient.convexClient}
-			initialToken={context.token}
-		>
-			<html className="dark" lang="en">
-				<head>
-					<HeadContent />
-				</head>
-				<body>
-					<div className="grid h-svh grid-rows-[auto_1fr]">
-						<Outlet />
-					</div>
-					<Toaster richColors />
-					<TanStackRouterDevtools position="bottom-left" />
-					<Scripts />
-				</body>
-			</html>
-		</ConvexBetterAuthProvider>
+		<html className="dark" lang="en">
+			<HeadContent />
+			<body>
+				<div className="grid h-svh grid-rows-[auto_1fr]">
+					<Outlet />
+				</div>
+				<Toaster richColors />
+				<TanStackRouterDevtools position="bottom-left" />
+				<Scripts />
+			</body>
+		</html>
 	);
 }

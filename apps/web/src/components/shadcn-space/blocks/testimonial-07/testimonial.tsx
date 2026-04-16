@@ -134,7 +134,7 @@ export default function Testimonial() {
 			y: 0,
 			transition: {
 				duration: 0.8,
-				ease: [0.21, 0.47, 0.32, 0.98],
+				ease: [0.21, 0.47, 0.32, 0.98] as [number, number, number, number],
 			},
 		},
 	};
