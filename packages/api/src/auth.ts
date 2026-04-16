@@ -15,4 +15,10 @@ export const auth = betterAuth({
 		enabled: true,
 	},
 	trustedOrigins: [serverEnv.BETTER_AUTH_URL, serverEnv.WEB_BASE_URL],
+	advanced: {
+		defaultCookieAttributes: {
+			sameSite: "none",
+			secure: true,
+		},
+	},
 });

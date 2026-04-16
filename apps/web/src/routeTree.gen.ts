@@ -10,29 +10,41 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SignUpSplatRouteImport } from './routes/sign-up.$'
-import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
+import { Route as RpcSplatRouteImport } from './routes/rpc/$'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ProtectedTeamRouteImport } from './routes/_protected/team'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
 import { Route as ProtectedProjectsRouteImport } from './routes/_protected/projects'
 import { Route as ProtectedIntegrationsRouteImport } from './routes/_protected/integrations'
 import { Route as ProtectedHelpRouteImport } from './routes/_protected/help'
-import { Route as ProtectedDocsRouteImport } from './routes/_protected/docs'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
 import { Route as ProtectedBillingRouteImport } from './routes/_protected/billing'
 import { Route as ProtectedApiKeysRouteImport } from './routes/_protected/api-keys'
 import { Route as ProtectedApiDocsRouteImport } from './routes/_protected/api-docs'
 import { Route as ProtectedAnalyticsRouteImport } from './routes/_protected/analytics'
-import { Route as ApiV1AddressesReverseRouteImport } from './routes/api/v1/addresses/reverse'
-import { Route as ApiV1AddressesNearbyRouteImport } from './routes/api/v1/addresses/nearby'
-import { Route as ApiV1AddressesAutocompleteRouteImport } from './routes/api/v1/addresses/autocomplete'
-import { Route as ApiV1AddressesIdRouteImport } from './routes/api/v1/addresses/$id'
+import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
+import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
+import { Route as ApiV1SplatRouteImport } from './routes/api/v1/$'
+import { Route as ApiOpenapiJsonRouteImport } from './routes/api/openapi.json'
+import { Route as ApiAuthSignOutRouteImport } from './routes/api/auth/sign-out'
+import { Route as ApiAuthOkRouteImport } from './routes/api/auth/ok'
+import { Route as ApiAuthGetSessionRouteImport } from './routes/api/auth/get-session'
+import { Route as ApiAuthSignUpEmailRouteImport } from './routes/api/auth/sign-up/email'
+import { Route as ApiAuthSignInSocialRouteImport } from './routes/api/auth/sign-in/social'
+import { Route as ApiAuthSignInEmailRouteImport } from './routes/api/auth/sign-in/email'
+import { Route as ApiAuthCallbackProviderRouteImport } from './routes/api/auth/callback/$provider'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedRoute = ProtectedRouteImport.update({
@@ -44,14 +56,14 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignUpSplatRoute = SignUpSplatRouteImport.update({
-  id: '/sign-up/$',
-  path: '/sign-up/$',
+const RpcSplatRoute = RpcSplatRouteImport.update({
+  id: '/rpc/$',
+  path: '/rpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignInSplatRoute = SignInSplatRouteImport.update({
-  id: '/sign-in/$',
-  path: '/sign-in/$',
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedTeamRoute = ProtectedTeamRouteImport.update({
@@ -79,11 +91,6 @@ const ProtectedHelpRoute = ProtectedHelpRouteImport.update({
   path: '/help',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const ProtectedDocsRoute = ProtectedDocsRouteImport.update({
-  id: '/docs',
-  path: '/docs',
-  getParentRoute: () => ProtectedRoute,
-} as any)
 const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -109,170 +116,254 @@ const ProtectedAnalyticsRoute = ProtectedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const ApiV1AddressesReverseRoute = ApiV1AddressesReverseRouteImport.update({
-  id: '/api/v1/addresses/reverse',
-  path: '/api/v1/addresses/reverse',
+const AuthSignUpRoute = AuthSignUpRouteImport.update({
+  id: '/_auth/sign-up',
+  path: '/sign-up',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiV1AddressesNearbyRoute = ApiV1AddressesNearbyRouteImport.update({
-  id: '/api/v1/addresses/nearby',
-  path: '/api/v1/addresses/nearby',
+const AuthSignInRoute = AuthSignInRouteImport.update({
+  id: '/_auth/sign-in',
+  path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiV1AddressesAutocompleteRoute =
-  ApiV1AddressesAutocompleteRouteImport.update({
-    id: '/api/v1/addresses/autocomplete',
-    path: '/api/v1/addresses/autocomplete',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiV1AddressesIdRoute = ApiV1AddressesIdRouteImport.update({
-  id: '/api/v1/addresses/$id',
-  path: '/api/v1/addresses/$id',
+const ApiV1SplatRoute = ApiV1SplatRouteImport.update({
+  id: '/api/v1/$',
+  path: '/api/v1/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOpenapiJsonRoute = ApiOpenapiJsonRouteImport.update({
+  id: '/api/openapi/json',
+  path: '/api/openapi/json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSignOutRoute = ApiAuthSignOutRouteImport.update({
+  id: '/api/auth/sign-out',
+  path: '/api/auth/sign-out',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthOkRoute = ApiAuthOkRouteImport.update({
+  id: '/api/auth/ok',
+  path: '/api/auth/ok',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthGetSessionRoute = ApiAuthGetSessionRouteImport.update({
+  id: '/api/auth/get-session',
+  path: '/api/auth/get-session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSignUpEmailRoute = ApiAuthSignUpEmailRouteImport.update({
+  id: '/api/auth/sign-up/email',
+  path: '/api/auth/sign-up/email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSignInSocialRoute = ApiAuthSignInSocialRouteImport.update({
+  id: '/api/auth/sign-in/social',
+  path: '/api/auth/sign-in/social',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSignInEmailRoute = ApiAuthSignInEmailRouteImport.update({
+  id: '/api/auth/sign-in/email',
+  path: '/api/auth/sign-in/email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthCallbackProviderRoute = ApiAuthCallbackProviderRouteImport.update({
+  id: '/api/auth/callback/$provider',
+  path: '/api/auth/callback/$provider',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/docs': typeof DocsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sign-in': typeof AuthSignInRoute
+  '/sign-up': typeof AuthSignUpRoute
   '/analytics': typeof ProtectedAnalyticsRoute
   '/api-docs': typeof ProtectedApiDocsRoute
   '/api-keys': typeof ProtectedApiKeysRoute
   '/billing': typeof ProtectedBillingRoute
   '/dashboard': typeof ProtectedDashboardRoute
-  '/docs': typeof ProtectedDocsRoute
   '/help': typeof ProtectedHelpRoute
   '/integrations': typeof ProtectedIntegrationsRoute
   '/projects': typeof ProtectedProjectsRoute
   '/settings': typeof ProtectedSettingsRoute
   '/team': typeof ProtectedTeamRoute
-  '/sign-in/$': typeof SignInSplatRoute
-  '/sign-up/$': typeof SignUpSplatRoute
-  '/api/v1/addresses/$id': typeof ApiV1AddressesIdRoute
-  '/api/v1/addresses/autocomplete': typeof ApiV1AddressesAutocompleteRoute
-  '/api/v1/addresses/nearby': typeof ApiV1AddressesNearbyRoute
-  '/api/v1/addresses/reverse': typeof ApiV1AddressesReverseRoute
+  '/api/health': typeof ApiHealthRoute
+  '/rpc/$': typeof RpcSplatRoute
+  '/api/auth/get-session': typeof ApiAuthGetSessionRoute
+  '/api/auth/ok': typeof ApiAuthOkRoute
+  '/api/auth/sign-out': typeof ApiAuthSignOutRoute
+  '/api/openapi/json': typeof ApiOpenapiJsonRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
+  '/api/auth/callback/$provider': typeof ApiAuthCallbackProviderRoute
+  '/api/auth/sign-in/email': typeof ApiAuthSignInEmailRoute
+  '/api/auth/sign-in/social': typeof ApiAuthSignInSocialRoute
+  '/api/auth/sign-up/email': typeof ApiAuthSignUpEmailRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/docs': typeof DocsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sign-in': typeof AuthSignInRoute
+  '/sign-up': typeof AuthSignUpRoute
   '/analytics': typeof ProtectedAnalyticsRoute
   '/api-docs': typeof ProtectedApiDocsRoute
   '/api-keys': typeof ProtectedApiKeysRoute
   '/billing': typeof ProtectedBillingRoute
   '/dashboard': typeof ProtectedDashboardRoute
-  '/docs': typeof ProtectedDocsRoute
   '/help': typeof ProtectedHelpRoute
   '/integrations': typeof ProtectedIntegrationsRoute
   '/projects': typeof ProtectedProjectsRoute
   '/settings': typeof ProtectedSettingsRoute
   '/team': typeof ProtectedTeamRoute
-  '/sign-in/$': typeof SignInSplatRoute
-  '/sign-up/$': typeof SignUpSplatRoute
-  '/api/v1/addresses/$id': typeof ApiV1AddressesIdRoute
-  '/api/v1/addresses/autocomplete': typeof ApiV1AddressesAutocompleteRoute
-  '/api/v1/addresses/nearby': typeof ApiV1AddressesNearbyRoute
-  '/api/v1/addresses/reverse': typeof ApiV1AddressesReverseRoute
+  '/api/health': typeof ApiHealthRoute
+  '/rpc/$': typeof RpcSplatRoute
+  '/api/auth/get-session': typeof ApiAuthGetSessionRoute
+  '/api/auth/ok': typeof ApiAuthOkRoute
+  '/api/auth/sign-out': typeof ApiAuthSignOutRoute
+  '/api/openapi/json': typeof ApiOpenapiJsonRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
+  '/api/auth/callback/$provider': typeof ApiAuthCallbackProviderRoute
+  '/api/auth/sign-in/email': typeof ApiAuthSignInEmailRoute
+  '/api/auth/sign-in/social': typeof ApiAuthSignInSocialRoute
+  '/api/auth/sign-up/email': typeof ApiAuthSignUpEmailRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteWithChildren
+  '/docs': typeof DocsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_auth/sign-in': typeof AuthSignInRoute
+  '/_auth/sign-up': typeof AuthSignUpRoute
   '/_protected/analytics': typeof ProtectedAnalyticsRoute
   '/_protected/api-docs': typeof ProtectedApiDocsRoute
   '/_protected/api-keys': typeof ProtectedApiKeysRoute
   '/_protected/billing': typeof ProtectedBillingRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
-  '/_protected/docs': typeof ProtectedDocsRoute
   '/_protected/help': typeof ProtectedHelpRoute
   '/_protected/integrations': typeof ProtectedIntegrationsRoute
   '/_protected/projects': typeof ProtectedProjectsRoute
   '/_protected/settings': typeof ProtectedSettingsRoute
   '/_protected/team': typeof ProtectedTeamRoute
-  '/sign-in/$': typeof SignInSplatRoute
-  '/sign-up/$': typeof SignUpSplatRoute
-  '/api/v1/addresses/$id': typeof ApiV1AddressesIdRoute
-  '/api/v1/addresses/autocomplete': typeof ApiV1AddressesAutocompleteRoute
-  '/api/v1/addresses/nearby': typeof ApiV1AddressesNearbyRoute
-  '/api/v1/addresses/reverse': typeof ApiV1AddressesReverseRoute
+  '/api/health': typeof ApiHealthRoute
+  '/rpc/$': typeof RpcSplatRoute
+  '/api/auth/get-session': typeof ApiAuthGetSessionRoute
+  '/api/auth/ok': typeof ApiAuthOkRoute
+  '/api/auth/sign-out': typeof ApiAuthSignOutRoute
+  '/api/openapi/json': typeof ApiOpenapiJsonRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
+  '/api/auth/callback/$provider': typeof ApiAuthCallbackProviderRoute
+  '/api/auth/sign-in/email': typeof ApiAuthSignInEmailRoute
+  '/api/auth/sign-in/social': typeof ApiAuthSignInSocialRoute
+  '/api/auth/sign-up/email': typeof ApiAuthSignUpEmailRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/docs'
     | '/sitemap.xml'
+    | '/sign-in'
+    | '/sign-up'
     | '/analytics'
     | '/api-docs'
     | '/api-keys'
     | '/billing'
     | '/dashboard'
-    | '/docs'
     | '/help'
     | '/integrations'
     | '/projects'
     | '/settings'
     | '/team'
-    | '/sign-in/$'
-    | '/sign-up/$'
-    | '/api/v1/addresses/$id'
-    | '/api/v1/addresses/autocomplete'
-    | '/api/v1/addresses/nearby'
-    | '/api/v1/addresses/reverse'
+    | '/api/health'
+    | '/rpc/$'
+    | '/api/auth/get-session'
+    | '/api/auth/ok'
+    | '/api/auth/sign-out'
+    | '/api/openapi/json'
+    | '/api/v1/$'
+    | '/api/auth/callback/$provider'
+    | '/api/auth/sign-in/email'
+    | '/api/auth/sign-in/social'
+    | '/api/auth/sign-up/email'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/docs'
     | '/sitemap.xml'
+    | '/sign-in'
+    | '/sign-up'
     | '/analytics'
     | '/api-docs'
     | '/api-keys'
     | '/billing'
     | '/dashboard'
-    | '/docs'
     | '/help'
     | '/integrations'
     | '/projects'
     | '/settings'
     | '/team'
-    | '/sign-in/$'
-    | '/sign-up/$'
-    | '/api/v1/addresses/$id'
-    | '/api/v1/addresses/autocomplete'
-    | '/api/v1/addresses/nearby'
-    | '/api/v1/addresses/reverse'
+    | '/api/health'
+    | '/rpc/$'
+    | '/api/auth/get-session'
+    | '/api/auth/ok'
+    | '/api/auth/sign-out'
+    | '/api/openapi/json'
+    | '/api/v1/$'
+    | '/api/auth/callback/$provider'
+    | '/api/auth/sign-in/email'
+    | '/api/auth/sign-in/social'
+    | '/api/auth/sign-up/email'
   id:
     | '__root__'
     | '/'
     | '/_protected'
+    | '/docs'
     | '/sitemap.xml'
+    | '/_auth/sign-in'
+    | '/_auth/sign-up'
     | '/_protected/analytics'
     | '/_protected/api-docs'
     | '/_protected/api-keys'
     | '/_protected/billing'
     | '/_protected/dashboard'
-    | '/_protected/docs'
     | '/_protected/help'
     | '/_protected/integrations'
     | '/_protected/projects'
     | '/_protected/settings'
     | '/_protected/team'
-    | '/sign-in/$'
-    | '/sign-up/$'
-    | '/api/v1/addresses/$id'
-    | '/api/v1/addresses/autocomplete'
-    | '/api/v1/addresses/nearby'
-    | '/api/v1/addresses/reverse'
+    | '/api/health'
+    | '/rpc/$'
+    | '/api/auth/get-session'
+    | '/api/auth/ok'
+    | '/api/auth/sign-out'
+    | '/api/openapi/json'
+    | '/api/v1/$'
+    | '/api/auth/callback/$provider'
+    | '/api/auth/sign-in/email'
+    | '/api/auth/sign-in/social'
+    | '/api/auth/sign-up/email'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRoute: typeof ProtectedRouteWithChildren
+  DocsRoute: typeof DocsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  SignInSplatRoute: typeof SignInSplatRoute
-  SignUpSplatRoute: typeof SignUpSplatRoute
-  ApiV1AddressesIdRoute: typeof ApiV1AddressesIdRoute
-  ApiV1AddressesAutocompleteRoute: typeof ApiV1AddressesAutocompleteRoute
-  ApiV1AddressesNearbyRoute: typeof ApiV1AddressesNearbyRoute
-  ApiV1AddressesReverseRoute: typeof ApiV1AddressesReverseRoute
+  AuthSignInRoute: typeof AuthSignInRoute
+  AuthSignUpRoute: typeof AuthSignUpRoute
+  ApiHealthRoute: typeof ApiHealthRoute
+  RpcSplatRoute: typeof RpcSplatRoute
+  ApiAuthGetSessionRoute: typeof ApiAuthGetSessionRoute
+  ApiAuthOkRoute: typeof ApiAuthOkRoute
+  ApiAuthSignOutRoute: typeof ApiAuthSignOutRoute
+  ApiOpenapiJsonRoute: typeof ApiOpenapiJsonRoute
+  ApiV1SplatRoute: typeof ApiV1SplatRoute
+  ApiAuthCallbackProviderRoute: typeof ApiAuthCallbackProviderRoute
+  ApiAuthSignInEmailRoute: typeof ApiAuthSignInEmailRoute
+  ApiAuthSignInSocialRoute: typeof ApiAuthSignInSocialRoute
+  ApiAuthSignUpEmailRoute: typeof ApiAuthSignUpEmailRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -282,6 +373,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected': {
@@ -298,18 +396,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sign-up/$': {
-      id: '/sign-up/$'
-      path: '/sign-up/$'
-      fullPath: '/sign-up/$'
-      preLoaderRoute: typeof SignUpSplatRouteImport
+    '/rpc/$': {
+      id: '/rpc/$'
+      path: '/rpc/$'
+      fullPath: '/rpc/$'
+      preLoaderRoute: typeof RpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sign-in/$': {
-      id: '/sign-in/$'
-      path: '/sign-in/$'
-      fullPath: '/sign-in/$'
-      preLoaderRoute: typeof SignInSplatRouteImport
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/team': {
@@ -347,13 +445,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedHelpRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/docs': {
-      id: '/_protected/docs'
-      path: '/docs'
-      fullPath: '/docs'
-      preLoaderRoute: typeof ProtectedDocsRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
     '/_protected/dashboard': {
       id: '/_protected/dashboard'
       path: '/dashboard'
@@ -389,32 +480,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedAnalyticsRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/api/v1/addresses/reverse': {
-      id: '/api/v1/addresses/reverse'
-      path: '/api/v1/addresses/reverse'
-      fullPath: '/api/v1/addresses/reverse'
-      preLoaderRoute: typeof ApiV1AddressesReverseRouteImport
+    '/_auth/sign-up': {
+      id: '/_auth/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof AuthSignUpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/v1/addresses/nearby': {
-      id: '/api/v1/addresses/nearby'
-      path: '/api/v1/addresses/nearby'
-      fullPath: '/api/v1/addresses/nearby'
-      preLoaderRoute: typeof ApiV1AddressesNearbyRouteImport
+    '/_auth/sign-in': {
+      id: '/_auth/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/v1/addresses/autocomplete': {
-      id: '/api/v1/addresses/autocomplete'
-      path: '/api/v1/addresses/autocomplete'
-      fullPath: '/api/v1/addresses/autocomplete'
-      preLoaderRoute: typeof ApiV1AddressesAutocompleteRouteImport
+    '/api/v1/$': {
+      id: '/api/v1/$'
+      path: '/api/v1/$'
+      fullPath: '/api/v1/$'
+      preLoaderRoute: typeof ApiV1SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/v1/addresses/$id': {
-      id: '/api/v1/addresses/$id'
-      path: '/api/v1/addresses/$id'
-      fullPath: '/api/v1/addresses/$id'
-      preLoaderRoute: typeof ApiV1AddressesIdRouteImport
+    '/api/openapi/json': {
+      id: '/api/openapi/json'
+      path: '/api/openapi/json'
+      fullPath: '/api/openapi/json'
+      preLoaderRoute: typeof ApiOpenapiJsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/sign-out': {
+      id: '/api/auth/sign-out'
+      path: '/api/auth/sign-out'
+      fullPath: '/api/auth/sign-out'
+      preLoaderRoute: typeof ApiAuthSignOutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/ok': {
+      id: '/api/auth/ok'
+      path: '/api/auth/ok'
+      fullPath: '/api/auth/ok'
+      preLoaderRoute: typeof ApiAuthOkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/get-session': {
+      id: '/api/auth/get-session'
+      path: '/api/auth/get-session'
+      fullPath: '/api/auth/get-session'
+      preLoaderRoute: typeof ApiAuthGetSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/sign-up/email': {
+      id: '/api/auth/sign-up/email'
+      path: '/api/auth/sign-up/email'
+      fullPath: '/api/auth/sign-up/email'
+      preLoaderRoute: typeof ApiAuthSignUpEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/sign-in/social': {
+      id: '/api/auth/sign-in/social'
+      path: '/api/auth/sign-in/social'
+      fullPath: '/api/auth/sign-in/social'
+      preLoaderRoute: typeof ApiAuthSignInSocialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/sign-in/email': {
+      id: '/api/auth/sign-in/email'
+      path: '/api/auth/sign-in/email'
+      fullPath: '/api/auth/sign-in/email'
+      preLoaderRoute: typeof ApiAuthSignInEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/callback/$provider': {
+      id: '/api/auth/callback/$provider'
+      path: '/api/auth/callback/$provider'
+      fullPath: '/api/auth/callback/$provider'
+      preLoaderRoute: typeof ApiAuthCallbackProviderRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -426,7 +566,6 @@ interface ProtectedRouteChildren {
   ProtectedApiKeysRoute: typeof ProtectedApiKeysRoute
   ProtectedBillingRoute: typeof ProtectedBillingRoute
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
-  ProtectedDocsRoute: typeof ProtectedDocsRoute
   ProtectedHelpRoute: typeof ProtectedHelpRoute
   ProtectedIntegrationsRoute: typeof ProtectedIntegrationsRoute
   ProtectedProjectsRoute: typeof ProtectedProjectsRoute
@@ -440,7 +579,6 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedApiKeysRoute: ProtectedApiKeysRoute,
   ProtectedBillingRoute: ProtectedBillingRoute,
   ProtectedDashboardRoute: ProtectedDashboardRoute,
-  ProtectedDocsRoute: ProtectedDocsRoute,
   ProtectedHelpRoute: ProtectedHelpRoute,
   ProtectedIntegrationsRoute: ProtectedIntegrationsRoute,
   ProtectedProjectsRoute: ProtectedProjectsRoute,
@@ -455,13 +593,21 @@ const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRoute: ProtectedRouteWithChildren,
+  DocsRoute: DocsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  SignInSplatRoute: SignInSplatRoute,
-  SignUpSplatRoute: SignUpSplatRoute,
-  ApiV1AddressesIdRoute: ApiV1AddressesIdRoute,
-  ApiV1AddressesAutocompleteRoute: ApiV1AddressesAutocompleteRoute,
-  ApiV1AddressesNearbyRoute: ApiV1AddressesNearbyRoute,
-  ApiV1AddressesReverseRoute: ApiV1AddressesReverseRoute,
+  AuthSignInRoute: AuthSignInRoute,
+  AuthSignUpRoute: AuthSignUpRoute,
+  ApiHealthRoute: ApiHealthRoute,
+  RpcSplatRoute: RpcSplatRoute,
+  ApiAuthGetSessionRoute: ApiAuthGetSessionRoute,
+  ApiAuthOkRoute: ApiAuthOkRoute,
+  ApiAuthSignOutRoute: ApiAuthSignOutRoute,
+  ApiOpenapiJsonRoute: ApiOpenapiJsonRoute,
+  ApiV1SplatRoute: ApiV1SplatRoute,
+  ApiAuthCallbackProviderRoute: ApiAuthCallbackProviderRoute,
+  ApiAuthSignInEmailRoute: ApiAuthSignInEmailRoute,
+  ApiAuthSignInSocialRoute: ApiAuthSignInSocialRoute,
+  ApiAuthSignUpEmailRoute: ApiAuthSignUpEmailRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

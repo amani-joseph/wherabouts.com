@@ -1,15 +1,17 @@
 import { createAuthClient } from "better-auth/react";
 
 const getAuthBaseUrl = (): string => {
-	// The web app proxies all `/api/auth/*` requests to the server via the
-	// catch-all route at `routes/api/auth/$.ts`. Point the client at its own
-	// origin so the browser never needs to know the real server URL. This
-	// avoids build-time `VITE_*` values (localhost) leaking into production.
-	if (typeof window !== "undefined") {
-		return window.location.origin;
+	// Local dev: point at the local server.
+	if (
+		typeof window !== "undefined" &&
+		window.location.hostname === "localhost"
+	) {
+		return "http://localhost:3003";
 	}
 
-	// SSR: fall back to env so server-side renders can still resolve the URL.
+	// Production: point directly at the server Worker. TanStack Start on CF
+	// Workers cannot dispatch POST server handlers, so same-origin proxying
+	// is not viable. Cross-origin cookies work via SameSite=None on the server.
 	return (
 		import.meta.env.VITE_SERVER_URL ??
 		process.env.BETTER_AUTH_URL ??
@@ -19,6 +21,9 @@ const getAuthBaseUrl = (): string => {
 
 export const authClient = createAuthClient({
 	baseURL: getAuthBaseUrl(),
+	fetchOptions: {
+		credentials: "include",
+	},
 });
 
 export const { useSession, signIn, signUp, signOut } = authClient;
