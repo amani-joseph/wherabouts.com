@@ -15,9 +15,7 @@ const LoginForm = () => {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [rememberMe, setRememberMe] = useState(true);
-	const [socialProvider, setSocialProvider] = useState<
-		"google" | "github" | null
-	>(null);
+	const [socialProvider, setSocialProvider] = useState<"github" | null>(null);
 	const router = useRouter();
 	const navigate = useNavigate();
 
@@ -55,7 +53,7 @@ const LoginForm = () => {
 		}
 	};
 
-	const handleSocialSignIn = async (provider: "google" | "github") => {
+	const handleSocialSignIn = async (provider: "github") => {
 		setErrorMessage(null);
 		setSocialProvider(provider);
 
@@ -193,41 +191,24 @@ const LoginForm = () => {
 									</form>
 
 									<div className="flex items-center gap-3 font-normal text-muted-foreground text-sm before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
-										or sign in with
+										or
 									</div>
 
-									<div className="grid grid-cols-1 gap-3">
-										<Button
-											className="h-9 cursor-pointer gap-3 rounded-lg font-semibold shadow-xs hover:cursor-pointer dark:bg-background"
-											disabled={isSubmitting || socialProvider !== null}
-											onClick={() => handleSocialSignIn("google")}
-											type="button"
-											variant="outline"
-										>
-											<Icon
-												className="h-4 w-4 text-[#4285F4]"
-												icon="simple-icons:google"
-											/>
-											{socialProvider === "google"
-												? "Redirecting to Google..."
-												: "Sign in with Google"}
-										</Button>
-										<Button
-											className="h-9 cursor-pointer gap-3 rounded-lg font-semibold shadow-xs hover:cursor-pointer dark:bg-background"
-											disabled={isSubmitting || socialProvider !== null}
-											onClick={() => handleSocialSignIn("github")}
-											type="button"
-											variant="outline"
-										>
-											<Icon
-												className="h-4 w-4 text-foreground"
-												icon="simple-icons:github"
-											/>
-											{socialProvider === "github"
-												? "Redirecting to GitHub..."
-												: "Sign in with GitHub"}
-										</Button>
-									</div>
+									<Button
+										className="h-9 cursor-pointer gap-3 rounded-lg font-semibold shadow-xs hover:cursor-pointer dark:bg-background"
+										disabled={isSubmitting || socialProvider !== null}
+										onClick={() => handleSocialSignIn("github")}
+										type="button"
+										variant="outline"
+									>
+										<Icon
+											className="h-4 w-4 text-foreground"
+											icon="simple-icons:github"
+										/>
+										{socialProvider === "github"
+											? "Redirecting to GitHub..."
+											: "Sign in with GitHub"}
+									</Button>
 
 									<p className="text-center font-normal text-muted-foreground text-sm">
 										Don&apos;t have an account?{" "}
