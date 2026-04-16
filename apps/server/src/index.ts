@@ -209,7 +209,15 @@ const rpcHandler = new RPCHandler(appRouter, {
 });
 
 app.use("/*", async (context, next) => {
-	const rpcContext = await createContext({ req: context.req });
+	// localFetch routes requests through the Hono app in-process, avoiding
+	// Cloudflare's self-subrequest restriction (error 1042).
+	const localFetch: (
+		url: string | URL,
+		init?: RequestInit
+	) => Promise<Response> = (url, init) =>
+		app.request(url instanceof URL ? url.toString() : url, init);
+
+	const rpcContext = await createContext({ localFetch, req: context.req });
 	const rpcResult = await rpcHandler.handle(context.req.raw, {
 		prefix: "/rpc",
 		context: rpcContext,

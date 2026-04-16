@@ -133,6 +133,7 @@ export const apiExplorerRouter = {
 
 			const requestUrl = buildUrl(endpoint, input.paramValues);
 			const targetUrl = new URL(requestUrl, serverEnv.BETTER_AUTH_URL);
+			const fetchFn = context.localFetch ?? fetch;
 			const headers = new Headers({
 				accept: "application/json",
 				[INTERNAL_API_AUTH_HEADER]: serverEnv.BETTER_AUTH_SECRET,
@@ -197,7 +198,7 @@ export const apiExplorerRouter = {
 			}
 
 			const startedAt = Date.now();
-			const response = await fetch(targetUrl, {
+			const response = await fetchFn(targetUrl, {
 				method: endpoint.method,
 				headers,
 				cache: "no-store",

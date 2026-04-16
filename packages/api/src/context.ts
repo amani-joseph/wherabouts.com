@@ -9,17 +9,31 @@ import type { HonoRequest } from "hono";
 import { auth } from "./auth.ts";
 import { db } from "./db.ts";
 
+/**
+ * A fetch-like function that routes requests through the Hono app
+ * in-process, avoiding Cloudflare's self-subrequest restriction (error 1042).
+ */
+export type LocalFetch = (
+	url: string | URL,
+	init?: RequestInit
+) => Promise<Response>;
+
 export interface CreateContextOptions {
+	localFetch?: LocalFetch;
 	req: HonoRequest;
 }
 
-export const createContext = async ({ req }: CreateContextOptions) => {
+export const createContext = async ({
+	localFetch,
+	req,
+}: CreateContextOptions) => {
 	const session = await auth.api.getSession({
 		headers: req.raw.headers,
 	});
 
 	return {
 		db,
+		localFetch,
 		req,
 		session,
 	};
