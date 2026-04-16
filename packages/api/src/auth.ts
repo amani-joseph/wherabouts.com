@@ -27,6 +27,12 @@ export const auth = betterAuth({
 		enabled: true,
 	},
 	trustedOrigins,
+	socialProviders: {
+		github: {
+			clientId: serverEnv.GITHUB_CLIENT_ID,
+			clientSecret: serverEnv.GITHUB_CLIENT_SECRET,
+		},
+	},
 	advanced: {
 		defaultCookieAttributes: {
 			sameSite: "none",
