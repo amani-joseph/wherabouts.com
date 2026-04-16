@@ -21,7 +21,6 @@ import { Input } from "@wherabouts.com/ui/components/input";
 import { Label } from "@wherabouts.com/ui/components/label";
 import { Skeleton } from "@wherabouts.com/ui/components/skeleton";
 import {
-	AlertTriangleIcon,
 	CheckIcon,
 	CopyIcon,
 	KeyRoundIcon,
@@ -222,10 +221,13 @@ function CreateKeyDialog({ onCreated }: { onCreated: () => void }) {
 								</code>
 								<CopyButton text={newKey} />
 							</div>
-							<Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
-								<CardContent className="flex items-start gap-2 p-3">
-									<AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-amber-600" />
-									<p className="text-amber-700 text-xs dark:text-amber-300">
+							<Card className="relative overflow-hidden border-red-500/40 bg-red-500/5 dark:border-red-400/30 dark:bg-red-400/5">
+								<div className="absolute inset-y-0 left-0 w-1 bg-red-500 dark:bg-red-400" />
+								<CardContent className="flex items-start gap-4 py-3 pl-5">
+									<div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-red-500/10 dark:bg-red-400/10">
+										<ShieldAlertIcon className="size-4 text-red-600 dark:text-red-400" />
+									</div>
+									<p className="font-medium text-foreground text-xs leading-relaxed">
 										Store this key securely. It will not be shown again.
 									</p>
 								</CardContent>
@@ -343,11 +345,11 @@ function RouteComponent() {
 				<CreateKeyDialog onCreated={fetchKeys} />
 			</div>
 
-			<Card className="relative overflow-hidden border-amber-500/40 bg-amber-500/5 dark:border-amber-400/30 dark:bg-amber-400/5">
-				<div className="absolute inset-y-0 left-0 w-1 bg-amber-500 dark:bg-amber-400" />
+			<Card className="relative overflow-hidden border-red-500/40 bg-red-500/5 dark:border-red-400/30 dark:bg-red-400/5">
+				<div className="absolute inset-y-0 left-0 w-1 bg-red-500 dark:bg-red-400" />
 				<CardContent className="flex items-start gap-4 py-4 pl-5">
-					<div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-500/10 dark:bg-amber-400/10">
-						<ShieldAlertIcon className="size-5 text-amber-600 dark:text-amber-400" />
+					<div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-500/10 dark:bg-red-400/10">
+						<ShieldAlertIcon className="size-5 text-red-600 dark:text-red-400" />
 					</div>
 					<div className="space-y-1">
 						<p className="font-semibold text-foreground text-sm tracking-tight">

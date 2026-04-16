@@ -50,9 +50,15 @@ app.use(
 	})
 );
 
-app.on(["GET", "POST"], "/api/auth/*", (context) =>
-	auth.handler(context.req.raw)
-);
+app.on(["GET", "POST"], "/api/auth/*", async (context) => {
+	try {
+		const response = await auth.handler(context.req.raw);
+		return response;
+	} catch (error: unknown) {
+		console.error("[auth] handler error:", error);
+		return context.json({ error: "Internal auth error" }, { status: 500 });
+	}
+});
 
 // ---------------------------------------------------------------------------
 // Map ORPCError codes to our API error codes (Fix #2: complete mapping)
@@ -136,11 +142,8 @@ async function reformatErrorResponse(response: Response): Promise<Response> {
 
 const openApiHandler = new OpenAPIHandler(publicHttpRouter, {
 	interceptors: [
-		onError((err) => {
-			// Only log unexpected (non-domain) errors;
-			// ORPCError instances are intentional control flow.
+		onError((err: unknown) => {
 			if (!(err instanceof ORPCError)) {
-				// biome-ignore lint/suspicious/noConsole: wrangler tail uses stdout
 				console.error("[openapi]", err);
 			}
 		}),
@@ -201,8 +204,7 @@ app.use("/api/v1/*", async (context) => {
 
 const rpcHandler = new RPCHandler(appRouter, {
 	interceptors: [
-		onError((err) => {
-			// biome-ignore lint/suspicious/noConsole: wrangler tail uses stdout
+		onError((err: unknown) => {
 			console.error("[rpc]", err);
 		}),
 	],
@@ -214,7 +216,7 @@ app.use("/*", async (context, next) => {
 	const localFetch: (
 		url: string | URL,
 		init?: RequestInit
-	) => Promise<Response> = (url, init) =>
+	) => Promise<Response> = async (url, init) =>
 		app.request(url instanceof URL ? url.toString() : url, init);
 
 	const rpcContext = await createContext({ localFetch, req: context.req });

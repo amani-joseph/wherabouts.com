@@ -13,6 +13,8 @@ const trustedOrigins = Array.from(
 		serverEnv.WEB_BASE_URL.replace(TRAILING_SLASH_REGEX, ""),
 		DEPLOYED_WEB_ORIGIN,
 		"http://localhost:3001",
+		"https://wherabouts.com",
+		"https://api.wherabouts.com",
 	])
 );
 
@@ -31,9 +33,14 @@ export const auth = betterAuth({
 		github: {
 			clientId: serverEnv.GITHUB_CLIENT_ID,
 			clientSecret: serverEnv.GITHUB_CLIENT_SECRET,
+			redirectURI: `${serverEnv.BETTER_AUTH_URL}/api/auth/callback/github`,
 		},
 	},
 	advanced: {
+		crossSubDomainCookies: {
+			enabled: true,
+			domain: "wherabouts.com",
+		},
 		defaultCookieAttributes: {
 			sameSite: "none",
 			secure: true,

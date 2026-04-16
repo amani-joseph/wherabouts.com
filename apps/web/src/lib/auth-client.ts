@@ -9,13 +9,12 @@ const getAuthBaseUrl = (): string => {
 		return "http://localhost:3003";
 	}
 
-	// Production: point directly at the server Worker. TanStack Start on CF
-	// Workers cannot dispatch POST server handlers, so same-origin proxying
-	// is not viable. Cross-origin cookies work via SameSite=None on the server.
+	// Production: point at the API server. Cross-subdomain cookies on
+	// .wherabouts.com share session between web and API.
 	return (
 		import.meta.env.VITE_SERVER_URL ??
 		process.env.BETTER_AUTH_URL ??
-		"http://localhost:3003"
+		"https://api.wherabouts.com"
 	);
 };
 
