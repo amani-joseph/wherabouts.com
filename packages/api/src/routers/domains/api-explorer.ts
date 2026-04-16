@@ -132,7 +132,7 @@ export const apiExplorerRouter = {
 			}
 
 			const requestUrl = buildUrl(endpoint, input.paramValues);
-			const targetUrl = new URL(requestUrl, serverEnv.WEB_BASE_URL);
+			const targetUrl = new URL(requestUrl, serverEnv.BETTER_AUTH_URL);
 			const headers = new Headers({
 				accept: "application/json",
 				[INTERNAL_API_AUTH_HEADER]: serverEnv.BETTER_AUTH_SECRET,

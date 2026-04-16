@@ -27,6 +27,7 @@ import {
 	KeyRoundIcon,
 	LoaderIcon,
 	PlusIcon,
+	ShieldAlertIcon,
 	TrashIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -342,18 +343,26 @@ function RouteComponent() {
 				<CreateKeyDialog onCreated={fetchKeys} />
 			</div>
 
-			<Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
-				<CardContent className="flex items-start gap-3 pt-4">
-					<AlertTriangleIcon className="mt-0.5 size-5 shrink-0 text-amber-600" />
-					<div>
-						<p className="font-medium text-amber-800 text-sm dark:text-amber-200">
+			<Card className="relative overflow-hidden border-amber-500/40 bg-amber-500/5 dark:border-amber-400/30 dark:bg-amber-400/5">
+				<div className="absolute inset-y-0 left-0 w-1 bg-amber-500 dark:bg-amber-400" />
+				<CardContent className="flex items-start gap-4 py-4 pl-5">
+					<div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-500/10 dark:bg-amber-400/10">
+						<ShieldAlertIcon className="size-5 text-amber-600 dark:text-amber-400" />
+					</div>
+					<div className="space-y-1">
+						<p className="font-semibold text-foreground text-sm tracking-tight">
 							Keep your API keys secure
 						</p>
-						<p className="text-amber-700 text-xs dark:text-amber-300">
-							Never expose keys in client-side code or public repositories. Use
-							environment variables and server-side requests. Revoking a key
-							assigned to a project will leave that project unassigned.
-						</p>
+						<ul className="list-inside list-disc space-y-0.5 text-muted-foreground text-xs leading-relaxed">
+							<li>
+								Never expose keys in client-side code or public repositories
+							</li>
+							<li>Use environment variables and server-side requests only</li>
+							<li>
+								Revoking a key assigned to a project will leave that project
+								unassigned
+							</li>
+						</ul>
 					</div>
 				</CardContent>
 			</Card>
