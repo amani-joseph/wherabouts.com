@@ -4,13 +4,27 @@ import type { RouterClient } from "@orpc/server";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 import type { AppRouter } from "@wherabouts.com/api";
 
-const getRpcUrl = (): string => {
-	if (typeof window !== "undefined") {
-		return new URL("/rpc", window.location.origin).toString();
+const getServerBaseUrl = (): string => {
+	// Local dev: point at the local server Worker.
+	if (
+		typeof window !== "undefined" &&
+		window.location.hostname === "localhost"
+	) {
+		return "http://localhost:3003";
 	}
 
-	const baseUrl = process.env.WEB_BASE_URL?.trim() || "http://localhost:3001";
-	return new URL("/rpc", baseUrl).toString();
+	// Production: point directly at the server Worker so the browser sends
+	// the cross-origin auth cookie (SameSite=None). Proxying through the web
+	// Worker loses the cookie because it lives on the server Worker's domain.
+	return (
+		import.meta.env.VITE_SERVER_URL ??
+		process.env.BETTER_AUTH_URL ??
+		"http://localhost:3003"
+	);
+};
+
+const getRpcUrl = (): string => {
+	return new URL("/rpc", getServerBaseUrl()).toString();
 };
 
 const link = new RPCLink({
