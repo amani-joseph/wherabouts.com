@@ -1,0 +1,15 @@
+<svg viewBox="0 0 152 124" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="wherabouts — monochrome white">
+  <title>wherabouts (monochrome white)</title>
+  <!-- Single-colour white version — use on dark or photographic backgrounds -->
+  <circle cx="14" cy="16" r="9.5" fill="none" stroke="#FFFFFF" stroke-width="3.5"/>
+  <path d="M14,16 L38,72 L76,30 L114,72 L138,16"
+        fill="none" stroke="#FFFFFF" stroke-width="11"
+        stroke-linecap="round" stroke-linejoin="round"
+        stroke-dasharray="15 11"/>
+  <circle cx="138" cy="16" r="6.5" fill="#FFFFFF"/>
+  <path d="M131,16 L145,16 L138,34 Z" fill="#FFFFFF"/>
+  <text x="76" y="112"
+        font-family="'JetBrains Mono', ui-monospace, monospace"
+        font-size="22" font-weight="300" fill="#FFFFFF"
+        letter-spacing="-0.2" text-anchor="middle">wherabouts</text>
+</svg>

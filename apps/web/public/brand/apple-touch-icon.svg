@@ -1,0 +1,16 @@
+<svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="wherabouts apple touch icon">
+  <title>wherabouts</title>
+  <!-- iOS requires square, no rounding in SVG (OS clips to rounded square) -->
+  <rect width="180" height="180" fill="#0C0C0C"/>
+  <!-- Route mark scaled and centred for 180×180 -->
+  <!-- Original mark 152×84, scale to fit ~148px wide → 148/152=0.974, centered in 180 → translate(16, 48) -->
+  <g transform="translate(16, 48) scale(0.974)">
+    <circle cx="14" cy="16" r="9.5" fill="none" stroke="#FFFFFF" stroke-width="3.5"/>
+    <path d="M14,16 L38,72 L76,30 L114,72 L138,16"
+          fill="none" stroke="#FFFFFF" stroke-width="11"
+          stroke-linecap="round" stroke-linejoin="round"
+          stroke-dasharray="15 11"/>
+    <circle cx="138" cy="16" r="6.5" fill="#C8C8C8"/>
+    <path d="M131,16 L145,16 L138,34 Z" fill="#C8C8C8"/>
+  </g>
+</svg>
