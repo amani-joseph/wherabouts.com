@@ -28,13 +28,13 @@ import {
 } from "@wherabouts.com/ui/components/select";
 import { Skeleton } from "@wherabouts.com/ui/components/skeleton";
 import {
-	AlertTriangleIcon,
 	CheckIcon,
 	CopyIcon,
 	FolderOpenIcon,
 	KeyRoundIcon,
 	LoaderIcon,
 	PlusIcon,
+	ShieldAlertIcon,
 } from "lucide-react";
 import {
 	type ReactNode,
@@ -209,10 +209,13 @@ function CreateProjectDialog({
 								</code>
 								<CopyButton text={generatedKey.key} />
 							</div>
-							<Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
-								<CardContent className="flex items-start gap-2 p-3">
-									<AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-amber-600" />
-									<p className="text-amber-700 text-xs dark:text-amber-300">
+							<Card className="relative overflow-hidden border-red-500/40 bg-red-500/5 dark:border-red-400/30 dark:bg-red-400/5">
+								<div className="absolute inset-y-0 left-0 w-1 bg-red-500 dark:bg-red-400" />
+								<CardContent className="flex items-start gap-4 py-3 pl-5">
+									<div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-red-500/10 dark:bg-red-400/10">
+										<ShieldAlertIcon className="size-4 text-red-600 dark:text-red-400" />
+									</div>
+									<p className="font-medium text-foreground text-xs leading-relaxed">
 										This key is now listed on the API Keys page, but only its
 										masked label will be visible there.
 									</p>
