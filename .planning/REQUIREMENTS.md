@@ -40,6 +40,14 @@ Requirements for the migration. Each maps to roadmap phases.
 - [x] **ORPC-03**: All data fetching uses orpcClient directly (no thin wrapper files)
 - [x] **ORPC-04**: Only one justified createServerFn remains (fetchSession in __root.tsx for SSR)
 
+### Cloudflare Deployment
+
+- [ ] **CFDP-01**: Server env module uses Worker-compatible env loading (no node:fs/node:path)
+- [ ] **CFDP-02**: Wrangler configs have observability logging enabled for both apps
+- [ ] **CFDP-03**: apps/server has production environment block with custom domain and production vars
+- [ ] **CFDP-04**: Dead/unnecessary dependencies removed from apps/web (next, postcss tooling, etc.)
+- [ ] **CFDP-05**: Auth cookie domain configurable via env var for cross-subdomain deployment
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -84,12 +92,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ORPC-02 | Phase 4 | Complete |
 | ORPC-03 | Phase 4 | Complete |
 | ORPC-04 | Phase 4 | Complete |
+| CFDP-01 | Phase 6 | Pending |
+| CFDP-02 | Phase 6 | Pending |
+| CFDP-03 | Phase 6 | Pending |
+| CFDP-04 | Phase 6 | Pending |
+| CFDP-05 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 18 total
-- Mapped to phases: 18
+- v1 requirements: 23 total
+- Mapped to phases: 23
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-14*
-*Last updated: 2026-04-15 after Phase 4 planning*
+*Last updated: 2026-04-17 after Phase 6 planning*

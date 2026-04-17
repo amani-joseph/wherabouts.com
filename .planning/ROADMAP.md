@@ -111,3 +111,21 @@ Plans:
 - [ ] 05-01-PLAN.md — Enable pg_trgm/fuzzystrmatch extensions, add population_score/admin_level columns and indexes
 - [ ] 05-02-PLAN.md — Rewrite autocomplete query with tiered search strategy and result ranking
 - [ ] 05-03-PLAN.md — Wire lat/lon proximity parameters through the API endpoint
+
+### Phase 6: Mirror Cloudflare deployment configurations from mydeffo.com-web
+
+**Goal:** All Worker-incompatible code is replaced, wrangler configs aligned with production-ready patterns from mydeffo.com-web, and auth cookies work across subdomains
+**Depends on:** Phase 5
+**Requirements**: CFDP-01, CFDP-02, CFDP-03, CFDP-04, CFDP-05
+**Success Criteria** (what must be TRUE):
+  1. Server env module has no node:fs or node:path imports (Worker-compatible)
+  2. Both wrangler configs have observability logging with invocation_logs enabled
+  3. apps/server has production environment block with custom domain routing
+  4. Dead dependencies (next, postcss tooling) removed from apps/web
+  5. Auth cookie domain is configurable via AUTH_COOKIE_DOMAIN env var
+**Plans:** 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Replace Node.js filesystem env loader and remove dead dependencies
+- [ ] 06-02-PLAN.md — Align wrangler configs with observability, production env blocks, and Workers types
+- [ ] 06-03-PLAN.md — Add configurable auth cookie domain for cross-subdomain deployment
