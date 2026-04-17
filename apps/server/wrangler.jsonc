@@ -12,10 +12,29 @@
 	},
 	"observability": {
 		"enabled": true,
-		"head_sampling_rate": 1
+		"logs": {
+			"enabled": true,
+			"invocation_logs": true,
+			"head_sampling_rate": 1
+		}
 	},
 	"vars": {
-		"BETTER_AUTH_URL": "https://api.wherabouts.com",
-		"WEB_BASE_URL": "https://wherabouts.com"
+		"BETTER_AUTH_URL": "https://wherabouts-server.mr-amanijoseph.workers.dev",
+		"WEB_BASE_URL": "https://wherabouts-web.mr-amanijoseph.workers.dev"
+	},
+	"env": {
+		"production": {
+			"vars": {
+				"AUTH_COOKIE_DOMAIN": ".wherabouts.com",
+				"BETTER_AUTH_URL": "https://api.wherabouts.com",
+				"WEB_BASE_URL": "https://wherabouts.com"
+			},
+			"routes": [
+				{
+					"pattern": "api.wherabouts.com",
+					"custom_domain": true
+				}
+			]
+		}
 	}
 }

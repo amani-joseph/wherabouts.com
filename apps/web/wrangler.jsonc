@@ -7,9 +7,17 @@
 		"nodejs_compat_populate_process_env"
 	],
 	"main": "@tanstack/react-start/server-entry",
+	"observability": {
+		"enabled": true,
+		"logs": {
+			"enabled": true,
+			"invocation_logs": true,
+			"head_sampling_rate": 1
+		}
+	},
 	"vars": {
-		"BETTER_AUTH_URL": "https://api.wherabouts.com",
-		"VITE_SERVER_URL": "https://api.wherabouts.com",
-		"WEB_BASE_URL": "https://wherabouts.com"
+		"BETTER_AUTH_URL": "https://wherabouts-server.mr-amanijoseph.workers.dev",
+		"VITE_SERVER_URL": "https://wherabouts-server.mr-amanijoseph.workers.dev",
+		"WEB_BASE_URL": "https://wherabouts-web.mr-amanijoseph.workers.dev"
 	}
 }
