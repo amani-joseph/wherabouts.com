@@ -58,8 +58,9 @@ const RegisterForm = () => {
 
 		try {
 			const { error } = await signIn.social({
-				callbackURL: `${window.location.origin}/dashboard`,
 				provider,
+				callbackURL: `${window.location.origin}/dashboard`,
+				errorCallbackURL: `${window.location.origin}/sign-up`,
 			});
 
 			if (error) {

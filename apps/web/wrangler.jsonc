@@ -16,8 +16,24 @@
 		}
 	},
 	"vars": {
-		"BETTER_AUTH_URL": "https://wherabouts-server.mr-amanijoseph.workers.dev",
-		"VITE_SERVER_URL": "https://wherabouts-server.mr-amanijoseph.workers.dev",
-		"WEB_BASE_URL": "https://wherabouts-web.mr-amanijoseph.workers.dev"
+		"VITE_SERVER_URL": "https://api.wherabouts.com",
+		"WEB_BASE_URL": "https://wherabouts.com"
+	},
+	"env": {
+		"production": {
+			"name": "wherabouts-web",
+			"vars": {
+				"NODE_ENV": "production",
+				"VITE_SERVER_URL": "https://api.wherabouts.com",
+				"WEB_BASE_URL": "https://wherabouts.com"
+			},
+			"routes": [
+				{
+					"pattern": "wherabouts.com",
+					"custom_domain": true,
+					"zone_name": "wherabouts.com"
+				}
+			]
+		}
 	}
 }

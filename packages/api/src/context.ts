@@ -1,3 +1,4 @@
+import { auth } from "@wherabouts.com/auth";
 import type {
 	accounts,
 	sessions,
@@ -6,7 +7,6 @@ import type {
 } from "@wherabouts.com/database";
 import type { InferSelectModel } from "drizzle-orm";
 import type { HonoRequest } from "hono";
-import { auth } from "./auth.ts";
 import { db } from "./db.ts";
 
 /**

@@ -59,10 +59,8 @@ const LoginForm = () => {
 
 		try {
 			const { error } = await signIn.social({
-				// callbackURL: `${window.location.origin}/dashboard`,
-				// provider,
-				provider: "github",
-  callbackURL: "https://wherabouts.com/dashboard",
+				callbackURL: `${window.location.origin}/dashboard`,
+				provider,
 			});
 
 			if (error) {

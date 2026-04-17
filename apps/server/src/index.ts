@@ -3,10 +3,10 @@ import { ORPCError, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import {
 	appRouter,
-	auth,
 	createContext,
 	publicHttpRouter,
 } from "@wherabouts.com/api";
+import { auth } from "@wherabouts.com/auth";
 import { serverEnv } from "@wherabouts.com/env/server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";

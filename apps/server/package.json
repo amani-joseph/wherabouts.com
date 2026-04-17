@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "deploy": "wrangler deploy",
+    "deploy": "wrangler deploy --env production",
     "dev": "wrangler dev",
     "build": "tsc --noEmit",
     "check-types": "tsc --noEmit"
@@ -12,6 +12,7 @@
     "@orpc/openapi": "^1.13.14",
     "@orpc/server": "^1.9.0",
     "@wherabouts.com/api": "workspace:*",
+    "@wherabouts.com/auth": "workspace:*",
     "@wherabouts.com/env": "workspace:*",
     "hono": "^4.10.4"
   },

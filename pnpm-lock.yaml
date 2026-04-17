@@ -81,6 +81,9 @@ importers:
       '@wherabouts.com/api':
         specifier: workspace:*
         version: link:../../packages/api
+      '@wherabouts.com/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@wherabouts.com/env':
         specifier: workspace:*
         version: link:../../packages/env
@@ -290,15 +293,15 @@ importers:
       '@orpc/server':
         specifier: ^1.9.0
         version: 1.13.14(@opentelemetry/api@1.9.1)(ws@8.20.0)
+      '@wherabouts.com/auth':
+        specifier: workspace:*
+        version: link:../auth
       '@wherabouts.com/database':
         specifier: workspace:*
         version: link:../database
       '@wherabouts.com/env':
         specifier: workspace:*
         version: link:../env
-      better-auth:
-        specifier: ^1.5.6
-        version: 1.5.6(@cloudflare/workers-types@4.20260416.2)(@opentelemetry/api@1.9.1)(@tanstack/react-start@1.167.16(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))(drizzle-kit@0.31.10)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20260416.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16))(next@16.1.1(@opentelemetry/api@1.9.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       drizzle-orm:
         specifier: ^0.44.7
         version: 0.44.7(@cloudflare/workers-types@4.20260416.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16)
@@ -308,6 +311,28 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.3.6
+    devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.39
+      '@wherabouts.com/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  packages/auth:
+    dependencies:
+      '@wherabouts.com/database':
+        specifier: workspace:*
+        version: link:../database
+      '@wherabouts.com/env':
+        specifier: workspace:*
+        version: link:../env
+      better-auth:
+        specifier: ^1.5.6
+        version: 1.5.6(@cloudflare/workers-types@4.20260416.2)(@opentelemetry/api@1.9.1)(@tanstack/react-start@1.167.16(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))(drizzle-kit@0.31.10)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20260416.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16))(next@16.1.1(@opentelemetry/api@1.9.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
     devDependencies:
       '@types/node':
         specifier: ^20

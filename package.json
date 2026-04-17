@@ -14,8 +14,9 @@
     "dev:server": "turbo -F @wherabouts.com/server dev",
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "deploy": "turbo -F web deploy",
-    "deploy:web": "turbo -F web deploy"
+    "deploy": "turbo -F web deploy -F @wherabouts.com/server deploy",
+    "deploy:web": "turbo -F web deploy",
+    "deploy:server": "turbo -F @wherabouts.com/server deploy"
   },
   "dependencies": {
     "@wherabouts.com/env": "workspace:*",

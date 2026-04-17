@@ -6,7 +6,7 @@
     "build": "vite build",
     "dev": "vite dev",
     "preview": "wrangler dev",
-    "deploy": "vite build && wrangler deploy"
+    "deploy": "vite build && wrangler deploy --env production"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",

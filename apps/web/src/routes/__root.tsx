@@ -82,9 +82,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 function RootDocument() {
 	return (
 		<html className="dark" lang="en">
-			<head>
-				<HeadContent />
-			</head>
+			<HeadContent />
 			<body>
 				<div className="grid h-svh grid-rows-[auto_1fr]">
 					<Outlet />

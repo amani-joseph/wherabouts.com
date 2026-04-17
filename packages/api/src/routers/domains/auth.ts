@@ -1,5 +1,5 @@
+import { auth } from "@wherabouts.com/auth";
 import { z } from "zod";
-import { auth } from "../../auth.ts";
 import { protectedProcedure, publicProcedure } from "../../procedures.ts";
 
 const signUpInputSchema = z.object({
