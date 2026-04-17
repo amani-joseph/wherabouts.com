@@ -3,12 +3,18 @@
 	"name": "wherabouts-server",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-04-14",
-	"compatibility_flags": [
-		"nodejs_compat",
-		"nodejs_compat_populate_process_env"
+	"compatibility_flags": ["nodejs_compat"],
+	"dev": { "port": 3003 },
+	"routes": [
+		{
+			"pattern": "api.wherabouts.com",
+			"custom_domain": true
+		}
 	],
-	"dev": {
-		"port": 3003
+	"vars": {
+		"AUTH_COOKIE_DOMAIN": ".wherabouts.com",
+		"BETTER_AUTH_URL": "https://api.wherabouts.com",
+		"WEB_BASE_URL": "https://wherabouts.com"
 	},
 	"observability": {
 		"enabled": true,
@@ -16,33 +22,6 @@
 			"enabled": true,
 			"invocation_logs": true,
 			"head_sampling_rate": 1
-		},
-		"traces": {
-			"enabled": true,
-			"persist": true,
-			"head_sampling_rate": 1
-		}
-	},
-	"vars": {
-		"NODE_ENV": "production",
-		"BETTER_AUTH_URL": "https://api.wherabouts.com",
-		"WEB_BASE_URL": "https://wherabouts.com"
-	},
-	"env": {
-		"production": {
-			"name": "wherabouts-server",
-			"vars": {
-				"NODE_ENV": "production",
-				"AUTH_COOKIE_DOMAIN": ".wherabouts.com",
-				"BETTER_AUTH_URL": "https://api.wherabouts.com",
-				"WEB_BASE_URL": "https://wherabouts.com"
-			},
-			"routes": [
-				{
-					"pattern": "api.wherabouts.com",
-					"custom_domain": true
-				}
-			]
 		}
 	}
 }

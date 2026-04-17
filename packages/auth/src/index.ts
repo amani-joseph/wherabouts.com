@@ -7,7 +7,6 @@ import { db } from "./db.ts";
 const TRAILING_SLASH_REGEX = /\/$/;
 const DEPLOYED_WEB_ORIGIN =
 	process.env.DEPLOYED_WEB_ORIGIN ?? "https://wherabouts.com";
-const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 const trustedOrigins = Array.from(
 	new Set([
@@ -19,6 +18,8 @@ const trustedOrigins = Array.from(
 	])
 );
 
+const cookieDomain = serverEnv.AUTH_COOKIE_DOMAIN?.trim();
+
 export const auth = betterAuth({
 	baseURL: serverEnv.BETTER_AUTH_URL,
 	secret: serverEnv.BETTER_AUTH_SECRET,
@@ -27,21 +28,27 @@ export const auth = betterAuth({
 		schema: authSchema,
 	}),
 	trustedOrigins,
+	emailAndPassword: {
+		enabled: true,
+		minPasswordLength: 8,
+	},
 	socialProviders: {
 		github: {
 			clientId: serverEnv.GITHUB_CLIENT_ID,
 			clientSecret: serverEnv.GITHUB_CLIENT_SECRET,
-			redirectURI: `${serverEnv.BETTER_AUTH_URL}/api/auth/callback/github`,
 		},
 	},
 	advanced: {
 		defaultCookieAttributes: {
-			sameSite: IS_PRODUCTION ? "none" : "lax",
-			secure: IS_PRODUCTION,
+			sameSite: "none",
+			secure: true,
 			httpOnly: true,
-			...(IS_PRODUCTION && serverEnv.AUTH_COOKIE_DOMAIN
-				? { domain: serverEnv.AUTH_COOKIE_DOMAIN }
-				: {}),
+			...(cookieDomain ? { domain: cookieDomain } : {}),
 		},
+	},
+	rateLimit: {
+		enabled: true,
+		window: 10,
+		max: 100,
 	},
 });

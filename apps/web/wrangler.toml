@@ -1,0 +1,17 @@
+name = "wherabouts-web"
+compatibility_date = "2026-04-14"
+compatibility_flags = ["nodejs_compat"]
+main = "./node_modules/@tanstack/react-start/dist/default-entry/esm/server.js"
+routes = [
+  { pattern = "wherabouts.com", custom_domain = true }
+]
+
+[vars]
+VITE_SERVER_URL = "https://api.wherabouts.com"
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+invocation_logs = true

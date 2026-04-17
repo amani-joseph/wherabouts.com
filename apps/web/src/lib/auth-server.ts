@@ -1,7 +1,7 @@
 import { getRequestHeaders } from "@tanstack/react-start/server";
 
 const getServerUrl = (): string | null =>
-	// In local dev, the web Worker can see Wrangler vars from `wrangler.jsonc`,
+	// In local dev, the web Worker can see Wrangler vars from `wrangler.toml`,
 	// which point at production. Prefer the server-side auth URL first so SSR
 	// and proxy routes stay on the local backend when `pnpm dev` runs both apps.
 	process.env.BETTER_AUTH_URL?.trim() ||
