@@ -18,7 +18,6 @@
     "deploy:web": "turbo -F web deploy"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
     "@wherabouts.com/env": "workspace:*",
     "dotenv": "catalog:",
     "tsx": "^4.21.0",
