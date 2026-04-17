@@ -16,6 +16,7 @@
     "hono": "^4.10.4"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260416.2",
     "@types/node": "^20",
     "@wherabouts.com/config": "workspace:*",
     "tsx": "^4.21.0",
