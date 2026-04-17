@@ -7,6 +7,7 @@ import { db } from "./db.ts";
 const TRAILING_SLASH_REGEX = /\/$/;
 const DEPLOYED_WEB_ORIGIN =
 	process.env.DEPLOYED_WEB_ORIGIN ?? "https://wherabouts.com";
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 const trustedOrigins = Array.from(
 	new Set([
@@ -38,10 +39,10 @@ export const auth = betterAuth({
 	},
 	advanced: {
 		defaultCookieAttributes: {
-			sameSite: "none",
-			secure: true,
+			sameSite: IS_PRODUCTION ? "none" : "lax",
+			secure: IS_PRODUCTION,
 			httpOnly: true,
-			...(serverEnv.AUTH_COOKIE_DOMAIN
+			...(IS_PRODUCTION && serverEnv.AUTH_COOKIE_DOMAIN
 				? { domain: serverEnv.AUTH_COOKIE_DOMAIN }
 				: {}),
 		},

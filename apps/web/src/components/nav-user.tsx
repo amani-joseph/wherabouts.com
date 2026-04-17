@@ -33,7 +33,10 @@ export function NavUser() {
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger render={<Avatar className="size-8" />}>
+			<DropdownMenuTrigger
+				nativeButton={false}
+				render={<Avatar className="size-8" />}
+			>
 				<AvatarImage src={avatarUrl} />
 				<AvatarFallback>{initials}</AvatarFallback>
 			</DropdownMenuTrigger>
