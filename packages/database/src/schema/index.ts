@@ -26,3 +26,12 @@ export {
 } from "./auth.ts";
 export type { NewProject, Project } from "./projects.ts";
 export { projects } from "./projects.ts";
+export type {
+	NewTeam,
+	NewTeamInvitation,
+	NewTeamMember,
+	Team,
+	TeamInvitation,
+	TeamMember,
+} from "./teams.ts";
+export { teamInvitations, teamMembers, teams } from "./teams.ts";
