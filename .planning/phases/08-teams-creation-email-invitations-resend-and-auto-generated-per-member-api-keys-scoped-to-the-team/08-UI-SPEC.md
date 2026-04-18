@@ -56,9 +56,9 @@ All sizes use JetBrains Mono. App enforces dark mode (`className="dark"` on `<ht
 | Body | 14px | 400 (regular) | 1.5 | `text-sm` |
 | Label / meta | 12px | 400 (regular) | 1.5 | `text-xs` |
 | Heading (page) | 24px | 600 (semibold) | 1.2 | `text-2xl font-semibold tracking-tight` |
-| Heading (card) | 16px | 500 (medium) | 1.2 | `text-base font-medium` (via `CardTitle`) |
+| Heading (card) | 16px | 600 (semibold) | 1.2 | `text-base font-semibold` (via `CardTitle`) |
 
-Source: Inferred from existing `team.tsx` usage (`text-2xl font-semibold tracking-tight`, `text-sm font-medium`, `text-xs`). No deviation from existing app typography.
+Source: Inferred from existing `team.tsx` usage (`text-2xl font-semibold tracking-tight`, `text-sm`, `text-xs`). Exactly 2 weights declared: 400 and 600.
 
 ---
 
@@ -128,6 +128,7 @@ New component to author (no registry block needed):
 **Members card**
 - Render real member list from `useListOrganizations` / `useActiveOrganization`.
 - Each row: Avatar (initials) + name + email + role Badge + optional Pending Badge + `···` menu (Remove member — owners/admins only, not on self).
+- The `···` DropdownMenu trigger button must have `aria-label="Member actions"` — it is icon-only and has no visible label.
 - "Remove member" in `···` menu: opens an inline confirmation (`AlertDialog` or `window.confirm` is NOT acceptable — use `AlertDialog` from shadcn) with copy: "Remove [Name] from [Team Name]? Their API key will remain valid until used — it will be rejected by the API on next call." Two buttons: "Cancel" (ghost) and "Remove member" (destructive variant).
 
 **Pending Invitations card**
@@ -204,7 +205,7 @@ New component to author (no registry block needed):
 | One-time key modal heading | "You're in — here's your API key" |
 | One-time key modal body | "This is the only time you'll see this key in full. Copy it now and store it somewhere safe." |
 | One-time key copy button | "Copy key" → "Copied!" (2s) |
-| One-time key dismiss button | "I've saved it, continue" |
+| One-time key dismiss button | "I've copied it, continue" |
 | Team switcher create action | "Create team…" |
 | Create team dialog title | "Create a new team" |
 | Create team dialog submit | "Create team" |
