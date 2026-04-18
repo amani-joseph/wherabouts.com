@@ -9,6 +9,7 @@ import {
 	uuid,
 } from "drizzle-orm/pg-core";
 import { projects } from "./projects.ts";
+import { teams } from "./teams.ts";
 
 export const apiKeys = pgTable(
 	"api_keys",
@@ -29,6 +30,11 @@ export const apiKeys = pgTable(
 		expiresAt: timestamp("expires_at", { withTimezone: true }),
 		revokedAt: timestamp("revoked_at", { withTimezone: true }),
 		lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+		teamId: uuid("team_id").references(() => teams.id, {
+			onDelete: "cascade",
+		}),
+		secretCiphertext: text("secret_ciphertext"),
+		secretIv: text("secret_iv"),
 	},
 	(table) => [
 		index("idx_api_keys_user_id").on(table.userId),

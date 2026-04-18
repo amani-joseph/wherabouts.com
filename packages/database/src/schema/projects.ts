@@ -6,6 +6,7 @@ import {
 	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
+import { teams } from "./teams.ts";
 
 export const projects = pgTable(
 	"projects",
@@ -18,9 +19,13 @@ export const projects = pgTable(
 			.notNull()
 			.defaultNow(),
 		archivedAt: timestamp("archived_at", { withTimezone: true }),
+		teamId: uuid("team_id").references(() => teams.id, {
+			onDelete: "cascade",
+		}),
 	},
 	(table) => [
 		uniqueIndex("uq_projects_user_slug").on(table.userId, table.slug),
+		uniqueIndex("uq_projects_team_slug").on(table.teamId, table.slug),
 		index("idx_projects_user_id").on(table.userId),
 	]
 );
