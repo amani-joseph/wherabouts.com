@@ -130,14 +130,18 @@ const autocomplete = baseBuilder
 			})
 	)
 	.handler(async ({ input, context }) => {
-		const results = await autocompleteAddresses(context.db, input.q, {
-			country: input.country,
-			state: input.state,
-			limit: input.limit,
-			latitude: input.lat,
-			longitude: input.lon,
-		});
-		return { results, count: results.length };
+		const { results, parsedQuery } = await autocompleteAddresses(
+			context.db,
+			input.q,
+			{
+				country: input.country,
+				state: input.state,
+				limit: input.limit,
+				latitude: input.lat,
+				longitude: input.lon,
+			}
+		);
+		return { results, count: results.length, parsedQuery };
 	});
 
 const nearby = baseBuilder

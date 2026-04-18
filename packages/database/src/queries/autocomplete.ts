@@ -1,11 +1,16 @@
 import { type SQL, sql } from "drizzle-orm";
 import type { Database } from "../client.ts";
+import {
+	type ParsedUnitAddress,
+	parseUnitAddress,
+} from "./parse-unit-address.ts";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.3;
 const LEVENSHTEIN_SHORT_MAX_DISTANCE = 1;
 const LEVENSHTEIN_LONG_MAX_DISTANCE = 2;
 const PREFIX_SEARCH_MAX_LEN = 4;
 const WIDE_FUZZY_MIN_LEN = 8;
+const PURE_DIGITS_REGEX = /^\d+$/;
 
 export interface AutocompleteResult {
 	country: string;
@@ -84,13 +89,38 @@ function formatStreetAddress(row: {
 	return parts.join(", ");
 }
 
-function buildFilterClauses(country?: string, state?: string): SQL<unknown>[] {
+function buildFilterClauses(
+	country?: string,
+	state?: string,
+	parsed?: ParsedUnitAddress | null
+): SQL<unknown>[] {
 	const clauses: SQL<unknown>[] = [];
 	if (country) {
 		clauses.push(sql`country = ${country.toUpperCase()}`);
 	}
 	if (state) {
 		clauses.push(sql`state = ${state.toUpperCase()}`);
+	}
+	if (parsed) {
+		const digitRange =
+			parsed.unitNumberLast &&
+			PURE_DIGITS_REGEX.test(parsed.unitNumber) &&
+			PURE_DIGITS_REGEX.test(parsed.unitNumberLast);
+		if (digitRange) {
+			clauses.push(
+				sql`flat_number ~ '^[0-9]+$' AND flat_number::int BETWEEN ${Number(parsed.unitNumber)} AND ${Number(parsed.unitNumberLast)}`
+			);
+		} else {
+			clauses.push(sql`upper(flat_number) = upper(${parsed.unitNumber}::text)`);
+		}
+		clauses.push(
+			sql`upper(number_first) = upper(${parsed.streetNumber}::text)`
+		);
+		if (parsed.levelNumber) {
+			clauses.push(
+				sql`upper(level_number) = upper(${parsed.levelNumber}::text)`
+			);
+		}
 	}
 	return clauses;
 }
@@ -177,43 +207,104 @@ export async function autocompleteAddresses(
 		latitude?: number;
 		longitude?: number;
 	} = {}
-): Promise<AutocompleteResult[]> {
+): Promise<{
+	results: AutocompleteResult[];
+	parsedQuery: ParsedUnitAddress | null;
+}> {
 	const { country, state, limit = 10, latitude, longitude } = options;
 	const trimmed = query.trim();
 	if (!trimmed) {
-		return [];
+		return { results: [], parsedQuery: null };
 	}
 
-	const len = trimmed.length;
+	const parsed = parseUnitAddress(trimmed);
+	const searchInput = parsed ? parsed.streetQuery : trimmed;
+	const len = searchInput.length;
 
-	// Tier 0: Too short -- return empty
-	if (len < 3) {
-		return [];
+	// Too short -- only guard when parser did not strip unit/street numbers;
+	// when parsed, the strict unit + street_number filters narrow results enough.
+	if (!parsed && len < 3) {
+		return { results: [], parsedQuery: null };
 	}
 
-	const filterClauses = buildFilterClauses(country, state);
+	const filterClauses = buildFilterClauses(country, state, parsed);
+
+	// Parsed with empty streetQuery -- filters alone identify the rows.
+	if (parsed && searchInput === "") {
+		const whereClause = sql.join(filterClauses, sql` AND `);
+		const result = await db.execute(sql`
+			SELECT ${SELECT_COLUMNS}, 1.0 as similarity_score
+			FROM addresses
+			WHERE ${whereClause}
+			ORDER BY ${buildOrderBy(latitude, longitude)}
+			LIMIT ${limit}
+		`);
+		return {
+			results: (result.rows as unknown as RawAddressRow[]).map(mapRowToResult),
+			parsedQuery: parsed,
+		};
+	}
 
 	// Always try fast prefix search first (uses B-tree index, works without extensions)
-	const prefixResults = await prefixSearch(db, trimmed, filterClauses, {
+	const prefixResults = await prefixSearch(db, searchInput, filterClauses, {
 		limit,
 		latitude,
 		longitude,
 	});
 	if (prefixResults.length > 0) {
-		return prefixResults;
+		return { results: prefixResults, parsedQuery: parsed };
 	}
 
 	// Try tiered fuzzy search (requires pg_trgm + fuzzystrmatch extensions)
 	// Falls back to optimized ILIKE if extensions aren't available
+	let results: AutocompleteResult[];
 	try {
-		return await tieredSearch(db, trimmed, len, filterClauses, {
+		results = await tieredSearch(db, searchInput, len, filterClauses, {
 			limit,
 			latitude,
 			longitude,
 		});
 	} catch {
-		return ilikeFallback(db, trimmed, filterClauses, { limit });
+		results = await ilikeFallback(db, searchInput, filterClauses, { limit });
 	}
+
+	// Parsed-path fallback: trigram similarity of a short streetQuery against a
+	// long search_text column is often below threshold, even though unit +
+	// street_number already narrow the rows tightly. Retry with a direct
+	// street_name ILIKE when tiered/ilikeFallback returned nothing.
+	if (results.length === 0 && parsed) {
+		results = await parsedPathFallback(db, searchInput, filterClauses, {
+			limit,
+			latitude,
+			longitude,
+		});
+	}
+
+	return { results, parsedQuery: parsed };
+}
+
+async function parsedPathFallback(
+	db: Database,
+	streetQuery: string,
+	filterClauses: SQL<unknown>[],
+	opts: { limit: number; latitude?: number; longitude?: number }
+): Promise<AutocompleteResult[]> {
+	const { limit, latitude, longitude } = opts;
+	const conditions: SQL<unknown>[] = [...filterClauses];
+	if (streetQuery) {
+		conditions.push(sql`street_name ILIKE ${`${streetQuery}%`}`);
+	}
+	const whereClause = sql.join(conditions, sql` AND `);
+
+	const result = await db.execute(sql`
+		SELECT ${SELECT_COLUMNS}, 1.0 as similarity_score
+		FROM addresses
+		WHERE ${whereClause}
+		ORDER BY ${buildOrderBy(latitude, longitude)}
+		LIMIT ${limit}
+	`);
+
+	return (result.rows as unknown as RawAddressRow[]).map(mapRowToResult);
 }
 
 async function tieredSearch(

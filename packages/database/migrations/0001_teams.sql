@@ -28,10 +28,10 @@ CREATE TABLE "teams" (
 ALTER TABLE "api_keys" ALTER COLUMN "project_id" DROP NOT NULL;--> statement-breakpoint
 ALTER TABLE "addresses" ADD COLUMN "population_score" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
 ALTER TABLE "addresses" ADD COLUMN "admin_level" integer DEFAULT 5 NOT NULL;--> statement-breakpoint
-ALTER TABLE "api_keys" ADD COLUMN "team_id" uuid;--> statement-breakpoint
-ALTER TABLE "api_keys" ADD COLUMN "secret_ciphertext" text;--> statement-breakpoint
-ALTER TABLE "api_keys" ADD COLUMN "secret_iv" text;--> statement-breakpoint
-ALTER TABLE "projects" ADD COLUMN "team_id" uuid;--> statement-breakpoint
+ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "team_id" uuid;--> statement-breakpoint
+ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "secret_ciphertext" text;--> statement-breakpoint
+ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "secret_iv" text;--> statement-breakpoint
+ALTER TABLE "projects" ADD COLUMN IF NOT EXISTS "team_id" uuid;--> statement-breakpoint
 ALTER TABLE "team_invitations" ADD CONSTRAINT "team_invitations_team_id_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "team_invitations" ADD CONSTRAINT "team_invitations_invited_by_user_id_fk" FOREIGN KEY ("invited_by") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "team_members" ADD CONSTRAINT "team_members_team_id_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
