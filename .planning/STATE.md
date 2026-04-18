@@ -7,7 +7,7 @@ stopped_at: Completed quick-260416-qlh
 last_updated: "2026-04-17T01:21:46.062Z"
 last_activity: 2026-04-17
 progress:
-  total_phases: 6
+  total_phases: 8
   completed_phases: 4
   total_plans: 11
   completed_plans: 11
@@ -81,6 +81,8 @@ None yet.
 - Phase 4 added: Implement APIs using oRPC with mutations and procedures
 - Phase 5 added: Optimize autocomplete search with tiered strategy
 - Phase 6 added: Mirror Cloudflare deployment configurations from mydeffo.com-web
+- Phase 7 adopted: Extract auth into its own package (pre-drafted research + 3 plans in 07-extract-auth-into-its-own-package/, now formally in roadmap)
+- Phase 8 added: Teams — creation, email invitations (Resend), and auto-generated per-member API keys scoped to the team (renumbered from 7 due to phase 7 adoption)
 
 ### Blockers/Concerns
 

@@ -129,3 +129,31 @@ Plans:
 - [ ] 06-01-PLAN.md — Replace Node.js filesystem env loader and remove dead dependencies
 - [ ] 06-02-PLAN.md — Align wrangler configs with observability, production env blocks, and Workers types
 - [ ] 06-03-PLAN.md — Add configurable auth cookie domain for cross-subdomain deployment
+
+### Phase 7: Extract auth into its own package
+
+**Goal:** BetterAuth server config and auth client extracted from `packages/api` into a dedicated `packages/auth/` package that mirrors the mydeffo.com-web reference 1:1 — pure refactor, no behavioral changes
+**Depends on:** Phase 6
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE):
+  1. `packages/auth/` exists with structure matching mydeffo 1:1 (file names, export shape, dependency set scoped to auth)
+  2. `packages/api/src/auth.ts` no longer contains BetterAuth config (removed or thin re-export)
+  3. `apps/web` and `apps/server` import auth from `@wherabouts.com/auth` — no direct imports from `packages/api`
+  4. `pnpm install` + `pnpm build` succeed at repo root; `pnpm dlx ultracite check` clean on touched files
+  5. Dev sign-in flow (GitHub OAuth) still works end-to-end — no regression
+**Plans:** 3 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Plans pre-drafted (see phase dir); adopt via /gsd:plan-phase 7 or execute directly
+- [ ] 07-02-PLAN.md — Plans pre-drafted (see phase dir)
+- [ ] 07-03-PLAN.md — Plans pre-drafted (see phase dir)
+
+### Phase 8: Teams — creation, email invitations (Resend), and auto-generated per-member API keys scoped to the team
+
+**Goal:** Turn the static `/team` route into a functional multi-user workspace — users create Teams, invite members by email (Resend), and every member gets an auto-generated API key that authorizes requests against any project in that team; removal from the team revokes authorization at the middleware
+**Depends on:** Phase 7
+**Requirements**: TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 8 to break down)
