@@ -152,8 +152,14 @@ Plans:
 
 **Goal:** Turn the static `/team` route into a functional multi-user workspace — users create Teams, invite members by email (Resend), and every member gets an auto-generated API key that authorizes requests against any project in that team; removal from the team revokes authorization at the middleware
 **Depends on:** Phase 7
-**Requirements**: TBD
-**Plans:** 0 plans
+**Requirements**: TBD (no REQ-IDs in REQUIREMENTS.md matched this phase scope; coverage added when requirements doc is updated for Teams)
+**Plans:** 1/7 plans executed
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 8 to break down)
+- [x] 08-01-PLAN.md — Teams/members/invitations schema, nullable teamId on projects+apiKeys, encrypted-secret columns, env vars
+- [ ] 08-02-PLAN.md — Backfill Personal teams, reassign projects+apiKeys, tighten team_id to NOT NULL, drop legacy index
+- [ ] 08-03-PLAN.md — AES-256-GCM crypto helper + BetterAuth organization plugin (Resend sendInvitationEmail, user.create.after auto-Personal-team, organizationClient)
+- [ ] 08-04-PLAN.md — teams-server + api-keys-server createServerFns, membership-aware api-key-auth middleware, afterAcceptInvitation auto-key hook
+- [ ] 08-05-PLAN.md — /invite/:id route, OneTimeKeyModal, TeamSwitcher component + sidebar integration
+- [ ] 08-06-PLAN.md — /team route rewrite with live data, InviteMemberDialog, RemoveMemberAlert, ?newKey reveal flow
+- [ ] 08-07-PLAN.md — Thread active teamId through /projects and /api-keys; owner-gated Reveal key; full phase UAT

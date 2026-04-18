@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed quick-260416-qlh
-last_updated: "2026-04-17T01:21:46.062Z"
-last_activity: 2026-04-17
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-04-18T01:07:03.013Z"
+last_activity: 2026-04-18
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 21
+  completed_plans: 13
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-14)
 
 **Core value:** Users can authenticate seamlessly -- login, signup, OAuth, and session persistence must work without disruption after the migration.
-**Current focus:** Phase 06 — mirror-cloudflare-deployment-configurations-from-mydeffo-com-web
+**Current focus:** Phase 08 — Teams — creation, invitations, API keys
 
 ## Current Position
 
-Phase: 06
-Plan: Not started
-Status: Executing Phase 06
-Last activity: 2026-04-17
+Phase: 08 (Teams — creation, invitations, API keys) — EXECUTING
+Plan: 2 of 7
+Status: Ready to execute
+Last activity: 2026-04-18
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 04 P01 | 1min | 2 tasks | 3 files |
 | Phase 04 P02 | 4min | 2 tasks | 5 files |
+| Phase 08 P01 | 7 | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,8 @@ Recent decisions affecting current work:
 - [Phase 05]: Used Drizzle sql template literals for raw SQL since trigram operators cannot be expressed in query builder
 - [Phase 06]: Use dotenv/config side-effect import for Worker-compatible env loading
 - [Phase 06]: Replaced crossSubDomainCookies with defaultCookieAttributes for explicit cookie domain control via AUTH_COOKIE_DOMAIN env var
+- [Phase 08]: text (not uuid) for userId/invitedBy in team tables — matches users.id text PK in auth.ts
+- [Phase 08]: uq_projects_user_slug kept alongside uq_projects_team_slug in Plan 01 — Plan 02 drops old index after backfill
 
 ### Pending Todos
 
@@ -98,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T09:12:18Z
-Stopped at: Completed quick-260416-qlh
+Last session: 2026-04-18T01:07:03.010Z
+Stopped at: Completed 08-01-PLAN.md
 Resume file: None
