@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 8 Wave 2 deferred — Neon storage cap. Code for Waves 3-7 proceeding against schema; runtime needs DB reconciliation later.
-last_updated: "2026-04-18T02:12:38.659Z"
-last_activity: 2026-04-18
+last_updated: "2026-04-19T00:00:00.000Z"
+last_activity: 2026-04-19
 progress:
   total_phases: 8
   completed_phases: 4
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-14)
 Phase: 08 (Teams — creation, invitations, API keys) — EXECUTING
 Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-04-18
+Last activity: 2026-04-19
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -98,6 +98,7 @@ None yet.
 | 260414-ght | Realign hero section layout to center the animated address input demo | 2026-04-14 | b9d5b16 | [260414-ght-realign-hero-section-layout-to-center-th](./quick/260414-ght-realign-hero-section-layout-to-center-th/) |
 | 260415-hwm | Fix hero section mobile responsiveness and viewport fitting | 2026-04-15 | 9444085 | [260415-hwm-fix-hero-section-responsiveness-and-view](./quick/260415-hwm-fix-hero-section-responsiveness-and-view/) |
 | 260416-qlh | Check and configure Better Auth GitHub social provider | 2026-04-16 | 7e6f6d4 | [260416-qlh-check-and-configure-better-auth-github-s](./quick/260416-qlh-check-and-configure-better-auth-github-s/) |
+| 260419-lml | Fix critical audit issues C1 (wrangler NODE_ENV) and C2 (CLAUDE.md Convex→Postgres) | 2026-04-19 | 7b0e382, 5b3ce0b | [260419-lml-fix-critical-audit-issues-c1-and-c2-remo](./quick/260419-lml-fix-critical-audit-issues-c1-and-c2-remo/) |
 
 ## Session Continuity
 
