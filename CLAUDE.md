@@ -3,16 +3,18 @@
 
 **Wherabouts.com — BetterAuth Migration**
 
-Wherabouts.com is an existing application built on TanStack Start + Convex. This project uses BetterAuth (self-hosted, open-source) for authentication, giving full ownership of auth data and infrastructure. The mydeffo.com-web project serves as architectural inspiration for BetterAuth patterns.
+Wherabouts.com is an existing application built on TanStack Start. Authentication uses BetterAuth (self-hosted, open-source), with auth data persisted to **Postgres (Neon) via Drizzle ORM** — see `packages/database/src/schema/auth.ts`. The mydeffo.com-web project serves as architectural inspiration for BetterAuth patterns.
+
+> Note: An earlier plan scoped auth storage to Convex. That direction was abandoned due to complexity; there is no `convex/` directory and no Convex dependency in the repo.
 
 **Core Value:** Users can authenticate seamlessly — login, signup, OAuth, and session persistence must work without disruption.
 
 ### Constraints
 
-- **Stack:** Must remain on TanStack Start + Convex — no framework changes
-- **Data storage:** Auth data must be stored in Convex (not a separate DB)
-- **Feature parity:** Existing auth features must work identically on BetterAuth
-- **Zero legacy auth residue:** Full replacement — no legacy auth code or dependency should remain
+- **Stack:** TanStack Start on the web app, Cloudflare Workers (`apps/server`) on the API — no framework changes.
+- **Data storage:** Auth data is stored in Postgres on Neon, managed via Drizzle migrations (`packages/database/drizzle/*`).
+- **Feature parity:** Existing auth features must work identically on BetterAuth.
+- **Zero legacy auth residue:** Full replacement — no legacy auth code or dependency should remain.
 <!-- GSD:project-end -->
 
 <!-- GSD:stack-start source:STACK.md -->
