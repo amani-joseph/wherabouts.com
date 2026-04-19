@@ -3,7 +3,10 @@
 	"name": "wherabouts-server",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-04-14",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat",
+		"nodejs_compat_populate_process_env"
+	],
 	"dev": { "port": 3003 },
 	"routes": [
 		{
