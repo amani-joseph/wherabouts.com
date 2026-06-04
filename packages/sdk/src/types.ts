@@ -134,12 +134,12 @@ export interface WheraboutsClient {
 // --- Zones ---
 
 export interface ZoneRecord {
-	id: number;
-	projectId: string;
-	name: string;
-	description: string | null;
-	metadata: Record<string, unknown> | null;
 	createdAt: string;
+	description: string | null;
+	id: number;
+	metadata: Record<string, unknown> | null;
+	name: string;
+	projectId: string;
 	updatedAt: string;
 }
 
@@ -151,12 +151,14 @@ export interface ZoneWithGeometry extends ZoneRecord {
 }
 
 export interface ZoneContainsResponse {
-	zones: ZoneRecord[];
 	count: number;
 	query: { lat: number; lng: number };
+	zones: ZoneRecord[];
 }
 
 export interface ZoneAddressesResponse {
+	count: number;
+	query: { id: number; page: number; limit: number };
 	results: Array<{
 		id: number;
 		country: string;
@@ -173,9 +175,7 @@ export interface ZoneAddressesResponse {
 		latitude: number;
 		longitude: number;
 	}>;
-	count: number;
 	truncated: boolean;
-	query: { id: number; page: number; limit: number };
 }
 
 // --- Forward Geocoding ---
@@ -198,63 +198,81 @@ export interface ForwardGeocodeResponse {
 // --- Batch Geocoding ---
 
 export interface BatchGeocodeSubmitResponse {
+	inputCount: number;
 	jobId: string;
 	status: "pending" | "processing";
-	inputCount: number;
 }
 
 export interface BatchGeocodePollResponse {
-	jobId: string;
-	status: "pending" | "processing" | "completed" | "failed";
-	inputCount: number;
-	processedCount: number;
 	completedAt: string | null;
-	error: string | null;
 	downloadUrl: string | null;
+	error: string | null;
+	inputCount: number;
+	jobId: string;
+	processedCount: number;
+	status: "pending" | "processing" | "completed" | "failed";
 }
 
 export interface BatchGeocodeResultsResponse {
-	results: unknown[];
 	count: number;
+	results: unknown[];
 }
 
 // --- Devices ---
 
 export interface DeviceLocationResponse {
-	zones: number[];
 	crossings: Array<{
 		zoneId: number;
 		zoneName: string;
 		event: "entry" | "exit";
 	}>;
+	zones: number[];
 }
 
 export interface DeviceZonesResponse {
 	deviceId: string;
-	zoneIds: number[];
 	latitude: number;
 	longitude: number;
 	updatedAt: Date | string;
+	zoneIds: number[];
 }
 
 // --- Webhooks ---
 
 export interface WebhookSubscriptionRecord {
+	active: boolean;
+	createdAt: string;
+	events: string[];
+	failing: boolean;
 	id: number;
 	url: string;
-	events: string[];
 	zoneId: number | null;
-	active: boolean;
-	failing: boolean;
+}
+
+// --- Webhooks (dashboard) ---
+
+export interface WebhookDeliveryAttemptRecord {
+	attempt: number;
 	createdAt: string;
+	deviceId: string | null;
+	error: string | null;
+	event: string;
+	id: number;
+	ok: boolean;
+	statusCode: number | null;
+	zoneId: number | null;
+}
+
+export interface WebhookReactivateResponse {
+	success: boolean;
 }
 
 export interface WebhookCreateResponse {
-	id: number;
-	url: string;
-	events: string[];
-	zoneId: number | null;
 	active: boolean;
 	createdAt: string;
+	events: string[];
+	id: number;
 	secret: string; // Returned ONCE at creation time only
+	url: string;
+	zoneId: number | null;
 }
