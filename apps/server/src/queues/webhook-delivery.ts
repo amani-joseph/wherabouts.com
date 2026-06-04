@@ -73,7 +73,10 @@ export async function processWebhookDeliveryMessage(
 		timestamp: msg.timestamp,
 	});
 
-	await Promise.all(
+	// allSettled isolates per-subscription failures: a DB error on one sub must
+	// not reject the whole batch, which would let CF Queue re-deliver the message
+	// and double-fire webhooks to subs that already succeeded.
+	await Promise.allSettled(
 		subs.map(async (sub) => {
 			let secret: string;
 			try {
