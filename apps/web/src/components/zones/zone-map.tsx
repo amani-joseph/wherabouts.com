@@ -1,5 +1,5 @@
 import type { Map as MapLibreMap } from "maplibre-gl";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapCanvas } from "@/components/map/map-canvas";
 import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
 import { useZoneDraw, type UseZoneDraw } from "./use-zone-draw.ts";
@@ -16,11 +16,17 @@ export function ZoneMap({ zones, onReady }: ZoneMapProps) {
 	const [map, setMap] = useState<MapLibreMap | null>(null);
 	const draw = useZoneDraw(map);
 
+	const onReadyRef = useRef(onReady);
+	onReadyRef.current = onReady;
+	const readyFiredRef = useRef(false);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: draw in deps satisfies lint; readyFiredRef guard ensures body runs once only
 	useEffect(() => {
-		if (map) {
-			onReady?.(draw);
+		if (map && !readyFiredRef.current) {
+			readyFiredRef.current = true;
+			onReadyRef.current?.(draw);
 		}
-	}, [map, draw, onReady]);
+	}, [map, draw]);
 
 	useEffect(() => {
 		if (!map) {
