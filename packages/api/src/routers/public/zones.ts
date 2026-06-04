@@ -63,8 +63,8 @@ export const zoneCreate = baseBuilder
 			.where(eq(zones.projectId, projectId));
 		const count = countResult[0]?.count ?? 0;
 		if (count >= 500) {
-			throw new ORPCError("TOO_MANY_REQUESTS", {
-				message: "Project has reached the maximum of 500 zones.",
+			throw new ORPCError("FORBIDDEN", {
+				message: "Zone limit reached (500). Delete unused zones to create new ones.",
 			});
 		}
 
@@ -125,10 +125,17 @@ export const zoneList = baseBuilder
 		summary: "List zones",
 		tags: ["zones"],
 	})
-	.input(z.object({}))
-	.handler(async ({ context }) => {
+	.input(
+		z.object({
+			page: z.coerce.number().int().min(1).default(1),
+			limit: z.coerce.number().int().min(1).max(100).default(20),
+		})
+	)
+	.handler(async ({ input, context }) => {
 		const ctx = context as typeof context & AuthContext;
 		const projectId = requireProjectId(ctx.validatedApiKey.projectId);
+
+		const offset = (input.page - 1) * input.limit;
 
 		const rows = await context.db
 			.select({
@@ -141,9 +148,11 @@ export const zoneList = baseBuilder
 				updatedAt: zones.updatedAt,
 			})
 			.from(zones)
-			.where(eq(zones.projectId, projectId));
+			.where(eq(zones.projectId, projectId))
+			.limit(input.limit)
+			.offset(offset);
 
-		return { zones: rows, count: rows.length };
+		return { zones: rows, count: rows.length, page: input.page };
 	});
 
 export const zoneGet = baseBuilder
@@ -223,9 +232,10 @@ export const zoneUpdate = baseBuilder
 			throw new ORPCError("NOT_FOUND", { message: "Zone not found." });
 		}
 
-		// Validate new geometry if provided
 		if (input.geometry) {
 			const geomJson = JSON.stringify(input.geometry);
+
+			// Validate new geometry
 			const validResult = await context.db.execute(
 				sql`SELECT ST_IsValid(ST_GeomFromGeoJSON(${geomJson})) AS valid`
 			);
@@ -237,11 +247,8 @@ export const zoneUpdate = baseBuilder
 					message: "Provided geometry is not a valid polygon.",
 				});
 			}
-		}
 
-		if (input.geometry) {
 			// Use raw SQL update to handle geometry column
-			const geomJson = JSON.stringify(input.geometry);
 			const updated = await context.db.execute(
 				sql`UPDATE zones SET
 					name = COALESCE(${input.name ?? null}::varchar, name),
@@ -331,7 +338,7 @@ export const zoneContains = baseBuilder
 	.use(apiKeyAuth)
 	.use(usageMiddleware("zones.contains"))
 	.route({
-		method: "POST",
+		method: "GET",
 		path: "/api/v1/zones/contains",
 		summary: "Find zones containing a point",
 		tags: ["zones"],
