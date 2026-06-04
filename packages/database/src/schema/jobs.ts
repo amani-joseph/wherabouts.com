@@ -16,9 +16,9 @@ export const batchGeocodeJobs = pgTable(
 		projectId: uuid("project_id")
 			.notNull()
 			.references(() => projects.id, { onDelete: "cascade" }),
-		apiKeyId: uuid("api_key_id")
-			.notNull()
-			.references(() => apiKeys.id, { onDelete: "cascade" }),
+		apiKeyId: uuid("api_key_id").references(() => apiKeys.id, {
+			onDelete: "cascade",
+		}),
 		status: text().notNull().default("pending"),
 		inputCount: integer("input_count").notNull(),
 		processedCount: integer("processed_count").notNull().default(0),
