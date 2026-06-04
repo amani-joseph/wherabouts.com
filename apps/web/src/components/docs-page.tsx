@@ -68,7 +68,7 @@ interface EndpointDoc {
 	description: string;
 	exampleResponse: string;
 	href: string;
-	method: "GET";
+	method: "GET" | "POST" | "PUT" | "DELETE";
 	notes: string[];
 	params: EndpointParam[];
 	path: string;
@@ -94,6 +94,44 @@ const docsNavGroups: DocsSectionGroup[] = [
 			{ title: "Reverse Geocoding", href: "#reverse" },
 			{ title: "Nearby Search", href: "#nearby" },
 			{ title: "Address by ID", href: "#address-by-id" },
+		],
+	},
+	{
+		label: "Geocoding",
+		items: [
+			{ title: "Forward Geocode", href: "#forward-geocode" },
+			{ title: "Batch Submit", href: "#batch-submit" },
+			{ title: "Batch Poll", href: "#batch-poll" },
+			{ title: "Batch Results", href: "#batch-results" },
+			{ title: "Batch Lifecycle", href: "#batch-lifecycle" },
+		],
+	},
+	{
+		label: "Zones",
+		items: [
+			{ title: "Create Zone", href: "#zone-create" },
+			{ title: "List Zones", href: "#zone-list" },
+			{ title: "Get Zone", href: "#zone-get" },
+			{ title: "Update Zone", href: "#zone-update" },
+			{ title: "Delete Zone", href: "#zone-delete" },
+			{ title: "Zone Contains", href: "#zone-contains" },
+			{ title: "Zone Addresses", href: "#zone-addresses" },
+		],
+	},
+	{
+		label: "Devices",
+		items: [
+			{ title: "Push Location", href: "#device-location" },
+			{ title: "Device Zones", href: "#device-zones" },
+		],
+	},
+	{
+		label: "Webhooks",
+		items: [
+			{ title: "Create Webhook", href: "#webhook-create" },
+			{ title: "List Webhooks", href: "#webhook-list" },
+			{ title: "Delete Webhook", href: "#webhook-delete" },
+			{ title: "Webhook Delivery", href: "#webhook-delivery" },
 		],
 	},
 	{
@@ -365,6 +403,612 @@ const endpointDocs: EndpointDoc[] = [
   "confidence": 92,
   "gnafPid": "GAVIC123456789"
 }`,
+	},
+	// --- Geocoding ---
+	{
+		title: "Forward Geocode",
+		href: "#forward-geocode",
+		method: "GET",
+		path: "/api/v1/addresses/geocode",
+		summary: "Resolve an address string or structured fields to a coordinate.",
+		description:
+			"Forward geocoding converts a human-readable address into a canonical address record with latitude and longitude. Pass an unstructured query in `q` or set `structured=true` and supply individual fields (`street`, `locality`, `state`, `postcode`). The server returns the single best match.",
+		params: [
+			{
+				name: "q",
+				type: "string",
+				required: false,
+				description: "Unstructured address text (minimum 5 characters). Omit when using structured mode.",
+			},
+			{
+				name: "structured",
+				type: "string",
+				required: false,
+				description: "Set to `true` to use structured field inputs instead of `q`.",
+			},
+			{
+				name: "street",
+				type: "string",
+				required: false,
+				description: "Street address line (structured mode).",
+			},
+			{
+				name: "locality",
+				type: "string",
+				required: false,
+				description: "Suburb or city name (structured mode).",
+			},
+			{
+				name: "state",
+				type: "string",
+				required: false,
+				description: "State abbreviation such as `VIC` (structured mode).",
+			},
+			{
+				name: "postcode",
+				type: "string",
+				required: false,
+				description: "Postcode (structured mode).",
+			},
+			{
+				name: "country",
+				type: "string",
+				required: false,
+				description: "Country code such as `AU`.",
+			},
+		],
+		notes: [
+			"Either `q` or `structured=true` with at least one field is required.",
+			"Returns `404` when no match can be found.",
+			"The response shape mirrors the autocomplete candidate object.",
+		],
+		exampleResponse: `{
+  "id": 104233,
+  "formattedAddress": "123 Main St, Melbourne VIC 3000, AU",
+  "streetAddress": "123 Main St",
+  "locality": "Melbourne",
+  "state": "VIC",
+  "postcode": "3000",
+  "country": "AU",
+  "latitude": -37.8136,
+  "longitude": 144.9631,
+  "confidence": 92
+}`,
+	},
+	{
+		title: "Batch Submit",
+		href: "#batch-submit",
+		method: "POST",
+		path: "/api/v1/geocode/batch",
+		summary: "Submit a list of addresses for background geocoding.",
+		description:
+			"Batch geocoding accepts an array of address strings and processes them asynchronously. The endpoint returns a `jobId` immediately; poll `GET /api/v1/geocode/batch/{jobId}` until `status` is `completed`, then fetch results.",
+		params: [
+			{
+				name: "addresses",
+				type: "string[]",
+				required: true,
+				description: "JSON array of address strings to geocode.",
+			},
+		],
+		notes: [
+			"Submits as `POST` with a JSON body — not executable in the try-it explorer.",
+			"Returns `202 Accepted` with a `jobId` for polling.",
+			"See the Batch Lifecycle section for the full submit → poll → results flow.",
+		],
+		exampleResponse: `{
+  "jobId": "job_abc123xyz"
+}`,
+	},
+	{
+		title: "Batch Poll",
+		href: "#batch-poll",
+		method: "GET",
+		path: "/api/v1/geocode/batch/{jobId}",
+		summary: "Check the status of a running batch geocoding job.",
+		description:
+			"Poll this endpoint after submitting a batch job. When `status` is `completed` the results endpoint is ready. When `status` is `failed` the job encountered an unrecoverable error.",
+		params: [
+			{
+				name: "jobId",
+				type: "string",
+				required: true,
+				description: "Job ID returned by the batch submit endpoint.",
+			},
+		],
+		notes: [
+			"Poll at a reasonable interval (e.g. every 2 seconds) — avoid tight loops.",
+			"Possible statuses: `pending`, `processing`, `completed`, `failed`.",
+			"`processed` and `total` fields are present once processing begins.",
+		],
+		exampleResponse: `{
+  "jobId": "job_abc123xyz",
+  "status": "processing",
+  "total": 500,
+  "processed": 142
+}`,
+	},
+	{
+		title: "Batch Results",
+		href: "#batch-results",
+		method: "GET",
+		path: "/api/v1/geocode/batch/{jobId}/results",
+		summary: "Retrieve geocoded results for a completed batch job.",
+		description:
+			"Once `status` is `completed`, fetch the full result set from this endpoint. Results are ordered to match the input array — each entry contains either a resolved address or a `null` match with an error reason.",
+		params: [
+			{
+				name: "jobId",
+				type: "string",
+				required: true,
+				description: "Job ID returned by the batch submit endpoint.",
+			},
+		],
+		notes: [
+			"Returns `400` if the job is not yet in `completed` state.",
+			"Each result entry includes the original input address and the matched record (or `null`).",
+		],
+		exampleResponse: `{
+  "results": [
+    {
+      "input": "123 Main St Melbourne VIC",
+      "match": {
+        "id": 104233,
+        "formattedAddress": "123 Main St, Melbourne VIC 3000, AU",
+        "latitude": -37.8136,
+        "longitude": 144.9631,
+        "confidence": 92
+      }
+    },
+    {
+      "input": "not a real address xyz",
+      "match": null,
+      "error": "no_match"
+    }
+  ]
+}`,
+	},
+	// --- Zones ---
+	{
+		title: "Create Zone",
+		href: "#zone-create",
+		method: "POST",
+		path: "/api/v1/zones",
+		summary: "Create a geofence zone for a project.",
+		description:
+			"Creates a named zone defined by a GeoJSON Polygon geometry. Zones are used for point-in-polygon tests, address enumeration, and triggering webhook events when devices enter or exit. Each project may have up to 500 zones.",
+		params: [
+			{
+				name: "projectId",
+				type: "string",
+				required: true,
+				description: "Project identifier.",
+			},
+			{
+				name: "name",
+				type: "string",
+				required: true,
+				description: "Human-readable zone name.",
+			},
+			{
+				name: "geometry",
+				type: "object",
+				required: true,
+				description: "GeoJSON Polygon geometry — coordinates must form a closed ring.",
+			},
+		],
+		notes: [
+			"Submits as `POST` with a JSON body — not executable in the try-it explorer.",
+			"Returns `400` with code `zone_limit_exceeded` when the project has 500 zones.",
+			"PostGIS validates the geometry; invalid or unclosed rings return `400`.",
+		],
+		exampleResponse: `{
+  "id": "zone_01HX3K9R",
+  "projectId": "proj_abc",
+  "name": "Melbourne CBD",
+  "createdAt": "2026-06-05T00:00:00.000Z"
+}`,
+	},
+	{
+		title: "List Zones",
+		href: "#zone-list",
+		method: "GET",
+		path: "/api/v1/zones",
+		summary: "List all zones for a project.",
+		description:
+			"Returns the full list of zones for the given project. Zone geometry (GeoJSON) is included so the map can render all polygons in one request.",
+		params: [
+			{
+				name: "projectId",
+				type: "string",
+				required: true,
+				description: "Project identifier.",
+			},
+		],
+		notes: [
+			"Geometry is included in every zone record for map rendering.",
+			"Up to 500 zones are returned (the per-project limit).",
+		],
+		exampleResponse: `{
+  "zones": [
+    {
+      "id": "zone_01HX3K9R",
+      "name": "Melbourne CBD",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[144.95, -37.82], [144.97, -37.82], [144.97, -37.81], [144.95, -37.81], [144.95, -37.82]]]
+      },
+      "createdAt": "2026-06-05T00:00:00.000Z"
+    }
+  ]
+}`,
+	},
+	{
+		title: "Get Zone",
+		href: "#zone-get",
+		method: "GET",
+		path: "/api/v1/zones/{id}",
+		summary: "Fetch a single zone by ID.",
+		description:
+			"Returns the full zone record including geometry. Useful for re-rendering a specific zone on the map or verifying the stored polygon.",
+		params: [
+			{
+				name: "id",
+				type: "string",
+				required: true,
+				description: "Zone identifier.",
+			},
+		],
+		notes: [
+			"Returns `404` for unknown zone IDs.",
+			"Geometry is returned as a GeoJSON Polygon.",
+		],
+		exampleResponse: `{
+  "id": "zone_01HX3K9R",
+  "projectId": "proj_abc",
+  "name": "Melbourne CBD",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[[144.95, -37.82], [144.97, -37.82], [144.97, -37.81], [144.95, -37.81], [144.95, -37.82]]]
+  },
+  "createdAt": "2026-06-05T00:00:00.000Z"
+}`,
+	},
+	{
+		title: "Update Zone",
+		href: "#zone-update",
+		method: "PUT",
+		path: "/api/v1/zones/{id}",
+		summary: "Update a zone's name or geometry.",
+		description:
+			"Replaces the zone's name, geometry, or both. Partial updates are supported — omit fields you do not want to change. The geometry is re-validated by PostGIS on every update.",
+		params: [
+			{
+				name: "id",
+				type: "string",
+				required: true,
+				description: "Zone identifier (path parameter).",
+			},
+			{
+				name: "name",
+				type: "string",
+				required: false,
+				description: "New zone name.",
+			},
+			{
+				name: "geometry",
+				type: "object",
+				required: false,
+				description: "Replacement GeoJSON Polygon geometry.",
+			},
+		],
+		notes: [
+			"Submits as `PUT` with a JSON body — not executable in the try-it explorer.",
+			"Returns `404` for unknown zone IDs.",
+			"Invalid geometry returns `400`.",
+		],
+		exampleResponse: `{
+  "id": "zone_01HX3K9R",
+  "projectId": "proj_abc",
+  "name": "Melbourne CBD (updated)",
+  "updatedAt": "2026-06-05T01:00:00.000Z"
+}`,
+	},
+	{
+		title: "Delete Zone",
+		href: "#zone-delete",
+		method: "DELETE",
+		path: "/api/v1/zones/{id}",
+		summary: "Permanently delete a zone.",
+		description:
+			"Deletes the zone record. Any webhook subscriptions listening to this zone's boundary events will stop firing. This action cannot be undone.",
+		params: [
+			{
+				name: "id",
+				type: "string",
+				required: true,
+				description: "Zone identifier.",
+			},
+		],
+		notes: [
+			"Submits as `DELETE` — not executable in the try-it explorer.",
+			"Returns `204 No Content` on success.",
+			"Returns `404` for unknown zone IDs.",
+		],
+		exampleResponse: `204 No Content`,
+	},
+	{
+		title: "Zone Contains",
+		href: "#zone-contains",
+		method: "GET",
+		path: "/api/v1/zones/contains",
+		summary: "Test whether a coordinate falls inside any zone.",
+		description:
+			"Point-in-polygon test using PostGIS ST_Contains. Provide a project ID and a coordinate; the API returns all zones that contain the point. Returns an empty array when the point is outside all zones.",
+		params: [
+			{
+				name: "projectId",
+				type: "string",
+				required: true,
+				description: "Project identifier.",
+			},
+			{
+				name: "lat",
+				type: "number",
+				required: true,
+				description: "Latitude (-90 to 90).",
+			},
+			{
+				name: "lng",
+				type: "number",
+				required: true,
+				description: "Longitude (-180 to 180).",
+			},
+		],
+		notes: [
+			"Returns an empty `zones` array (not `404`) when no zones contain the point.",
+			"Uses PostGIS ST_Contains — points exactly on the boundary are included.",
+		],
+		exampleResponse: `{
+  "zones": [
+    {
+      "id": "zone_01HX3K9R",
+      "name": "Melbourne CBD"
+    }
+  ]
+}`,
+	},
+	{
+		title: "Zone Addresses",
+		href: "#zone-addresses",
+		method: "GET",
+		path: "/api/v1/zones/{id}/addresses",
+		summary: "List addresses whose coordinates fall inside a zone.",
+		description:
+			"Returns paginated address records from the GNAF dataset that are spatially contained within the zone polygon. Large zones may contain tens of thousands of addresses; the response is capped at 10 000 per request and includes a `total` count.",
+		params: [
+			{
+				name: "id",
+				type: "string",
+				required: true,
+				description: "Zone identifier.",
+			},
+			{
+				name: "limit",
+				type: "number",
+				required: false,
+				description: "Maximum addresses to return. Defaults to 100, capped at 10 000.",
+			},
+			{
+				name: "offset",
+				type: "number",
+				required: false,
+				description: "Pagination offset. Defaults to 0.",
+			},
+		],
+		notes: [
+			"When `total` exceeds 10 000 the response is truncated — paginate using `offset`.",
+			"Returns `404` for unknown zone IDs.",
+		],
+		exampleResponse: `{
+  "addresses": [
+    {
+      "id": 104233,
+      "formattedAddress": "123 Main St, Melbourne VIC 3000, AU",
+      "latitude": -37.8136,
+      "longitude": 144.9631
+    }
+  ],
+  "total": 3412
+}`,
+	},
+	// --- Devices ---
+	{
+		title: "Push Location",
+		href: "#device-location",
+		method: "POST",
+		path: "/api/v1/devices/{deviceId}/location",
+		summary: "Record a device's current location and detect zone crossings.",
+		description:
+			"Upserts the device's latest position. The server runs a PostGIS point-in-polygon check against all project zones and computes enter/exit events relative to the device's previous position. Any zone crossings trigger configured webhook subscriptions.",
+		params: [
+			{
+				name: "deviceId",
+				type: "string",
+				required: true,
+				description: "Caller-assigned device identifier (path parameter).",
+			},
+			{
+				name: "projectId",
+				type: "string",
+				required: true,
+				description: "Project identifier (request body).",
+			},
+			{
+				name: "lat",
+				type: "number",
+				required: true,
+				description: "Latitude (-90 to 90) (request body).",
+			},
+			{
+				name: "lng",
+				type: "number",
+				required: true,
+				description: "Longitude (-180 to 180) (request body).",
+			},
+			{
+				name: "timestamp",
+				type: "string",
+				required: false,
+				description: "ISO-8601 timestamp. Defaults to server time.",
+			},
+		],
+		notes: [
+			"Submits as `POST` with a JSON body — not executable in the try-it explorer.",
+			"Zone crossings in the response are computed relative to the previous position.",
+			"Webhook delivery is asynchronous — crossings are returned synchronously here.",
+		],
+		exampleResponse: `{
+  "deviceId": "truck-42",
+  "recorded": true,
+  "crossings": [
+    { "zoneId": "zone_01HX3K9R", "event": "zone.enter" }
+  ]
+}`,
+	},
+	{
+		title: "Device Zones",
+		href: "#device-zones",
+		method: "GET",
+		path: "/api/v1/devices/{deviceId}/zones",
+		summary: "Get the zones a device is currently inside.",
+		description:
+			"Returns the zones that contain the device's most recently recorded position. Useful for real-time dashboards that need to display a device's current zone membership without re-running a PIP query client-side.",
+		params: [
+			{
+				name: "deviceId",
+				type: "string",
+				required: true,
+				description: "Caller-assigned device identifier.",
+			},
+			{
+				name: "projectId",
+				type: "string",
+				required: true,
+				description: "Project identifier.",
+			},
+		],
+		notes: [
+			"Returns `404` when the device has no recorded position.",
+			"Returns an empty `zones` array when the device is outside all zones.",
+		],
+		exampleResponse: `{
+  "deviceId": "truck-42",
+  "zones": [
+    {
+      "id": "zone_01HX3K9R",
+      "name": "Melbourne CBD"
+    }
+  ]
+}`,
+	},
+	// --- Webhooks ---
+	{
+		title: "Create Webhook",
+		href: "#webhook-create",
+		method: "POST",
+		path: "/api/v1/webhooks",
+		summary: "Subscribe to zone boundary crossing events.",
+		description:
+			"Creates a webhook subscription that receives POST requests whenever a device crosses a zone boundary. The response includes a `signingSecret` that is shown exactly once — store it securely. All subsequent deliveries are signed with HMAC-SHA256 using that secret.",
+		params: [
+			{
+				name: "projectId",
+				type: "string",
+				required: true,
+				description: "Project identifier.",
+			},
+			{
+				name: "url",
+				type: "string",
+				required: true,
+				description: "HTTPS endpoint that will receive webhook POST requests.",
+			},
+			{
+				name: "events",
+				type: "string[]",
+				required: true,
+				description: "Event types to subscribe to: `zone.enter`, `zone.exit`, or both.",
+			},
+		],
+		notes: [
+			"Submits as `POST` with a JSON body — not executable in the try-it explorer.",
+			"`signingSecret` is returned only once — store it immediately.",
+			"The subscription URL must be reachable over HTTPS.",
+		],
+		exampleResponse: `{
+  "id": "wh_01HX9AB",
+  "projectId": "proj_abc",
+  "url": "https://your-app.example.com/webhooks/wherabouts",
+  "events": ["zone.enter", "zone.exit"],
+  "signingSecret": "whsec_abc123xyz",
+  "createdAt": "2026-06-05T00:00:00.000Z"
+}`,
+	},
+	{
+		title: "List Webhooks",
+		href: "#webhook-list",
+		method: "GET",
+		path: "/api/v1/webhooks",
+		summary: "List webhook subscriptions for a project.",
+		description:
+			"Returns all active and failing webhook subscriptions for the project. The `signingSecret` is never included in list responses — it is only returned once at creation time.",
+		params: [
+			{
+				name: "projectId",
+				type: "string",
+				required: true,
+				description: "Project identifier.",
+			},
+		],
+		notes: [
+			"Subscriptions marked `failing` have exceeded the 3-retry delivery threshold.",
+			"Use `DELETE /api/v1/webhooks/{id}` to remove a failing subscription.",
+		],
+		exampleResponse: `{
+  "webhooks": [
+    {
+      "id": "wh_01HX9AB",
+      "url": "https://your-app.example.com/webhooks/wherabouts",
+      "events": ["zone.enter", "zone.exit"],
+      "status": "active",
+      "createdAt": "2026-06-05T00:00:00.000Z"
+    }
+  ]
+}`,
+	},
+	{
+		title: "Delete Webhook",
+		href: "#webhook-delete",
+		method: "DELETE",
+		path: "/api/v1/webhooks/{id}",
+		summary: "Remove a webhook subscription.",
+		description:
+			"Permanently deletes the webhook subscription. No further deliveries will be attempted. Use this to clean up failing subscriptions or remove subscriptions that are no longer needed.",
+		params: [
+			{
+				name: "id",
+				type: "string",
+				required: true,
+				description: "Webhook subscription identifier.",
+			},
+		],
+		notes: [
+			"Submits as `DELETE` — not executable in the try-it explorer.",
+			"Returns `204 No Content` on success.",
+			"Returns `404` for unknown webhook IDs.",
+		],
+		exampleResponse: `204 No Content`,
 	},
 ];
 
@@ -1019,6 +1663,179 @@ export function DocsPage() {
 									<EndpointSection endpoint={endpoint} key={endpoint.path} />
 								))}
 							</div>
+
+							<section className="scroll-mt-24 space-y-6" id="batch-lifecycle">
+								<SectionHeading
+									description="Batch geocoding is a three-step async flow. Submit the job, poll for completion, then fetch results."
+									eyebrow="Async lifecycle"
+									id="batch-lifecycle"
+									title="Batch geocoding lifecycle"
+								/>
+
+								<div className="space-y-4">
+									<div className="grid gap-4 md:grid-cols-3">
+										<Card>
+											<CardHeader>
+												<CardTitle className="flex items-center gap-2 text-base">
+													<span className="flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">1</span>
+													Submit
+												</CardTitle>
+											</CardHeader>
+											<CardContent>
+												<p className="text-muted-foreground text-sm leading-6">
+													POST your array of addresses to{" "}
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">POST /api/v1/geocode/batch</code>.
+													The server enqueues the job and returns a <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">jobId</code> immediately.
+												</p>
+											</CardContent>
+										</Card>
+										<Card>
+											<CardHeader>
+												<CardTitle className="flex items-center gap-2 text-base">
+													<span className="flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">2</span>
+													Poll
+												</CardTitle>
+											</CardHeader>
+											<CardContent>
+												<p className="text-muted-foreground text-sm leading-6">
+													Call{" "}
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">GET /api/v1/geocode/batch/{"{jobId}"}</code>{" "}
+													every few seconds until <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">status</code> is{" "}
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">completed</code> or{" "}
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">failed</code>.
+												</p>
+											</CardContent>
+										</Card>
+										<Card>
+											<CardHeader>
+												<CardTitle className="flex items-center gap-2 text-base">
+													<span className="flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">3</span>
+													Fetch results
+												</CardTitle>
+											</CardHeader>
+											<CardContent>
+												<p className="text-muted-foreground text-sm leading-6">
+													Once completed, retrieve the full result array from{" "}
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">GET /api/v1/geocode/batch/{"{jobId}"}/results</code>.
+													Each entry maps to the original input in order.
+												</p>
+											</CardContent>
+										</Card>
+									</div>
+
+									<CodeBlock
+										label="Batch lifecycle (JavaScript)"
+										code={`// Step 1 — submit
+const { jobId } = await fetch("https://api.wherabouts.com/api/v1/geocode/batch", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": "wh_live_your_api_key",
+  },
+  body: JSON.stringify({ addresses: ["123 Main St Melbourne VIC", "456 George St Sydney NSW"] }),
+}).then((r) => r.json());
+
+// Step 2 — poll until completed
+let status = "pending";
+while (status !== "completed" && status !== "failed") {
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  const poll = await fetch(\`https://api.wherabouts.com/api/v1/geocode/batch/\${jobId}\`, {
+    headers: { "X-API-Key": "wh_live_your_api_key" },
+  }).then((r) => r.json());
+  status = poll.status;
+}
+
+// Step 3 — fetch results
+const { results } = await fetch(
+  \`https://api.wherabouts.com/api/v1/geocode/batch/\${jobId}/results\`,
+  { headers: { "X-API-Key": "wh_live_your_api_key" } }
+).then((r) => r.json());`}
+									/>
+								</div>
+							</section>
+
+							<section className="scroll-mt-24 space-y-6" id="webhook-delivery">
+								<SectionHeading
+									description="Wherabouts delivers webhook events by POSTing to your subscription URL when a device crosses a zone boundary. Use the HMAC signature to verify authenticity."
+									eyebrow="Webhook delivery"
+									id="webhook-delivery"
+									title="Webhook delivery and HMAC verification"
+								/>
+
+								<div className="space-y-4">
+									<div className="grid gap-4 md:grid-cols-2">
+										<Card>
+											<CardHeader>
+												<CardTitle className="text-base">Delivery format</CardTitle>
+											</CardHeader>
+											<CardContent className="space-y-3">
+												<p className="text-muted-foreground text-sm leading-6">
+													On a zone boundary crossing, Wherabouts sends a signed POST to your subscription URL with a JSON body:
+												</p>
+												<CodeBlock
+													label="Webhook payload"
+													code={`{
+  "event": "zone.enter",
+  "zone": { "id": "zone_01HX3K9R", "name": "Melbourne CBD" },
+  "device": { "id": "truck-42" },
+  "timestamp": "2026-06-05T10:30:00.000Z"
+}`}
+												/>
+											</CardContent>
+										</Card>
+										<Card>
+											<CardHeader>
+												<CardTitle className="text-base">Retries and failure</CardTitle>
+											</CardHeader>
+											<CardContent className="space-y-3">
+												<p className="text-muted-foreground text-sm leading-6">
+													Wherabouts retries failed deliveries up to 3 times with exponential backoff. After 3 consecutive failures the subscription is marked <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">failing</code> and no further deliveries are attempted until the subscription is deleted and recreated.
+												</p>
+												<p className="text-muted-foreground text-sm leading-6">
+													Return a <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">2xx</code> response within 5 seconds to acknowledge delivery. Non-2xx or timeouts count as failures.
+												</p>
+											</CardContent>
+										</Card>
+									</div>
+
+									<Card>
+										<CardHeader>
+											<CardTitle className="text-base">HMAC-SHA256 signature verification</CardTitle>
+											<CardDescription>
+												Every delivery includes an{" "}
+												<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">X-Wherabouts-Signature: hmac-sha256={"<hex>"}</code>{" "}
+												header. Verify it using the <code>signingSecret</code> shown once at webhook creation time.
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<CodeBlock
+												label="Verify HMAC (Node.js)"
+												code={`import { createHmac, timingSafeEqual } from "node:crypto";
+
+function verifyWebhookSignature(
+  rawBody: string,
+  signatureHeader: string,
+  secret: string
+): boolean {
+  const expected = createHmac("sha256", secret)
+    .update(rawBody, "utf8")
+    .digest("hex");
+  const received = signatureHeader.replace("hmac-sha256=", "");
+  return timingSafeEqual(Buffer.from(expected), Buffer.from(received));
+}
+
+// In your Express / TanStack Start handler:
+const rawBody = await request.text();
+const sig = request.headers.get("x-wherabouts-signature") ?? "";
+if (!verifyWebhookSignature(rawBody, sig, process.env.WEBHOOK_SECRET!)) {
+  return new Response("Unauthorized", { status: 401 });
+}
+const payload = JSON.parse(rawBody);`}
+											/>
+										</CardContent>
+									</Card>
+								</div>
+							</section>
 
 							<section className="space-y-6" id="errors-and-constraints">
 								<SectionHeading
