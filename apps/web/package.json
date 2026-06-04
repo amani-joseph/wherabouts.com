@@ -49,6 +49,7 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "catalog:",
     "terra-draw": "^1.31.0",
+    "terra-draw-maplibre-gl-adapter": "^1.4.1",
     "three": "^0.183.2",
     "three-globe": "^2.45.2",
     "vite-tsconfig-paths": "^5.1.4",

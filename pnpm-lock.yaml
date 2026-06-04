@@ -238,6 +238,9 @@ importers:
       terra-draw:
         specifier: ^1.31.0
         version: 1.31.0
+      terra-draw-maplibre-gl-adapter:
+        specifier: ^1.4.1
+        version: 1.4.1(maplibre-gl@5.24.0)(terra-draw@1.31.0)
       three:
         specifier: ^0.183.2
         version: 0.183.2
@@ -5009,6 +5012,12 @@ packages:
   tapable@2.3.2:
     resolution: {integrity: sha512-1MOpMXuhGzGL5TTCZFItxCc0AARf1EZFQkGqMm7ERKj8+Hgr5oLvJOVFcC+lRmR8hCe2S3jC4T5D7Vg/d7/fhA==}
     engines: {node: '>=6'}
+
+  terra-draw-maplibre-gl-adapter@1.4.1:
+    resolution: {integrity: sha512-qZ/bc9bVPnyt0keLVTofV8xiTPkdkbO6RzqrfNLe9zH/edW5PsjvJw97m1EksPZeXNJtFxsVbhi12cPaoNiWfg==}
+    peerDependencies:
+      maplibre-gl: '>=4'
+      terra-draw: ^1.0.0
 
   terra-draw@1.31.0:
     resolution: {integrity: sha512-4tNhOHL+Oj749Ih2dRvjq8L/JvutBo+tgj8alLs002YiGIgXc57XoiC+zfzRQn/r1+N2BqU18FgC9DQXJiZADw==}
@@ -9820,6 +9829,11 @@ snapshots:
   tailwindcss@4.2.2: {}
 
   tapable@2.3.2: {}
+
+  terra-draw-maplibre-gl-adapter@1.4.1(maplibre-gl@5.24.0)(terra-draw@1.31.0):
+    dependencies:
+      maplibre-gl: 5.24.0
+      terra-draw: 1.31.0
 
   terra-draw@1.31.0: {}
 
