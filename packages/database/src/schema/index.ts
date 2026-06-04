@@ -44,3 +44,8 @@ export type {
 export { webhookSubscriptions } from "./webhooks.ts";
 export type { BatchGeocodeJob, NewBatchGeocodeJob } from "./jobs.ts";
 export { batchGeocodeJobs } from "./jobs.ts";
+export type {
+	NewWebhookDeliveryAttempt,
+	WebhookDeliveryAttempt,
+} from "./webhook-attempts.ts";
+export { webhookDeliveryAttempts } from "./webhook-attempts.ts";
