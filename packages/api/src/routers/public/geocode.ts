@@ -171,23 +171,38 @@ export const batchGeocodeSubmit = baseBuilder
 			.values({
 				projectId,
 				apiKeyId: ctx.validatedApiKey.apiKeyId,
-				status: "processing",
+				status: "pending",
 				inputCount: input.addresses.length,
 			})
 			.returning({ id: batchGeocodeJobs.id });
 
 		if (ctx.env?.BATCH_GEOCODE_QUEUE) {
-			await ctx.env.BATCH_GEOCODE_QUEUE.send({
-				type: "batch-geocode",
-				jobId: job!.id,
-				addresses: input.addresses,
-				projectId,
-			});
+			try {
+				await ctx.env.BATCH_GEOCODE_QUEUE.send({
+					type: "batch-geocode",
+					jobId: job!.id,
+					addresses: input.addresses,
+					projectId,
+				});
+				await context.db
+					.update(batchGeocodeJobs)
+					.set({ status: "processing" })
+					.where(eq(batchGeocodeJobs.id, job!.id));
+			} catch (err) {
+				await context.db
+					.update(batchGeocodeJobs)
+					.set({ status: "failed", error: "Failed to enqueue job." })
+					.where(eq(batchGeocodeJobs.id, job!.id));
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: "Failed to enqueue batch job. Please retry.",
+				});
+			}
 		}
 
+		const finalStatus = ctx.env?.BATCH_GEOCODE_QUEUE ? "processing" : "pending";
 		return {
 			jobId: job!.id,
-			status: "processing",
+			status: finalStatus,
 			inputCount: input.addresses.length,
 		};
 	});

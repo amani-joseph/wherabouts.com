@@ -31,51 +31,63 @@ export async function processBatchGeocodeMessage(
 	// R2Bucket comes from @cloudflare/workers-types; use structural typing here
 	env: { GEOCODE_RESULTS: R2Bucket }
 ): Promise<void> {
-	const results: BatchGeocodeResult[] = [];
+	try {
+		const results: BatchGeocodeResult[] = [];
 
-	for (const address of msg.addresses) {
-		try {
-			const { results: matches } = await autocompleteAddresses(db, address, { limit: 1 });
-			if (matches.length > 0) {
-				const m = matches[0]!;
+		for (const address of msg.addresses) {
+			try {
+				const { results: matches } = await autocompleteAddresses(db, address, { limit: 1 });
+				if (matches.length > 0) {
+					const m = matches[0]!;
+					results.push({
+						input: address,
+						matched: true,
+						address: {
+							id: m.id,
+							formattedAddress: m.formattedAddress,
+							latitude: m.latitude,
+							longitude: m.longitude,
+							country: m.country,
+							state: m.state,
+							locality: m.locality,
+							postcode: m.postcode,
+						},
+					});
+				} else {
+					results.push({ input: address, matched: false });
+				}
+			} catch (err) {
 				results.push({
 					input: address,
-					matched: true,
-					address: {
-						id: m.id,
-						formattedAddress: m.formattedAddress,
-						latitude: m.latitude,
-						longitude: m.longitude,
-						country: m.country,
-						state: m.state,
-						locality: m.locality,
-						postcode: m.postcode,
-					},
+					matched: false,
+					error: err instanceof Error ? err.message : "Unknown error",
 				});
-			} else {
-				results.push({ input: address, matched: false });
 			}
-		} catch (err) {
-			results.push({
-				input: address,
-				matched: false,
-				error: err instanceof Error ? err.message : "Unknown error",
-			});
 		}
+
+		const r2Key = `geocode-jobs/${msg.projectId}/${msg.jobId}.json`;
+		await env.GEOCODE_RESULTS.put(r2Key, JSON.stringify(results), {
+			httpMetadata: { contentType: "application/json" },
+		});
+
+		await db
+			.update(batchGeocodeJobs)
+			.set({
+				status: "completed",
+				processedCount: results.length,
+				resultsR2Key: r2Key,
+				completedAt: new Date(),
+			})
+			.where(eq(batchGeocodeJobs.id, msg.jobId));
+	} catch (err) {
+		await db
+			.update(batchGeocodeJobs)
+			.set({
+				status: "failed",
+				error: err instanceof Error ? err.message : "Unknown error",
+				completedAt: new Date(),
+			})
+			.where(eq(batchGeocodeJobs.id, msg.jobId));
+		throw err; // let CF Queue retry / DLQ
 	}
-
-	const r2Key = `geocode-jobs/${msg.projectId}/${msg.jobId}.json`;
-	await env.GEOCODE_RESULTS.put(r2Key, JSON.stringify(results), {
-		httpMetadata: { contentType: "application/json" },
-	});
-
-	await db
-		.update(batchGeocodeJobs)
-		.set({
-			status: "completed",
-			processedCount: results.length,
-			resultsR2Key: r2Key,
-			completedAt: new Date(),
-		})
-		.where(eq(batchGeocodeJobs.id, msg.jobId));
 }
