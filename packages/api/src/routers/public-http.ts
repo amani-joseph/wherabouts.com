@@ -24,6 +24,11 @@ import {
 	pushDeviceLocation,
 	getDeviceZones,
 } from "./public/devices.ts";
+import {
+	createWebhook,
+	listWebhooks,
+	deleteWebhook,
+} from "./public/webhooks.ts";
 
 // ---------------------------------------------------------------------------
 // Procedures
@@ -291,6 +296,11 @@ export const publicHttpRouter = {
 	devices: {
 		deviceLocation: pushDeviceLocation,
 		deviceZones: getDeviceZones,
+	},
+	webhooks: {
+		webhookCreate: createWebhook,
+		webhookList: listWebhooks,
+		webhookDelete: deleteWebhook,
 	},
 };
 
