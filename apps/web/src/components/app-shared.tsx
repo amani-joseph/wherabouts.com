@@ -6,10 +6,14 @@ import {
 	CreditCardIcon,
 	HelpCircleIcon,
 	KeyRoundIcon,
+	LayersIcon,
 	LayoutGridIcon,
+	MapIcon,
+	NavigationIcon,
 	PlugIcon,
 	SettingsIcon,
 	UsersIcon,
+	WebhookIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -70,6 +74,15 @@ export const navGroups: SidebarNavGroup[] = [
 				path: "/api-docs",
 				icon: <CodeIcon />,
 			},
+		],
+	},
+	{
+		label: "Geocoding",
+		items: [
+			{ title: "Zones", path: "/zones", icon: <MapIcon /> },
+			{ title: "Webhooks", path: "/webhooks", icon: <WebhookIcon /> },
+			{ title: "Batch", path: "/batch", icon: <LayersIcon /> },
+			{ title: "Devices", path: "/devices", icon: <NavigationIcon /> },
 		],
 	},
 	{

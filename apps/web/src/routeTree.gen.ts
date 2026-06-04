@@ -15,13 +15,17 @@ import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RpcSplatRouteImport } from './routes/rpc/$'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ProtectedZonesRouteImport } from './routes/_protected/zones'
+import { Route as ProtectedWebhooksRouteImport } from './routes/_protected/webhooks'
 import { Route as ProtectedTeamRouteImport } from './routes/_protected/team'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
 import { Route as ProtectedProjectsRouteImport } from './routes/_protected/projects'
 import { Route as ProtectedIntegrationsRouteImport } from './routes/_protected/integrations'
 import { Route as ProtectedHelpRouteImport } from './routes/_protected/help'
+import { Route as ProtectedDevicesRouteImport } from './routes/_protected/devices'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
 import { Route as ProtectedBillingRouteImport } from './routes/_protected/billing'
+import { Route as ProtectedBatchRouteImport } from './routes/_protected/batch'
 import { Route as ProtectedApiKeysRouteImport } from './routes/_protected/api-keys'
 import { Route as ProtectedApiDocsRouteImport } from './routes/_protected/api-docs'
 import { Route as ProtectedAnalyticsRouteImport } from './routes/_protected/analytics'
@@ -66,6 +70,16 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedZonesRoute = ProtectedZonesRouteImport.update({
+  id: '/zones',
+  path: '/zones',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedWebhooksRoute = ProtectedWebhooksRouteImport.update({
+  id: '/webhooks',
+  path: '/webhooks',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedTeamRoute = ProtectedTeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -91,6 +105,11 @@ const ProtectedHelpRoute = ProtectedHelpRouteImport.update({
   path: '/help',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedDevicesRoute = ProtectedDevicesRouteImport.update({
+  id: '/devices',
+  path: '/devices',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -99,6 +118,11 @@ const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
 const ProtectedBillingRoute = ProtectedBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedBatchRoute = ProtectedBatchRouteImport.update({
+  id: '/batch',
+  path: '/batch',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedApiKeysRoute = ProtectedApiKeysRouteImport.update({
@@ -181,13 +205,17 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof ProtectedAnalyticsRoute
   '/api-docs': typeof ProtectedApiDocsRoute
   '/api-keys': typeof ProtectedApiKeysRoute
+  '/batch': typeof ProtectedBatchRoute
   '/billing': typeof ProtectedBillingRoute
   '/dashboard': typeof ProtectedDashboardRoute
+  '/devices': typeof ProtectedDevicesRoute
   '/help': typeof ProtectedHelpRoute
   '/integrations': typeof ProtectedIntegrationsRoute
   '/projects': typeof ProtectedProjectsRoute
   '/settings': typeof ProtectedSettingsRoute
   '/team': typeof ProtectedTeamRoute
+  '/webhooks': typeof ProtectedWebhooksRoute
+  '/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
@@ -209,13 +237,17 @@ export interface FileRoutesByTo {
   '/analytics': typeof ProtectedAnalyticsRoute
   '/api-docs': typeof ProtectedApiDocsRoute
   '/api-keys': typeof ProtectedApiKeysRoute
+  '/batch': typeof ProtectedBatchRoute
   '/billing': typeof ProtectedBillingRoute
   '/dashboard': typeof ProtectedDashboardRoute
+  '/devices': typeof ProtectedDevicesRoute
   '/help': typeof ProtectedHelpRoute
   '/integrations': typeof ProtectedIntegrationsRoute
   '/projects': typeof ProtectedProjectsRoute
   '/settings': typeof ProtectedSettingsRoute
   '/team': typeof ProtectedTeamRoute
+  '/webhooks': typeof ProtectedWebhooksRoute
+  '/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
@@ -239,13 +271,17 @@ export interface FileRoutesById {
   '/_protected/analytics': typeof ProtectedAnalyticsRoute
   '/_protected/api-docs': typeof ProtectedApiDocsRoute
   '/_protected/api-keys': typeof ProtectedApiKeysRoute
+  '/_protected/batch': typeof ProtectedBatchRoute
   '/_protected/billing': typeof ProtectedBillingRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
+  '/_protected/devices': typeof ProtectedDevicesRoute
   '/_protected/help': typeof ProtectedHelpRoute
   '/_protected/integrations': typeof ProtectedIntegrationsRoute
   '/_protected/projects': typeof ProtectedProjectsRoute
   '/_protected/settings': typeof ProtectedSettingsRoute
   '/_protected/team': typeof ProtectedTeamRoute
+  '/_protected/webhooks': typeof ProtectedWebhooksRoute
+  '/_protected/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
@@ -269,13 +305,17 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/api-docs'
     | '/api-keys'
+    | '/batch'
     | '/billing'
     | '/dashboard'
+    | '/devices'
     | '/help'
     | '/integrations'
     | '/projects'
     | '/settings'
     | '/team'
+    | '/webhooks'
+    | '/zones'
     | '/api/health'
     | '/rpc/$'
     | '/api/auth/get-session'
@@ -297,13 +337,17 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/api-docs'
     | '/api-keys'
+    | '/batch'
     | '/billing'
     | '/dashboard'
+    | '/devices'
     | '/help'
     | '/integrations'
     | '/projects'
     | '/settings'
     | '/team'
+    | '/webhooks'
+    | '/zones'
     | '/api/health'
     | '/rpc/$'
     | '/api/auth/get-session'
@@ -326,13 +370,17 @@ export interface FileRouteTypes {
     | '/_protected/analytics'
     | '/_protected/api-docs'
     | '/_protected/api-keys'
+    | '/_protected/batch'
     | '/_protected/billing'
     | '/_protected/dashboard'
+    | '/_protected/devices'
     | '/_protected/help'
     | '/_protected/integrations'
     | '/_protected/projects'
     | '/_protected/settings'
     | '/_protected/team'
+    | '/_protected/webhooks'
+    | '/_protected/zones'
     | '/api/health'
     | '/rpc/$'
     | '/api/auth/get-session'
@@ -410,6 +458,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/zones': {
+      id: '/_protected/zones'
+      path: '/zones'
+      fullPath: '/zones'
+      preLoaderRoute: typeof ProtectedZonesRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/webhooks': {
+      id: '/_protected/webhooks'
+      path: '/webhooks'
+      fullPath: '/webhooks'
+      preLoaderRoute: typeof ProtectedWebhooksRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/team': {
       id: '/_protected/team'
       path: '/team'
@@ -445,6 +507,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedHelpRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/devices': {
+      id: '/_protected/devices'
+      path: '/devices'
+      fullPath: '/devices'
+      preLoaderRoute: typeof ProtectedDevicesRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/dashboard': {
       id: '/_protected/dashboard'
       path: '/dashboard'
@@ -457,6 +526,13 @@ declare module '@tanstack/react-router' {
       path: '/billing'
       fullPath: '/billing'
       preLoaderRoute: typeof ProtectedBillingRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/batch': {
+      id: '/_protected/batch'
+      path: '/batch'
+      fullPath: '/batch'
+      preLoaderRoute: typeof ProtectedBatchRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/api-keys': {
@@ -564,26 +640,34 @@ interface ProtectedRouteChildren {
   ProtectedAnalyticsRoute: typeof ProtectedAnalyticsRoute
   ProtectedApiDocsRoute: typeof ProtectedApiDocsRoute
   ProtectedApiKeysRoute: typeof ProtectedApiKeysRoute
+  ProtectedBatchRoute: typeof ProtectedBatchRoute
   ProtectedBillingRoute: typeof ProtectedBillingRoute
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
+  ProtectedDevicesRoute: typeof ProtectedDevicesRoute
   ProtectedHelpRoute: typeof ProtectedHelpRoute
   ProtectedIntegrationsRoute: typeof ProtectedIntegrationsRoute
   ProtectedProjectsRoute: typeof ProtectedProjectsRoute
   ProtectedSettingsRoute: typeof ProtectedSettingsRoute
   ProtectedTeamRoute: typeof ProtectedTeamRoute
+  ProtectedWebhooksRoute: typeof ProtectedWebhooksRoute
+  ProtectedZonesRoute: typeof ProtectedZonesRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedAnalyticsRoute: ProtectedAnalyticsRoute,
   ProtectedApiDocsRoute: ProtectedApiDocsRoute,
   ProtectedApiKeysRoute: ProtectedApiKeysRoute,
+  ProtectedBatchRoute: ProtectedBatchRoute,
   ProtectedBillingRoute: ProtectedBillingRoute,
   ProtectedDashboardRoute: ProtectedDashboardRoute,
+  ProtectedDevicesRoute: ProtectedDevicesRoute,
   ProtectedHelpRoute: ProtectedHelpRoute,
   ProtectedIntegrationsRoute: ProtectedIntegrationsRoute,
   ProtectedProjectsRoute: ProtectedProjectsRoute,
   ProtectedSettingsRoute: ProtectedSettingsRoute,
   ProtectedTeamRoute: ProtectedTeamRoute,
+  ProtectedWebhooksRoute: ProtectedWebhooksRoute,
+  ProtectedZonesRoute: ProtectedZonesRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
