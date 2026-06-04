@@ -5,6 +5,15 @@ import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { o as baseBuilder } from "../builder.ts";
 import { apiKeyAuth, usageMiddleware } from "./public-middleware.ts";
+import {
+	zoneCreate,
+	zoneList,
+	zoneGet,
+	zoneUpdate,
+	zoneDelete,
+	zoneContains,
+	zoneAddresses,
+} from "./public/zones.ts";
 
 // ---------------------------------------------------------------------------
 // Procedures
@@ -255,6 +264,15 @@ export const publicHttpRouter = {
 		nearby,
 		reverse,
 		byId,
+	},
+	zones: {
+		zoneCreate,
+		zoneList,
+		zoneGet,
+		zoneUpdate,
+		zoneDelete,
+		zoneContains,
+		zoneAddresses,
 	},
 };
 
