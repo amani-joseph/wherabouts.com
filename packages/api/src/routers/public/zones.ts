@@ -161,29 +161,34 @@ export const zoneUpdate = baseBuilder
 		const ctx = context as typeof context & AuthContext;
 		const projectId = requireProjectId(ctx.validatedApiKey.projectId);
 
+		// 1. Ownership pre-check FIRST (preserves NOT_FOUND precedence)
+		const existing = await getZoneWithGeometry(context.db, projectId, input.id);
+		if (!existing) {
+			throw new ORPCError("NOT_FOUND", { message: "Zone not found." });
+		}
+
+		// 2. Geometry validation (only after ownership confirmed)
 		if (input.geometry && !(await isValidPolygon(context.db, input.geometry))) {
 			throw new ORPCError("UNPROCESSABLE_CONTENT", {
 				message: "Provided geometry is not a valid polygon.",
 			});
 		}
 
-		const updated = await updateZoneRow(context.db, projectId, input.id, {
+		// 3. Update
+		await updateZoneRow(context.db, projectId, input.id, {
 			name: input.name,
 			description: input.description,
 			geometry: input.geometry,
 			metadata: input.metadata,
 		});
 
+		// 4. Return the 7-field row (no geometry) — fetch fresh and strip geometry
+		const updated = await getZoneWithGeometry(context.db, projectId, input.id);
 		if (!updated) {
 			throw new ORPCError("NOT_FOUND", { message: "Zone not found." });
 		}
-
-		const zone = await getZoneWithGeometry(context.db, projectId, input.id);
-		if (!zone) {
-			throw new ORPCError("NOT_FOUND", { message: "Zone not found." });
-		}
-
-		return zone;
+		const { geometry: _geometry, ...row } = updated;
+		return row;
 	});
 
 export const zoneDelete = baseBuilder
