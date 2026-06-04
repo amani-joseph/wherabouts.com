@@ -1,3 +1,5 @@
+// Requires the Cloudflare Worker `nodejs_compat` flag (set in apps/server/wrangler.jsonc)
+// since it uses node:crypto. Also runs under Node directly in vitest.
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
 const ALGORITHM = "aes-256-gcm" as const;
