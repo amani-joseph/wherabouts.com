@@ -49,7 +49,9 @@ function RouteComponent() {
 	useEffect(() => {
 		orpcClient.projects
 			.list({})
-			.then((res) => setProjects(res.projects))
+			.then((rows) =>
+				setProjects(rows.map((r) => ({ id: r.id, name: r.name })))
+			)
 			.catch(() => {
 				toast.error("Failed to load projects.");
 			});
