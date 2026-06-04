@@ -1,5 +1,5 @@
 import type { Database } from "@wherabouts.com/database";
-import { type Zone, zones } from "@wherabouts.com/database/schema";
+import { type Zone, addresses, zones } from "@wherabouts.com/database/schema";
 import { and, eq, sql } from "drizzle-orm";
 import type { GeoJsonPolygon } from "../routers/public/zones-schema.ts";
 
@@ -120,4 +120,155 @@ export async function deleteZoneRow(
 		.where(and(eq(zones.id, zoneId), eq(zones.projectId, projectId)))
 		.returning({ id: zones.id });
 	return deleted.length > 0;
+}
+
+export const ADDRESSES_IN_ZONE_HARD_CAP = 10_000;
+
+export interface ZoneWithGeometryRow {
+	id: number;
+	projectId: string;
+	name: string;
+	description: string | null;
+	metadata: Record<string, unknown> | null;
+	geometry: GeoJsonPolygon;
+	createdAt: string;
+	updatedAt: string;
+}
+
+/** All zones for a project, geometry included as GeoJSON (for map rendering). */
+export async function listZonesWithGeometry(
+	db: Database,
+	projectId: string
+): Promise<ZoneWithGeometryRow[]> {
+	const result = await db.execute(sql`
+		SELECT id, project_id AS "projectId", name, description, metadata,
+		       ST_AsGeoJSON(geom)::json AS geometry,
+		       created_at AS "createdAt", updated_at AS "updatedAt"
+		FROM zones
+		WHERE project_id = ${projectId}
+		ORDER BY created_at DESC
+	`);
+	return result.rows as unknown as ZoneWithGeometryRow[];
+}
+
+/** One zone with geometry, scoped to the project. Null if not found. */
+export async function getZoneWithGeometry(
+	db: Database,
+	projectId: string,
+	zoneId: number
+): Promise<ZoneWithGeometryRow | null> {
+	const result = await db.execute(sql`
+		SELECT id, project_id AS "projectId", name, description, metadata,
+		       ST_AsGeoJSON(geom)::json AS geometry,
+		       created_at AS "createdAt", updated_at AS "updatedAt"
+		FROM zones
+		WHERE id = ${zoneId} AND project_id = ${projectId}
+		LIMIT 1
+	`);
+	return (result.rows[0] as unknown as ZoneWithGeometryRow) ?? null;
+}
+
+/** Update mutable fields of a zone. Returns false if the zone isn't owned. */
+export async function updateZoneRow(
+	db: Database,
+	projectId: string,
+	zoneId: number,
+	patch: {
+		name?: string;
+		description?: string;
+		geometry?: GeoJsonPolygon;
+		metadata?: Record<string, unknown>;
+	}
+): Promise<boolean> {
+	const sets: ReturnType<typeof sql>[] = [];
+	if (patch.name !== undefined) {
+		sets.push(sql`name = ${patch.name}`);
+	}
+	if (patch.description !== undefined) {
+		sets.push(sql`description = ${patch.description}`);
+	}
+	if (patch.metadata !== undefined) {
+		sets.push(sql`metadata = ${JSON.stringify(patch.metadata)}::jsonb`);
+	}
+	if (patch.geometry !== undefined) {
+		sets.push(
+			sql`geom = ST_GeomFromGeoJSON(${JSON.stringify(patch.geometry)})`
+		);
+	}
+	sets.push(sql`updated_at = now()`);
+
+	const result = await db.execute(sql`
+		UPDATE zones SET ${sql.join(sets, sql`, `)}
+		WHERE id = ${zoneId} AND project_id = ${projectId}
+		RETURNING id
+	`);
+	return result.rows.length > 0;
+}
+
+export interface ZoneAddressRow {
+	id: number;
+	country: string;
+	state: string;
+	locality: string;
+	postcode: string;
+	streetName: string;
+	streetType: string | null;
+	numberFirst: string | null;
+	numberLast: string | null;
+	buildingName: string | null;
+	flatType: string | null;
+	flatNumber: string | null;
+	longitude: number;
+	latitude: number;
+}
+
+export interface ZoneAddressesResult {
+	results: ZoneAddressRow[];
+	count: number;
+	truncated: boolean;
+}
+
+/**
+ * Addresses within a zone (ST_Within), paginated, capped at
+ * ADDRESSES_IN_ZONE_HARD_CAP total. Assumes the caller already verified
+ * the zone belongs to the project.
+ */
+export async function addressesInZone(
+	db: Database,
+	projectId: string,
+	zoneId: number,
+	page: number,
+	limit: number
+): Promise<ZoneAddressesResult> {
+	const offset = (page - 1) * limit;
+	if (offset >= ADDRESSES_IN_ZONE_HARD_CAP) {
+		return { results: [], count: 0, truncated: true };
+	}
+	const effectiveLimit = Math.min(limit, ADDRESSES_IN_ZONE_HARD_CAP - offset);
+
+	const rows = await db
+		.select({
+			id: addresses.id,
+			country: addresses.country,
+			state: addresses.state,
+			locality: addresses.locality,
+			postcode: addresses.postcode,
+			streetName: addresses.streetName,
+			streetType: addresses.streetType,
+			numberFirst: addresses.numberFirst,
+			numberLast: addresses.numberLast,
+			buildingName: addresses.buildingName,
+			flatType: addresses.flatType,
+			flatNumber: addresses.flatNumber,
+			longitude: addresses.longitude,
+			latitude: addresses.latitude,
+		})
+		.from(addresses)
+		.innerJoin(zones, sql`ST_Within(${addresses.geom}, ${zones.geom})`)
+		.where(and(eq(zones.id, zoneId), eq(zones.projectId, projectId)))
+		.limit(effectiveLimit)
+		.offset(offset);
+
+	const truncated = offset + rows.length >= ADDRESSES_IN_ZONE_HARD_CAP;
+	return { results: rows as ZoneAddressRow[], count: rows.length, truncated };
 }

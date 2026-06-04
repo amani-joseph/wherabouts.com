@@ -1,14 +1,17 @@
 import { ORPCError } from "@orpc/server";
-import { addresses, zones } from "@wherabouts.com/database/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { zones } from "@wherabouts.com/database/schema";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { o as baseBuilder } from "../../builder.ts";
 import {
+	addressesInZone,
 	countZones,
 	deleteZoneRow,
+	getZoneWithGeometry,
 	insertZone,
 	isValidPolygon,
 	listZoneRows,
+	updateZoneRow,
 	ZONE_LIMIT,
 	zonesContainingPoint,
 } from "../../shared/zone-queries.ts";
@@ -129,35 +132,11 @@ export const zoneGet = baseBuilder
 	.handler(async ({ input, context }) => {
 		const ctx = context as typeof context & AuthContext;
 		const projectId = requireProjectId(ctx.validatedApiKey.projectId);
-
-		const rows = await context.db.execute(
-			sql`SELECT id,
-			           project_id AS "projectId",
-			           name,
-			           description,
-			           metadata,
-			           ST_AsGeoJSON(geom)::json AS geometry,
-			           created_at AS "createdAt",
-			           updated_at AS "updatedAt"
-			    FROM zones
-			    WHERE id = ${input.id} AND project_id = ${projectId}
-			    LIMIT 1`
-		);
-
-		if (rows.rows.length === 0) {
+		const zone = await getZoneWithGeometry(context.db, projectId, input.id);
+		if (!zone) {
 			throw new ORPCError("NOT_FOUND", { message: "Zone not found." });
 		}
-
-		return rows.rows[0] as {
-			id: number;
-			projectId: string;
-			name: string;
-			description: string | null;
-			metadata: Record<string, unknown> | null;
-			geometry: GeoJsonPolygon;
-			createdAt: string;
-			updatedAt: string;
-		};
+		return zone;
 	});
 
 export const zoneUpdate = baseBuilder
@@ -182,91 +161,29 @@ export const zoneUpdate = baseBuilder
 		const ctx = context as typeof context & AuthContext;
 		const projectId = requireProjectId(ctx.validatedApiKey.projectId);
 
-		// Verify ownership
-		const existing = await context.db
-			.select({ id: zones.id })
-			.from(zones)
-			.where(and(eq(zones.id, input.id), eq(zones.projectId, projectId)))
-			.limit(1);
-
-		if (existing.length === 0) {
-			throw new ORPCError("NOT_FOUND", { message: "Zone not found." });
-		}
-
-		if (input.geometry) {
-			const geomJson = JSON.stringify(input.geometry);
-
-			// Validate new geometry
-			const validResult = await context.db.execute(
-				sql`SELECT ST_IsValid(ST_GeomFromGeoJSON(${geomJson})) AS valid`
-			);
-			const isValid = (
-				validResult.rows[0] as { valid: boolean } | undefined
-			)?.valid;
-			if (!isValid) {
-				throw new ORPCError("UNPROCESSABLE_CONTENT", {
-					message: "Provided geometry is not a valid polygon.",
-				});
-			}
-
-			// Use raw SQL update to handle geometry column
-			const updated = await context.db.execute(
-				sql`UPDATE zones SET
-					name = COALESCE(${input.name ?? null}::varchar, name),
-					description = CASE WHEN ${input.description !== undefined}::boolean THEN ${input.description ?? null}::text ELSE description END,
-					geom = ST_GeomFromGeoJSON(${geomJson}),
-					metadata = CASE WHEN ${input.metadata !== undefined}::boolean THEN ${input.metadata !== undefined ? JSON.stringify(input.metadata) : null}::jsonb ELSE metadata END,
-					updated_at = NOW()
-				WHERE id = ${input.id} AND project_id = ${projectId}
-				RETURNING id,
-				          project_id AS "projectId",
-				          name,
-				          description,
-				          metadata,
-				          created_at AS "createdAt",
-				          updated_at AS "updatedAt"`
-			);
-			const row = updated.rows[0];
-			if (!row) {
-				throw new ORPCError("NOT_FOUND", { message: "Zone not found." });
-			}
-			return row as {
-				id: number;
-				projectId: string;
-				name: string;
-				description: string | null;
-				metadata: Record<string, unknown> | null;
-				createdAt: string;
-				updatedAt: string;
-			};
-		}
-
-		const updateSet: Record<string, unknown> = { updatedAt: new Date() };
-		if (input.name !== undefined) updateSet.name = input.name;
-		if (input.description !== undefined)
-			updateSet.description = input.description;
-		if (input.metadata !== undefined) updateSet.metadata = input.metadata;
-
-		const updated = await context.db
-			.update(zones)
-			.set(updateSet)
-			.where(and(eq(zones.id, input.id), eq(zones.projectId, projectId)))
-			.returning({
-				id: zones.id,
-				projectId: zones.projectId,
-				name: zones.name,
-				description: zones.description,
-				metadata: zones.metadata,
-				createdAt: zones.createdAt,
-				updatedAt: zones.updatedAt,
+		if (input.geometry && !(await isValidPolygon(context.db, input.geometry))) {
+			throw new ORPCError("UNPROCESSABLE_CONTENT", {
+				message: "Provided geometry is not a valid polygon.",
 			});
+		}
 
-		const row = updated[0];
-		if (!row) {
+		const updated = await updateZoneRow(context.db, projectId, input.id, {
+			name: input.name,
+			description: input.description,
+			geometry: input.geometry,
+			metadata: input.metadata,
+		});
+
+		if (!updated) {
 			throw new ORPCError("NOT_FOUND", { message: "Zone not found." });
 		}
 
-		return row;
+		const zone = await getZoneWithGeometry(context.db, projectId, input.id);
+		if (!zone) {
+			throw new ORPCError("NOT_FOUND", { message: "Zone not found." });
+		}
+
+		return zone;
 	});
 
 export const zoneDelete = baseBuilder
@@ -348,51 +265,6 @@ export const zoneAddresses = baseBuilder
 			throw new ORPCError("NOT_FOUND", { message: "Zone not found." });
 		}
 
-		const HARD_CAP = 10_000;
-		const offset = (page - 1) * limit;
-
-		// If paging beyond cap, return empty with truncated flag
-		if (offset >= HARD_CAP) {
-			return {
-				results: [],
-				count: 0,
-				truncated: true,
-				query: { id, page, limit },
-			};
-		}
-
-		// Clamp so we never return beyond the hard cap
-		const effectiveLimit = Math.min(limit, HARD_CAP - offset);
-
-		const rows = await context.db
-			.select({
-				id: addresses.id,
-				country: addresses.country,
-				state: addresses.state,
-				locality: addresses.locality,
-				postcode: addresses.postcode,
-				streetName: addresses.streetName,
-				streetType: addresses.streetType,
-				numberFirst: addresses.numberFirst,
-				numberLast: addresses.numberLast,
-				buildingName: addresses.buildingName,
-				flatType: addresses.flatType,
-				flatNumber: addresses.flatNumber,
-				longitude: addresses.longitude,
-				latitude: addresses.latitude,
-			})
-			.from(addresses)
-			.innerJoin(zones, sql`ST_Within(${addresses.geom}, ${zones.geom})`)
-			.where(and(eq(zones.id, id), eq(zones.projectId, projectId)))
-			.limit(effectiveLimit)
-			.offset(offset);
-
-		const truncated = offset + rows.length >= HARD_CAP;
-
-		return {
-			results: rows,
-			count: rows.length,
-			truncated,
-			query: { id, page, limit },
-		};
+		const out = await addressesInZone(context.db, projectId, id, page, limit);
+		return { ...out, query: { id, page, limit } };
 	});
