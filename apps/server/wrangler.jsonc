@@ -26,5 +26,18 @@
 			"invocation_logs": true,
 			"head_sampling_rate": 1
 		}
-	}
+	},
+	"queues": {
+		"producers": [
+			{ "queue": "wherabouts-batch-geocode", "binding": "BATCH_GEOCODE_QUEUE" },
+			{ "queue": "wherabouts-webhook-delivery", "binding": "WEBHOOK_DELIVERY_QUEUE" }
+		],
+		"consumers": [
+			{ "queue": "wherabouts-batch-geocode", "max_batch_size": 10 },
+			{ "queue": "wherabouts-webhook-delivery", "max_batch_size": 5 }
+		]
+	},
+	"r2_buckets": [
+		{ "binding": "GEOCODE_RESULTS", "bucket_name": "wherabouts-geocode-results" }
+	]
 }

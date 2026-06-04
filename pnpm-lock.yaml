@@ -84,9 +84,15 @@ importers:
       '@wherabouts.com/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@wherabouts.com/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@wherabouts.com/env':
         specifier: workspace:*
         version: link:../../packages/env
+      drizzle-orm:
+        specifier: ^0.44.0
+        version: 0.44.7(@cloudflare/workers-types@4.20260416.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16)
       hono:
         specifier: ^4.10.4
         version: 4.12.12

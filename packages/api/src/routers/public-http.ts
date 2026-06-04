@@ -5,7 +5,12 @@ import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { o as baseBuilder } from "../builder.ts";
 import { apiKeyAuth, usageMiddleware } from "./public-middleware.ts";
-import { forwardGeocode } from "./public/geocode.ts";
+import {
+	batchGeocodeResults,
+	batchGeocodePoll,
+	batchGeocodeSubmit,
+	forwardGeocode,
+} from "./public/geocode.ts";
 import {
 	zoneCreate,
 	zoneList,
@@ -267,6 +272,9 @@ export const publicHttpRouter = {
 		byId,
 	},
 	geocode: forwardGeocode,
+	batchGeocodeSubmit,
+	batchGeocodePoll,
+	batchGeocodeResults,
 	zones: {
 		zoneCreate,
 		zoneList,

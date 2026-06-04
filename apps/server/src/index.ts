@@ -1,4 +1,8 @@
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
+import {
+	processBatchGeocodeMessage,
+	type BatchGeocodeMessage,
+} from "./queues/batch-geocode.ts";
 import { ORPCError, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import {
@@ -238,4 +242,22 @@ app.get("/", (context) =>
 
 export default {
 	fetch: app.fetch,
+	async queue(
+		batch: {
+			messages: Array<{ body: { type: string }; ack(): void }>;
+		},
+		env: { GEOCODE_RESULTS: R2Bucket; WEBHOOK_DELIVERY_QUEUE: Queue }
+	): Promise<void> {
+		for (const msg of batch.messages) {
+			if (msg.body.type === "batch-geocode") {
+				await processBatchGeocodeMessage(
+					msg.body as BatchGeocodeMessage,
+					env
+				);
+				msg.ack();
+			} else {
+				msg.ack();
+			}
+		}
+	},
 };
