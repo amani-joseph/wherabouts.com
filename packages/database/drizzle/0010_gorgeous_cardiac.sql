@@ -44,8 +44,6 @@ CREATE TABLE "zones" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "addresses" ALTER COLUMN "longitude" SET DATA TYPE double precision;--> statement-breakpoint
-ALTER TABLE "addresses" ALTER COLUMN "latitude" SET DATA TYPE double precision;--> statement-breakpoint
 ALTER TABLE "batch_geocode_jobs" ADD CONSTRAINT "batch_geocode_jobs_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "batch_geocode_jobs" ADD CONSTRAINT "batch_geocode_jobs_api_key_id_api_keys_id_fk" FOREIGN KEY ("api_key_id") REFERENCES "public"."api_keys"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "device_zone_state" ADD CONSTRAINT "device_zone_state_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

@@ -1,9 +1,9 @@
 import {
 	customType,
-	doublePrecision,
 	index,
 	integer,
 	pgTable,
+	real,
 	text,
 	varchar,
 } from "drizzle-orm/pg-core";
@@ -32,8 +32,8 @@ export const addresses = pgTable(
 		levelNumber: varchar("level_number", { length: 10 }),
 		numberFirst: varchar("number_first", { length: 15 }),
 		numberLast: varchar("number_last", { length: 15 }),
-		longitude: doublePrecision().notNull(),
-		latitude: doublePrecision().notNull(),
+		longitude: real().notNull(),
+		latitude: real().notNull(),
 		confidence: integer(),
 		gnafPid: varchar("gnaf_pid", { length: 30 }),
 		searchText: text("search_text"),
