@@ -36,3 +36,4 @@ export const batchGeocodeJobs = pgTable(
 );
 
 export type BatchGeocodeJob = typeof batchGeocodeJobs.$inferSelect;
+export type NewBatchGeocodeJob = typeof batchGeocodeJobs.$inferInsert;
