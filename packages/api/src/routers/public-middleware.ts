@@ -14,6 +14,8 @@ import {
 } from "../api-key-auth.ts";
 import { o as baseBuilder } from "../builder.ts";
 
+export type { ValidatedApiKey } from "../api-key-auth.ts";
+
 // ---------------------------------------------------------------------------
 // API-key auth middleware
 // ---------------------------------------------------------------------------
