@@ -254,7 +254,20 @@ app.use("/*", async (context, next) => {
 	) => Promise<Response> = async (url, init) =>
 		app.request(url instanceof URL ? url.toString() : url, init);
 
-	const rpcContext = await createContext({ localFetch, req: context.req });
+	// Thread Cloudflare env bindings (queue, R2) into the RPC context so
+	// dashboard handlers can enqueue batch jobs and read results.
+	const cfEnv = context.env as
+		| {
+				BATCH_GEOCODE_QUEUE?: unknown;
+				GEOCODE_RESULTS?: unknown;
+		  }
+		| undefined;
+
+	const rpcContext = await createContext({
+		env: cfEnv,
+		localFetch,
+		req: context.req,
+	});
 	const rpcResult = await rpcHandler.handle(context.req.raw, {
 		prefix: "/rpc",
 		context: rpcContext,

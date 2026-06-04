@@ -18,12 +18,26 @@ export type LocalFetch = (
 	init?: RequestInit
 ) => Promise<Response>;
 
+/**
+ * Cloudflare Worker environment bindings passed through to oRPC context.
+ * Typed loosely here to avoid a hard dependency on @cloudflare/workers-types
+ * in this package.
+ */
+export interface CloudflareEnv {
+	// biome-ignore lint/suspicious/noExplicitAny: CF binding types not in this package
+	BATCH_GEOCODE_QUEUE?: any;
+	// biome-ignore lint/suspicious/noExplicitAny: CF binding types not in this package
+	GEOCODE_RESULTS?: any;
+}
+
 export interface CreateContextOptions {
+	env?: CloudflareEnv;
 	localFetch?: LocalFetch;
 	req: HonoRequest;
 }
 
 export const createContext = async ({
+	env,
 	localFetch,
 	req,
 }: CreateContextOptions) => {
@@ -33,6 +47,7 @@ export const createContext = async ({
 
 	return {
 		db,
+		env,
 		localFetch,
 		req,
 		session,
