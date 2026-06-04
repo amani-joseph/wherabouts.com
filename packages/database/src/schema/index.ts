@@ -35,3 +35,12 @@ export type {
 	TeamMember,
 } from "./teams.ts";
 export { teamInvitations, teamMembers, teams } from "./teams.ts";
+export type { DeviceZoneState, NewZone, Zone } from "./zones.ts";
+export { deviceZoneState, zones } from "./zones.ts";
+export type {
+	NewWebhookSubscription,
+	WebhookSubscription,
+} from "./webhooks.ts";
+export { webhookSubscriptions } from "./webhooks.ts";
+export type { BatchGeocodeJob } from "./jobs.ts";
+export { batchGeocodeJobs } from "./jobs.ts";
