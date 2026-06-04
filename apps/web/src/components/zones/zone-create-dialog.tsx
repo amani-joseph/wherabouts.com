@@ -9,7 +9,7 @@ import {
 } from "@wherabouts.com/ui/components/dialog";
 import { Input } from "@wherabouts.com/ui/components/input";
 import { Label } from "@wherabouts.com/ui/components/label";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export interface ZoneCreateDialogProps {
 	open: boolean;
@@ -21,6 +21,13 @@ export interface ZoneCreateDialogProps {
 export function ZoneCreateDialog({ open, saving, onCancel, onSubmit }: ZoneCreateDialogProps) {
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
+
+	useEffect(() => {
+		if (!open) {
+			setName("");
+			setDescription("");
+		}
+	}, [open]);
 
 	return (
 		<Dialog onOpenChange={(o) => !o && onCancel()} open={open}>

@@ -88,8 +88,8 @@ function RouteComponent() {
 			await orpcClient.zones.delete({ projectId: activeId, id });
 			toast.success("Zone deleted.");
 			await refreshZones(activeId);
-		} catch {
-			toast.error("Failed to delete zone.");
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Failed to delete zone.");
 		}
 	};
 
