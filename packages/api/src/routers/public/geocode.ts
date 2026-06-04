@@ -10,48 +10,54 @@ import { apiKeyAuth, usageMiddleware } from "../public-middleware.ts";
 
 export function buildGeocodeQuery(
 	input:
-		| { structured: false; q: string }
+		| { structured: "false"; q: string }
 		| {
-				structured: true;
+				structured: "true";
 				street: string;
 				locality: string;
 				state?: string;
-				postcode?: string;
-				country?: string;
 		  }
 ): string {
-	if (!input.structured) {
+	if (input.structured !== "true") {
 		return input.q;
 	}
-	return [input.street, input.locality, input.state]
-		.filter(Boolean)
-		.join(", ");
+	return [input.street, input.locality, input.state].filter(Boolean).join(", ");
 }
 
 // ---------------------------------------------------------------------------
-// Input schema
+// Input schema — uses string literals since GET query params are always strings.
+// Preprocess adds structured:"false" when the param is absent so callers can
+// use plain ?q=... without explicitly passing structured=false.
 // ---------------------------------------------------------------------------
 
-const unstructuredInput = z.object({
-	structured: z.literal(false),
-	q: z.string().min(5, "Query parameter 'q' must be at least 5 characters."),
-	country: z.string().optional(),
-	state: z.string().optional(),
-});
-
-const structuredInput = z.object({
-	structured: z.literal(true),
-	street: z.string().min(1, "Parameter 'street' is required in structured mode."),
-	locality: z.string().min(1, "Parameter 'locality' is required in structured mode."),
-	state: z.string().optional(),
-	postcode: z.string().optional(),
-	country: z.string().optional(),
-});
-
-const geocodeInput = z.discriminatedUnion("structured", [
-	structuredInput,
-	unstructuredInput,
-]);
+const geocodeInput = z.preprocess(
+	(data: unknown) => {
+		if (
+			typeof data === "object" &&
+			data !== null &&
+			!("structured" in (data as Record<string, unknown>))
+		) {
+			return { ...(data as Record<string, unknown>), structured: "false" };
+		}
+		return data;
+	},
+	z.discriminatedUnion("structured", [
+		z.object({
+			structured: z.literal("true"),
+			street: z.string().min(1, "Parameter 'street' is required in structured mode."),
+			locality: z.string().min(1, "Parameter 'locality' is required in structured mode."),
+			state: z.string().optional(),
+			postcode: z.string().optional(),
+			country: z.string().optional(),
+		}),
+		z.object({
+			structured: z.literal("false"),
+			q: z.string().min(5, "Query parameter 'q' must be at least 5 characters."),
+			country: z.string().optional(),
+			state: z.string().optional(),
+		}),
+	])
+);
 
 // ---------------------------------------------------------------------------
 // Handler
@@ -68,7 +74,7 @@ export const forwardGeocode = baseBuilder
 	})
 	.input(geocodeInput)
 	.handler(async ({ input, context }) => {
-		const isStructured = input.structured === true;
+		const isStructured = input.structured === "true";
 
 		// Build the query string
 		let query: string;
@@ -77,17 +83,15 @@ export const forwardGeocode = baseBuilder
 
 		if (isStructured) {
 			query = buildGeocodeQuery({
-				structured: true,
+				structured: "true",
 				street: input.street,
 				locality: input.locality,
 				state: input.state,
-				postcode: input.postcode,
-				country: input.country,
 			});
 			country = input.country;
 			state = input.state;
 		} else {
-			query = buildGeocodeQuery({ structured: false, q: input.q });
+			query = buildGeocodeQuery({ structured: "false", q: input.q });
 			country = input.country;
 			state = input.state;
 		}
