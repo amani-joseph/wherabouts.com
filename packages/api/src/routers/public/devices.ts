@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { deviceZoneState, zones } from "@wherabouts.com/database/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { o as baseBuilder } from "../../builder.ts";
 import {
@@ -61,9 +61,9 @@ export const pushDeviceLocation = baseBuilder
 
 		const point = sql`ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)`;
 
-		// Current containing zones
+		// Current containing zones (needed outside transaction — reads zones table)
 		const containingZones = await context.db
-			.select({ id: zones.id, name: zones.name })
+			.select({ id: zones.id })
 			.from(zones)
 			.where(
 				and(
@@ -73,65 +73,87 @@ export const pushDeviceLocation = baseBuilder
 			);
 
 		const currentZoneIds = containingZones.map((z) => z.id);
-		const zoneNames: Record<number, string> = Object.fromEntries(
-			containingZones.map((z) => [z.id, z.name])
-		);
 
-		// Previous state
-		const [prevState] = await context.db
-			.select({ zoneIds: deviceZoneState.zoneIds })
-			.from(deviceZoneState)
-			.where(
-				and(
-					eq(deviceZoneState.projectId, projectId),
-					eq(deviceZoneState.deviceId, deviceId)
-				)
-			)
-			.limit(1);
+		// Atomic read + upsert of device_zone_state with row-level locking
+		// to prevent TOCTOU races on concurrent pushes for the same device.
+		const { crossings } = await context.db.transaction(
+			async (tx) => {
+				// Lock the row (or no-op if it doesn't exist yet)
+				const lockResult = await tx.execute(sql`
+					SELECT zone_ids FROM device_zone_state
+					WHERE project_id = ${projectId} AND device_id = ${deviceId}
+					FOR UPDATE
+				`);
+				const prevZoneIds: number[] =
+					(lockResult.rows[0]?.zone_ids as number[] | undefined) ?? [];
 
-		const previousZoneIds = prevState?.zoneIds ?? [];
-		const crossings = computeBoundaryCrossings(
-			previousZoneIds,
-			currentZoneIds,
-			zoneNames
-		);
+				// Build zone names for UNION of previous + current ids
+				// so exit crossings get real names, not "".
+				const allZoneIds = Array.from(
+					new Set([...prevZoneIds, ...currentZoneIds])
+				);
+				const zoneNames: Record<number, string> = {};
+				if (allZoneIds.length > 0) {
+					const named = await context.db
+						.select({ id: zones.id, name: zones.name })
+						.from(zones)
+						.where(
+							and(eq(zones.projectId, projectId), inArray(zones.id, allZoneIds))
+						);
+					for (const z of named) {
+						zoneNames[z.id] = z.name;
+					}
+				}
 
-		// Upsert device state — use parameterized ARRAY constructor to safely
-		// handle both empty and non-empty arrays without sql.raw injection risk.
-		const zoneIdsArray =
-			currentZoneIds.length > 0
-				? sql`ARRAY[${sql.join(
-						currentZoneIds.map((id) => sql`${id}`),
-						sql`, `
-					)}]::integer[]`
-				: sql`ARRAY[]::integer[]`;
+				const txCrossings = computeBoundaryCrossings(
+					prevZoneIds,
+					currentZoneIds,
+					zoneNames
+				);
 
-		await context.db.execute(sql`
-			INSERT INTO device_zone_state (project_id, device_id, zone_ids, latitude, longitude, updated_at)
-			VALUES (${projectId}, ${deviceId}, ${zoneIdsArray}, ${lat}, ${lng}, now())
-			ON CONFLICT (project_id, device_id)
-			DO UPDATE SET
-				zone_ids = EXCLUDED.zone_ids,
-				latitude = EXCLUDED.latitude,
-				longitude = EXCLUDED.longitude,
-				updated_at = EXCLUDED.updated_at
-		`);
+				// Upsert device state — parameterized ARRAY constructor to safely
+				// handle both empty and non-empty arrays without sql.raw injection risk.
+				const zoneIdsArray =
+					currentZoneIds.length > 0
+						? sql`ARRAY[${sql.join(
+								currentZoneIds.map((id) => sql`${id}`),
+								sql`, `
+							)}]::integer[]`
+						: sql`ARRAY[]::integer[]`;
 
-		// Enqueue webhook delivery for each boundary crossing
-		if (crossings.length > 0 && ctx.env?.WEBHOOK_DELIVERY_QUEUE) {
-			for (const crossing of crossings) {
-				await ctx.env.WEBHOOK_DELIVERY_QUEUE.send({
-					type: "webhook-delivery",
-					projectId,
-					deviceId,
-					lat,
-					lng,
-					zoneId: crossing.zoneId,
-					zoneName: crossing.zoneName,
-					event: crossing.event,
-					timestamp: new Date().toISOString(),
-				});
+				await tx.execute(sql`
+					INSERT INTO device_zone_state (project_id, device_id, zone_ids, latitude, longitude, updated_at)
+					VALUES (${projectId}, ${deviceId}, ${zoneIdsArray}, ${lat}, ${lng}, now())
+					ON CONFLICT (project_id, device_id)
+					DO UPDATE SET
+						zone_ids = EXCLUDED.zone_ids,
+						latitude = EXCLUDED.latitude,
+						longitude = EXCLUDED.longitude,
+						updated_at = EXCLUDED.updated_at
+				`);
+
+				return { crossings: txCrossings };
 			}
+		);
+
+		// Enqueue webhook delivery after transaction commits — avoids enqueue-then-rollback.
+		// Promise.all so a single failure doesn't silently drop remaining crossings.
+		if (crossings.length > 0 && ctx.env?.WEBHOOK_DELIVERY_QUEUE) {
+			await Promise.all(
+				crossings.map((crossing) =>
+					ctx.env?.WEBHOOK_DELIVERY_QUEUE?.send({
+						type: "webhook-delivery",
+						projectId,
+						deviceId,
+						lat,
+						lng,
+						zoneId: crossing.zoneId,
+						zoneName: crossing.zoneName,
+						event: crossing.event,
+						timestamp: new Date().toISOString(),
+					})
+				)
+			);
 		}
 
 		return { zones: currentZoneIds, crossings };
