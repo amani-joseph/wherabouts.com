@@ -4,6 +4,7 @@ import { authRouter } from "./domains/auth.ts";
 import { dashboardRouter } from "./domains/dashboard.ts";
 import { projectsRouter } from "./domains/projects.ts";
 import { zonesRouter } from "./domains/zones.ts";
+import { webhooksRouter } from "./domains/webhooks.ts";
 
 export const appRouter = {
 	apiExplorer: apiExplorerRouter,
@@ -12,6 +13,7 @@ export const appRouter = {
 	dashboard: dashboardRouter,
 	projects: projectsRouter,
 	zones: zonesRouter,
+	webhooks: webhooksRouter,
 };
 
 export type AppRouter = typeof appRouter;
