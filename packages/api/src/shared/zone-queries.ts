@@ -1,5 +1,5 @@
 import type { Database } from "@wherabouts.com/database";
-import { zones } from "@wherabouts.com/database/schema";
+import { type Zone, zones } from "@wherabouts.com/database/schema";
 import { and, eq, sql } from "drizzle-orm";
 import type { GeoJsonPolygon } from "../routers/public/zones-schema.ts";
 
@@ -27,15 +27,7 @@ export async function isValidPolygon(
 	return Boolean((result.rows[0] as { valid: boolean } | undefined)?.valid);
 }
 
-export interface ZoneRow {
-	id: number;
-	projectId: string;
-	name: string;
-	description: string | null;
-	metadata: unknown;
-	createdAt: Date;
-	updatedAt: Date;
-}
+export type ZoneRow = Omit<Zone, "geom">;
 
 export async function insertZone(
 	db: Database,
@@ -76,7 +68,7 @@ export async function listZoneRows(
 	limit: number,
 	offset: number
 ): Promise<ZoneRow[]> {
-	return (await db
+	return db
 		.select({
 			id: zones.id,
 			projectId: zones.projectId,
@@ -89,7 +81,7 @@ export async function listZoneRows(
 		.from(zones)
 		.where(eq(zones.projectId, projectId))
 		.limit(limit)
-		.offset(offset)) as ZoneRow[];
+		.offset(offset);
 }
 
 export async function zonesContainingPoint(
@@ -99,7 +91,7 @@ export async function zonesContainingPoint(
 	lng: number
 ): Promise<ZoneRow[]> {
 	const point = sql`ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)`;
-	return (await db
+	return db
 		.select({
 			id: zones.id,
 			projectId: zones.projectId,
@@ -115,7 +107,7 @@ export async function zonesContainingPoint(
 				eq(zones.projectId, projectId),
 				sql`ST_Contains(${zones.geom}, ${point})`
 			)
-		)) as ZoneRow[];
+		);
 }
 
 export async function deleteZoneRow(
