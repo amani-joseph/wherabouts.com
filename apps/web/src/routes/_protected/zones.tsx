@@ -31,6 +31,8 @@ function RouteComponent() {
 	const [testing, setTesting] = useState(false);
 	const [testResult, setTestResult] = useState<PointTestResult | null>(null);
 
+	const [editingId, setEditingId] = useState<number | null>(null);
+
 	const [addrOpen, setAddrOpen] = useState(false);
 	const [addrLoading, setAddrLoading] = useState(false);
 	const [addrItems, setAddrItems] = useState<ZoneAddressItem[]>([]);
@@ -61,10 +63,10 @@ function RouteComponent() {
 
 	const drawn = controls?.drawnPolygon ?? null;
 	useEffect(() => {
-		if (drawn) {
+		if (drawn && editingId === null) {
 			setDialogOpen(true);
 		}
-	}, [drawn]);
+	}, [drawn, editingId]);
 
 	const handleSave = async (values: { name: string; description?: string }) => {
 		if (!(activeId && drawn)) {
@@ -137,6 +139,44 @@ function RouteComponent() {
 		}
 	};
 
+	const handleEdit = (id: number) => {
+		const zone = zones.find((z) => z.id === id);
+		if (!(zone && controls)) {
+			return;
+		}
+		setEditingId(id);
+		controls.loadPolygon(zone.geometry);
+		controls.stopDrawing(); // select mode → vertices are draggable
+		toast.info("Drag the polygon's points, then click Save edit.");
+	};
+
+	const handleSaveEdit = async () => {
+		if (!(activeId && editingId && controls?.drawnPolygon)) {
+			toast.error("Move a point to change the shape before saving.");
+			return;
+		}
+		try {
+			await orpcClient.zones.update({
+				projectId: activeId,
+				id: editingId,
+				geometry: controls.drawnPolygon,
+			});
+			toast.success("Zone updated.");
+			setEditingId(null);
+			controls.clear();
+			controls.resetDrawn();
+			await refreshZones(activeId);
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Failed to update zone.");
+		}
+	};
+
+	const handleCancelEdit = () => {
+		setEditingId(null);
+		controls?.clear();
+		controls?.resetDrawn();
+	};
+
 	const handleDelete = async (id: number) => {
 		if (!activeId) {
 			return;
@@ -154,14 +194,23 @@ function RouteComponent() {
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
 				<ActiveProjectSelector activeId={activeId} onSelect={select} projects={projects} />
-				<Button disabled={!(activeId && controls)} onClick={() => controls?.startDrawing()}>
-					Draw zone
-				</Button>
+				{editingId === null ? (
+					<Button disabled={!(activeId && controls)} onClick={() => controls?.startDrawing()}>
+						Draw zone
+					</Button>
+				) : (
+					<div className="flex gap-2">
+						<Button onClick={handleCancelEdit} variant="outline">
+							Cancel
+						</Button>
+						<Button onClick={handleSaveEdit}>Save edit</Button>
+					</div>
+				)}
 			</div>
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
 				<ZoneMap onReady={(c) => setControls(c)} zones={zones} />
 				<div className="space-y-4">
-					<ZoneList onDelete={handleDelete} onSelect={setSelectedId} onViewAddresses={handleViewAddresses} selectedId={selectedId} zones={zones} />
+					<ZoneList onDelete={handleDelete} onEdit={handleEdit} onSelect={setSelectedId} onViewAddresses={handleViewAddresses} selectedId={selectedId} zones={zones} />
 					<PointTestTool onTest={handleTest} result={testResult} testing={testing} />
 				</div>
 			</div>

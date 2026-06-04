@@ -6,7 +6,7 @@ import {
 	CardTitle,
 } from "@wherabouts.com/ui/components/card";
 import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
-import { ListIcon, MapPinIcon, TrashIcon } from "lucide-react";
+import { ListIcon, MapPinIcon, PencilIcon, TrashIcon } from "lucide-react";
 
 export interface ZoneListProps {
 	zones: ZoneWithGeometryRow[];
@@ -14,9 +14,10 @@ export interface ZoneListProps {
 	onSelect: (id: number) => void;
 	onDelete: (id: number) => void;
 	onViewAddresses?: (id: number) => void;
+	onEdit?: (id: number) => void;
 }
 
-export function ZoneList({ zones, selectedId, onSelect, onDelete, onViewAddresses }: ZoneListProps) {
+export function ZoneList({ zones, selectedId, onSelect, onDelete, onViewAddresses, onEdit }: ZoneListProps) {
 	if (zones.length === 0) {
 		return (
 			<Card>
@@ -48,6 +49,14 @@ export function ZoneList({ zones, selectedId, onSelect, onDelete, onViewAddresse
 							<span className="truncate">{zone.name}</span>
 						</button>
 						<div className="flex items-center">
+							<Button
+								aria-label={`Edit ${zone.name}`}
+								onClick={() => onEdit?.(zone.id)}
+								size="icon"
+								variant="ghost"
+							>
+								<PencilIcon className="size-4" />
+							</Button>
 							<Button
 								aria-label={`View addresses in ${zone.name}`}
 								onClick={() => onViewAddresses?.(zone.id)}
