@@ -33,7 +33,7 @@ export function buildGeocodeQuery(
 // ---------------------------------------------------------------------------
 
 const unstructuredInput = z.object({
-	structured: z.literal(false).optional().default(false),
+	structured: z.literal(false),
 	q: z.string().min(5, "Query parameter 'q' must be at least 5 characters."),
 	country: z.string().optional(),
 	state: z.string().optional(),
@@ -50,8 +50,8 @@ const structuredInput = z.object({
 
 const geocodeInput = z.discriminatedUnion("structured", [
 	structuredInput,
-	// discriminatedUnion requires literal values; handle the default case via union
-]).or(unstructuredInput);
+	unstructuredInput,
+]);
 
 // ---------------------------------------------------------------------------
 // Handler
@@ -76,22 +76,20 @@ export const forwardGeocode = baseBuilder
 		let state: string | undefined;
 
 		if (isStructured) {
-			const s = input as z.infer<typeof structuredInput>;
 			query = buildGeocodeQuery({
 				structured: true,
-				street: s.street,
-				locality: s.locality,
-				state: s.state,
-				postcode: s.postcode,
-				country: s.country,
+				street: input.street,
+				locality: input.locality,
+				state: input.state,
+				postcode: input.postcode,
+				country: input.country,
 			});
-			country = s.country;
-			state = s.state;
+			country = input.country;
+			state = input.state;
 		} else {
-			const u = input as z.infer<typeof unstructuredInput>;
-			query = buildGeocodeQuery({ structured: false, q: u.q });
-			country = u.country;
-			state = u.state;
+			query = buildGeocodeQuery({ structured: false, q: input.q });
+			country = input.country;
+			state = input.state;
 		}
 
 		const { results } = await autocompleteAddresses(context.db, query, {
