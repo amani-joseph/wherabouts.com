@@ -5,6 +5,7 @@ import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-querie
 import { useZoneDraw, type UseZoneDraw } from "./use-zone-draw.ts";
 
 const EXISTING_SRC = "existing-zones";
+const MAP_HEIGHT_PX = 480;
 
 export interface ZoneMapProps {
 	zones: ZoneWithGeometryRow[];
@@ -56,7 +57,7 @@ export function ZoneMap({ zones, onReady }: ZoneMapProps) {
 	}, [map, zones]);
 
 	return (
-		<div style={{ height: 480 }}>
+		<div style={{ height: MAP_HEIGHT_PX }}>
 			<MapCanvas onMapReady={setMap} />
 		</div>
 	);

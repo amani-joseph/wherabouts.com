@@ -1,5 +1,5 @@
 import type { Map as MapLibreMap } from "maplibre-gl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GeoJsonPolygon } from "@wherabouts.com/api/routers/public/zones-schema";
 import { featureToPolygon, polygonToFeature, type DrawFeature } from "./geometry.ts";
 
@@ -26,25 +26,28 @@ export function useZoneDraw(map: MapLibreMap | null): UseZoneDraw {
 			import("terra-draw"),
 			import("terra-draw-maplibre-gl-adapter"),
 		]).then(([terra, adapterMod]) => {
-			if (disposed) {
-				return;
-			}
 			const { TerraDraw, TerraDrawPolygonMode, TerraDrawSelectMode } = terra;
 			const { TerraDrawMapLibreGLAdapter } = adapterMod;
 			const draw = new TerraDraw({
 				adapter: new TerraDrawMapLibreGLAdapter({ map }),
 				modes: [new TerraDrawPolygonMode(), new TerraDrawSelectMode()],
 			});
+			// C1: guard AFTER construction so we can stop the orphaned instance
+			if (disposed) {
+				draw.stop();
+				return;
+			}
 			draw.start();
 
 			const captureLatest = () => {
-				// biome-ignore lint/suspicious/noExplicitAny: terra-draw snapshot typing
-				const snapshot = draw.getSnapshot() as any[];
-				const polygonFeatures = snapshot.filter(
-					// biome-ignore lint/suspicious/noExplicitAny: runtime shape check
-					(f: any) => f.geometry?.type === "Polygon",
+				const snapshot = draw.getSnapshot() as DrawFeature[];
+				// Our flows clear() before drawing/loading, so the store holds a single
+				// editable polygon at a time. Take the last Polygon feature (ignoring any
+				// terra-draw guide/midpoint features which are non-Polygon).
+				const polygons = snapshot.filter(
+					(f) => f.geometry.type === "Polygon",
 				);
-				const last = polygonFeatures.at(-1) as DrawFeature | undefined;
+				const last = polygons.at(-1);
 				if (last) {
 					const polygon = featureToPolygon(last);
 					if (polygon) {
@@ -92,5 +95,15 @@ export function useZoneDraw(map: MapLibreMap | null): UseZoneDraw {
 
 	const resetDrawn = useCallback(() => setDrawnPolygon(null), []);
 
-	return { startDrawing, stopDrawing, clear, loadPolygon, drawnPolygon, resetDrawn };
+	return useMemo(
+		() => ({
+			startDrawing,
+			stopDrawing,
+			clear,
+			loadPolygon,
+			drawnPolygon,
+			resetDrawn,
+		}),
+		[startDrawing, stopDrawing, clear, loadPolygon, drawnPolygon, resetDrawn],
+	);
 }
