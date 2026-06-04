@@ -4,10 +4,16 @@ const ALGORITHM = "aes-256-gcm" as const;
 const IV_LENGTH = 12;
 const AUTH_TAG_LENGTH = 16;
 
+const KEY_HEX_LENGTH = 64; // 32 bytes
+const KEY_HEX_PATTERN = /^[0-9a-fA-F]+$/;
+
 function getKey(): Buffer {
 	const hex = process.env.KEY_ENC_KEY;
 	if (!hex) {
 		throw new Error("KEY_ENC_KEY environment variable is not set.");
+	}
+	if (hex.length !== KEY_HEX_LENGTH || !KEY_HEX_PATTERN.test(hex)) {
+		throw new Error("KEY_ENC_KEY must be exactly 64 hex characters (32 bytes).");
 	}
 	return Buffer.from(hex, "hex");
 }
