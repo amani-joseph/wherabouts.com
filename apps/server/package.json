@@ -6,7 +6,8 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "build": "tsc --noEmit",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest"
   },
   "dependencies": {
     "@orpc/openapi": "^1.13.14",
@@ -24,6 +25,7 @@
     "@wherabouts.com/config": "workspace:*",
     "tsx": "^4.21.0",
     "typescript": "^5",
-    "wrangler": "^4.81.1"
+    "wrangler": "^4.81.1",
+    "vitest": "^4.1.4"
   }
 }

@@ -3,6 +3,10 @@ import {
 	processBatchGeocodeMessage,
 	type BatchGeocodeMessage,
 } from "./queues/batch-geocode.ts";
+import {
+	processWebhookDeliveryMessage,
+	type WebhookDeliveryMessage,
+} from "./queues/webhook-delivery.ts";
 import { ORPCError, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import {
@@ -253,6 +257,11 @@ export default {
 				await processBatchGeocodeMessage(
 					msg.body as BatchGeocodeMessage,
 					env
+				);
+				msg.ack();
+			} else if (msg.body.type === "webhook-delivery") {
+				await processWebhookDeliveryMessage(
+					msg.body as WebhookDeliveryMessage
 				);
 				msg.ack();
 			} else {
