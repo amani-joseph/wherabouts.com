@@ -151,7 +151,7 @@ export interface ZoneWithGeometry extends ZoneRecord {
 }
 
 export interface ZoneContainsResponse {
-	zones: Pick<ZoneRecord, "id" | "name" | "description" | "metadata" | "createdAt" | "updatedAt">[];
+	zones: ZoneRecord[];
 	count: number;
 	query: { lat: number; lng: number };
 }
