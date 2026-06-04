@@ -1,5 +1,8 @@
 import { db, decryptSecret } from "@wherabouts.com/api";
-import { webhookSubscriptions } from "@wherabouts.com/database/schema";
+import {
+	webhookDeliveryAttempts,
+	webhookSubscriptions,
+} from "@wherabouts.com/database/schema";
 import { and, eq, isNull, or, sql } from "drizzle-orm";
 import { hmacSign } from "./hmac.ts";
 
@@ -26,7 +29,7 @@ async function deliverOnce(
 	body: string,
 	signature: string,
 	attempt: number
-): Promise<boolean> {
+): Promise<{ ok: boolean; statusCode: number | null; error: string | null }> {
 	try {
 		const res = await fetch(url, {
 			method: "POST",
@@ -38,9 +41,9 @@ async function deliverOnce(
 			body,
 			signal: AbortSignal.timeout(DELIVERY_TIMEOUT_MS),
 		});
-		return res.ok;
-	} catch {
-		return false;
+		return { ok: res.ok, statusCode: res.status, error: res.ok ? null : `HTTP ${res.status}` };
+	} catch (err) {
+		return { ok: false, statusCode: null, error: err instanceof Error ? err.message : "Request failed" };
 	}
 }
 
@@ -82,11 +85,21 @@ export async function processWebhookDeliveryMessage(
 			try {
 				secret = decryptSecret(sub.secretEnc);
 			} catch {
-				// Corrupt secret — cannot sign; mark failing and skip.
+				// Corrupt secret — cannot sign; mark failing and log attempt.
 				await db
 					.update(webhookSubscriptions)
 					.set({ failing: true })
 					.where(eq(webhookSubscriptions.id, sub.id));
+				await db.insert(webhookDeliveryAttempts).values({
+					subscriptionId: sub.id,
+					event: msg.event,
+					zoneId: msg.zoneId,
+					deviceId: msg.deviceId,
+					statusCode: null,
+					ok: false,
+					attempt: 0,
+					error: "decrypt failed",
+				});
 				return;
 			}
 
@@ -94,8 +107,19 @@ export async function processWebhookDeliveryMessage(
 
 			let delivered = false;
 			for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-				delivered = await deliverOnce(sub.url, payload, signature, attempt);
-				if (delivered) {
+				const outcome = await deliverOnce(sub.url, payload, signature, attempt);
+				await db.insert(webhookDeliveryAttempts).values({
+					subscriptionId: sub.id,
+					event: msg.event,
+					zoneId: msg.zoneId,
+					deviceId: msg.deviceId,
+					statusCode: outcome.statusCode,
+					ok: outcome.ok,
+					attempt,
+					error: outcome.error,
+				});
+				if (outcome.ok) {
+					delivered = true;
 					break;
 				}
 			}

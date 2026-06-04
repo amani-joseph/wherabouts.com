@@ -28,6 +28,7 @@ import {
 	createWebhook,
 	listWebhooks,
 	deleteWebhook,
+	reactivateWebhookEndpoint,
 } from "./public/webhooks.ts";
 
 // ---------------------------------------------------------------------------
@@ -301,6 +302,7 @@ export const publicHttpRouter = {
 		webhookCreate: createWebhook,
 		webhookList: listWebhooks,
 		webhookDelete: deleteWebhook,
+		webhookReactivate: reactivateWebhookEndpoint,
 	},
 };
 

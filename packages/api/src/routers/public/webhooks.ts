@@ -9,6 +9,7 @@ import {
 	type ValidatedApiKey,
 } from "../public-middleware.ts";
 import { encryptSecret, generateWebhookSecret } from "../../secret-crypto.ts";
+import { reactivateWebhook } from "../../shared/webhook-queries.ts";
 
 // ---------------------------------------------------------------------------
 // Helper
@@ -145,4 +146,24 @@ export const deleteWebhook = baseBuilder
 			throw new ORPCError("NOT_FOUND", { message: "Webhook not found." });
 		}
 		return { id: input.id, deleted: true };
+	});
+
+export const reactivateWebhookEndpoint = baseBuilder
+	.use(apiKeyAuth)
+	.use(usageMiddleware("webhooks.reactivate"))
+	.route({
+		method: "POST",
+		path: "/api/v1/webhooks/{id}/reactivate",
+		summary: "Reactivate a failing webhook subscription",
+		tags: ["webhooks"],
+	})
+	.input(z.object({ id: z.coerce.number().int().min(1) }))
+	.handler(async ({ input, context }) => {
+		const ctx = context as typeof context & AuthContext;
+		const projectId = requireProjectId(ctx.validatedApiKey.projectId);
+		const ok = await reactivateWebhook(context.db, projectId, input.id);
+		if (!ok) {
+			throw new ORPCError("NOT_FOUND", { message: "Webhook not found." });
+		}
+		return { id: input.id, reactivated: true };
 	});
