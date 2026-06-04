@@ -4,6 +4,15 @@ import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { o as baseBuilder } from "../../builder.ts";
 import {
+	countZones,
+	deleteZoneRow,
+	insertZone,
+	isValidPolygon,
+	listZoneRows,
+	ZONE_LIMIT,
+	zonesContainingPoint,
+} from "../../shared/zone-queries.ts";
+import {
 	apiKeyAuth,
 	usageMiddleware,
 	type ValidatedApiKey,
@@ -57,56 +66,22 @@ export const zoneCreate = baseBuilder
 		const projectId = requireProjectId(ctx.validatedApiKey.projectId);
 
 		// Zone limit check
-		const countResult = await context.db
-			.select({ count: sql<number>`count(*)::int` })
-			.from(zones)
-			.where(eq(zones.projectId, projectId));
-		const count = countResult[0]?.count ?? 0;
-		if (count >= 500) {
+		const count = await countZones(context.db, projectId);
+		if (count >= ZONE_LIMIT) {
 			throw new ORPCError("FORBIDDEN", {
 				message: "Zone limit reached (500). Delete unused zones to create new ones.",
 			});
 		}
 
 		// Polygon validation
-		const geomJson = JSON.stringify(input.geometry);
-		const validResult = await context.db.execute(
-			sql`SELECT ST_IsValid(ST_GeomFromGeoJSON(${geomJson})) AS valid`
-		);
-		const isValid = (
-			validResult.rows[0] as { valid: boolean } | undefined
-		)?.valid;
+		const isValid = await isValidPolygon(context.db, input.geometry);
 		if (!isValid) {
 			throw new ORPCError("UNPROCESSABLE_CONTENT", {
 				message: "Provided geometry is not a valid polygon.",
 			});
 		}
 
-		const insertValues = {
-			projectId,
-			name: input.name,
-			// biome-ignore lint/suspicious/noExplicitAny: SQL expression for geometry column
-			geom: sql`ST_GeomFromGeoJSON(${geomJson})` as any,
-			...(input.description !== undefined && {
-				description: input.description,
-			}),
-			...(input.metadata !== undefined && { metadata: input.metadata }),
-		};
-
-		const inserted = await context.db
-			.insert(zones)
-			.values(insertValues)
-			.returning({
-				id: zones.id,
-				projectId: zones.projectId,
-				name: zones.name,
-				description: zones.description,
-				metadata: zones.metadata,
-				createdAt: zones.createdAt,
-				updatedAt: zones.updatedAt,
-			});
-
-		const row = inserted[0];
+		const row = await insertZone(context.db, projectId, input);
 		if (!row) {
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
 				message: "Failed to create zone.",
@@ -136,21 +111,7 @@ export const zoneList = baseBuilder
 		const projectId = requireProjectId(ctx.validatedApiKey.projectId);
 
 		const offset = (input.page - 1) * input.limit;
-
-		const rows = await context.db
-			.select({
-				id: zones.id,
-				projectId: zones.projectId,
-				name: zones.name,
-				description: zones.description,
-				metadata: zones.metadata,
-				createdAt: zones.createdAt,
-				updatedAt: zones.updatedAt,
-			})
-			.from(zones)
-			.where(eq(zones.projectId, projectId))
-			.limit(input.limit)
-			.offset(offset);
+		const rows = await listZoneRows(context.db, projectId, input.limit, offset);
 
 		return { zones: rows, count: rows.length, page: input.page };
 	});
@@ -322,12 +283,8 @@ export const zoneDelete = baseBuilder
 		const ctx = context as typeof context & AuthContext;
 		const projectId = requireProjectId(ctx.validatedApiKey.projectId);
 
-		const deleted = await context.db
-			.delete(zones)
-			.where(and(eq(zones.id, input.id), eq(zones.projectId, projectId)))
-			.returning({ id: zones.id });
-
-		if (deleted.length === 0) {
+		const deleted = await deleteZoneRow(context.db, projectId, input.id);
+		if (!deleted) {
 			throw new ORPCError("NOT_FOUND", { message: "Zone not found." });
 		}
 
@@ -354,23 +311,7 @@ export const zoneContains = baseBuilder
 		const projectId = requireProjectId(ctx.validatedApiKey.projectId);
 		const { lat, lng } = input;
 
-		const rows = await context.db
-			.select({
-				id: zones.id,
-				projectId: zones.projectId,
-				name: zones.name,
-				description: zones.description,
-				metadata: zones.metadata,
-				createdAt: zones.createdAt,
-				updatedAt: zones.updatedAt,
-			})
-			.from(zones)
-			.where(
-				and(
-					eq(zones.projectId, projectId),
-					sql`ST_Contains(${zones.geom}, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326))`
-				)
-			);
+		const rows = await zonesContainingPoint(context.db, projectId, lat, lng);
 
 		return { zones: rows, count: rows.length, query: { lat, lng } };
 	});
