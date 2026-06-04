@@ -180,6 +180,14 @@ export async function updateZoneRow(
 		metadata?: Record<string, unknown>;
 	}
 ): Promise<boolean> {
+	if (
+		patch.name === undefined &&
+		patch.description === undefined &&
+		patch.geometry === undefined &&
+		patch.metadata === undefined
+	) {
+		return false;
+	}
 	const sets: ReturnType<typeof sql>[] = [];
 	if (patch.name !== undefined) {
 		sets.push(sql`name = ${patch.name}`);
