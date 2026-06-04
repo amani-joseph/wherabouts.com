@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ActiveProjectSelector } from "@/components/active-project-selector";
 import { ZoneCreateDialog } from "@/components/zones/zone-create-dialog";
+import { PointTestTool, type PointTestResult } from "@/components/zones/point-test-tool";
 import { ZoneList } from "@/components/zones/zone-list";
 import { ZoneMap } from "@/components/zones/zone-map";
 import type { UseZoneDraw } from "@/components/zones/use-zone-draw";
@@ -26,6 +27,8 @@ function RouteComponent() {
 	const [controls, setControls] = useState<UseZoneDraw | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [saving, setSaving] = useState(false);
+	const [testing, setTesting] = useState(false);
+	const [testResult, setTestResult] = useState<PointTestResult | null>(null);
 
 	useEffect(() => {
 		orpcClient.projects
@@ -80,6 +83,22 @@ function RouteComponent() {
 		}
 	};
 
+	const handleTest = async (lat: number, lng: number) => {
+		if (!activeId || Number.isNaN(lat) || Number.isNaN(lng)) {
+			toast.error("Enter valid coordinates.");
+			return;
+		}
+		setTesting(true);
+		try {
+			const res = await orpcClient.zones.contains({ projectId: activeId, lat, lng });
+			setTestResult({ zones: res.zones.map((z) => ({ id: z.id, name: z.name })) });
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Point test failed.");
+		} finally {
+			setTesting(false);
+		}
+	};
+
 	const handleDelete = async (id: number) => {
 		if (!activeId) {
 			return;
@@ -103,7 +122,10 @@ function RouteComponent() {
 			</div>
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
 				<ZoneMap onReady={(c) => setControls(c)} zones={zones} />
-				<ZoneList onDelete={handleDelete} onSelect={setSelectedId} selectedId={selectedId} zones={zones} />
+				<div className="space-y-4">
+					<ZoneList onDelete={handleDelete} onSelect={setSelectedId} selectedId={selectedId} zones={zones} />
+					<PointTestTool onTest={handleTest} result={testResult} testing={testing} />
+				</div>
 			</div>
 			<ZoneCreateDialog
 				onCancel={() => {
