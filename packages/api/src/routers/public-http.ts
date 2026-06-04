@@ -20,6 +20,10 @@ import {
 	zoneContains,
 	zoneAddresses,
 } from "./public/zones.ts";
+import {
+	pushDeviceLocation,
+	getDeviceZones,
+} from "./public/devices.ts";
 
 // ---------------------------------------------------------------------------
 // Procedures
@@ -283,6 +287,10 @@ export const publicHttpRouter = {
 		zoneDelete,
 		zoneContains,
 		zoneAddresses,
+	},
+	devices: {
+		deviceLocation: pushDeviceLocation,
+		deviceZones: getDeviceZones,
 	},
 };
 
