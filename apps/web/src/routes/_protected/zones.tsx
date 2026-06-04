@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ActiveProjectSelector } from "@/components/active-project-selector";
 import { ZoneCreateDialog } from "@/components/zones/zone-create-dialog";
 import { PointTestTool, type PointTestResult } from "@/components/zones/point-test-tool";
+import { ZoneAddressesDrawer, type ZoneAddressItem } from "@/components/zones/zone-addresses-drawer";
 import { ZoneList } from "@/components/zones/zone-list";
 import { ZoneMap } from "@/components/zones/zone-map";
 import type { UseZoneDraw } from "@/components/zones/use-zone-draw";
@@ -29,6 +30,12 @@ function RouteComponent() {
 	const [saving, setSaving] = useState(false);
 	const [testing, setTesting] = useState(false);
 	const [testResult, setTestResult] = useState<PointTestResult | null>(null);
+
+	const [addrOpen, setAddrOpen] = useState(false);
+	const [addrLoading, setAddrLoading] = useState(false);
+	const [addrItems, setAddrItems] = useState<ZoneAddressItem[]>([]);
+	const [addrTruncated, setAddrTruncated] = useState(false);
+	const [addrZoneName, setAddrZoneName] = useState("");
 
 	useEffect(() => {
 		orpcClient.projects
@@ -99,6 +106,37 @@ function RouteComponent() {
 		}
 	};
 
+	const handleViewAddresses = async (id: number) => {
+		if (!activeId) {
+			return;
+		}
+		setAddrZoneName(zones.find((z) => z.id === id)?.name ?? "");
+		setAddrOpen(true);
+		setAddrLoading(true);
+		try {
+			const res = await orpcClient.zones.addresses({
+				projectId: activeId,
+				id,
+				page: 1,
+				limit: 100,
+			});
+			setAddrItems(
+				res.results.map((r) => ({
+					id: r.id,
+					streetName: r.streetName,
+					locality: r.locality,
+					state: r.state,
+					postcode: r.postcode,
+				}))
+			);
+			setAddrTruncated(res.truncated);
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Failed to load addresses.");
+		} finally {
+			setAddrLoading(false);
+		}
+	};
+
 	const handleDelete = async (id: number) => {
 		if (!activeId) {
 			return;
@@ -123,7 +161,7 @@ function RouteComponent() {
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
 				<ZoneMap onReady={(c) => setControls(c)} zones={zones} />
 				<div className="space-y-4">
-					<ZoneList onDelete={handleDelete} onSelect={setSelectedId} selectedId={selectedId} zones={zones} />
+					<ZoneList onDelete={handleDelete} onSelect={setSelectedId} onViewAddresses={handleViewAddresses} selectedId={selectedId} zones={zones} />
 					<PointTestTool onTest={handleTest} result={testResult} testing={testing} />
 				</div>
 			</div>
@@ -136,6 +174,14 @@ function RouteComponent() {
 				onSubmit={handleSave}
 				open={dialogOpen}
 				saving={saving}
+			/>
+			<ZoneAddressesDrawer
+				addresses={addrItems}
+				loading={addrLoading}
+				onClose={() => setAddrOpen(false)}
+				open={addrOpen}
+				truncated={addrTruncated}
+				zoneName={addrZoneName}
 			/>
 		</div>
 	);

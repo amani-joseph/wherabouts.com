@@ -6,16 +6,17 @@ import {
 	CardTitle,
 } from "@wherabouts.com/ui/components/card";
 import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
-import { MapPinIcon, TrashIcon } from "lucide-react";
+import { ListIcon, MapPinIcon, TrashIcon } from "lucide-react";
 
 export interface ZoneListProps {
 	zones: ZoneWithGeometryRow[];
 	selectedId: number | null;
 	onSelect: (id: number) => void;
 	onDelete: (id: number) => void;
+	onViewAddresses?: (id: number) => void;
 }
 
-export function ZoneList({ zones, selectedId, onSelect, onDelete }: ZoneListProps) {
+export function ZoneList({ zones, selectedId, onSelect, onDelete, onViewAddresses }: ZoneListProps) {
 	if (zones.length === 0) {
 		return (
 			<Card>
@@ -46,14 +47,24 @@ export function ZoneList({ zones, selectedId, onSelect, onDelete }: ZoneListProp
 							<MapPinIcon className="size-4 text-muted-foreground" />
 							<span className="truncate">{zone.name}</span>
 						</button>
-						<Button
-							aria-label={`Delete ${zone.name}`}
-							onClick={() => onDelete(zone.id)}
-							size="icon"
-							variant="ghost"
-						>
-							<TrashIcon className="size-4" />
-						</Button>
+						<div className="flex items-center">
+							<Button
+								aria-label={`View addresses in ${zone.name}`}
+								onClick={() => onViewAddresses?.(zone.id)}
+								size="icon"
+								variant="ghost"
+							>
+								<ListIcon className="size-4" />
+							</Button>
+							<Button
+								aria-label={`Delete ${zone.name}`}
+								onClick={() => onDelete(zone.id)}
+								size="icon"
+								variant="ghost"
+							>
+								<TrashIcon className="size-4" />
+							</Button>
+						</div>
 					</div>
 				))}
 			</CardContent>
