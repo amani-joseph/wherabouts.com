@@ -130,3 +130,131 @@ export interface WheraboutsClient {
 	nearby(params: NearbyParams): Promise<NearbyResponse>;
 	reverse(params: ReverseParams): Promise<ReverseResponse>;
 }
+
+// --- Zones ---
+
+export interface ZoneRecord {
+	id: number;
+	projectId: string;
+	name: string;
+	description: string | null;
+	metadata: Record<string, unknown> | null;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ZoneWithGeometry extends ZoneRecord {
+	geometry: {
+		type: string;
+		coordinates: number[][][];
+	};
+}
+
+export interface ZoneContainsResponse {
+	zones: Pick<ZoneRecord, "id" | "name" | "description" | "metadata" | "createdAt" | "updatedAt">[];
+	count: number;
+	query: { lat: number; lng: number };
+}
+
+export interface ZoneAddressesResponse {
+	results: Array<{
+		id: number;
+		country: string;
+		state: string;
+		locality: string;
+		postcode: string;
+		streetName: string;
+		streetType: string | null;
+		numberFirst: string | null;
+		numberLast: string | null;
+		buildingName: string | null;
+		flatType: string | null;
+		flatNumber: string | null;
+		latitude: number;
+		longitude: number;
+	}>;
+	count: number;
+	truncated: boolean;
+	query: { id: number; page: number; limit: number };
+}
+
+// --- Forward Geocoding ---
+
+export interface ForwardGeocodeResponse {
+	address: {
+		id: number;
+		formattedAddress: string;
+		streetAddress: string;
+		locality: string;
+		state: string;
+		postcode: string;
+		country: string;
+		latitude: number;
+		longitude: number;
+	};
+	matchType: "structured" | "fuzzy";
+}
+
+// --- Batch Geocoding ---
+
+export interface BatchGeocodeSubmitResponse {
+	jobId: string;
+	status: "pending" | "processing";
+	inputCount: number;
+}
+
+export interface BatchGeocodePollResponse {
+	jobId: string;
+	status: "pending" | "processing" | "completed" | "failed";
+	inputCount: number;
+	processedCount: number;
+	completedAt: string | null;
+	error: string | null;
+	downloadUrl: string | null;
+}
+
+export interface BatchGeocodeResultsResponse {
+	results: unknown[];
+	count: number;
+}
+
+// --- Devices ---
+
+export interface DeviceLocationResponse {
+	zones: number[];
+	crossings: Array<{
+		zoneId: number;
+		zoneName: string;
+		event: "entry" | "exit";
+	}>;
+}
+
+export interface DeviceZonesResponse {
+	deviceId: string;
+	zoneIds: number[];
+	latitude: number;
+	longitude: number;
+	updatedAt: Date | string;
+}
+
+// --- Webhooks ---
+
+export interface WebhookSubscriptionRecord {
+	id: number;
+	url: string;
+	events: string[];
+	zoneId: number | null;
+	active: boolean;
+	failing: boolean;
+	createdAt: string;
+}
+
+export interface WebhookCreateResponse {
+	id: number;
+	url: string;
+	events: string[];
+	zoneId: number | null;
+	active: boolean;
+	createdAt: string;
+	secret: string; // Returned ONCE at creation time only
+}

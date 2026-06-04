@@ -163,13 +163,40 @@ function endpointKeyFromPath(pathname: string): string {
 	if (pathname.includes("/autocomplete")) {
 		return "addresses_autocomplete";
 	}
+	if (pathname.includes("/geocode/batch")) {
+		return "addresses_batch";
+	}
+	if (pathname.includes("/geocode")) {
+		return "addresses_geocode";
+	}
 	if (pathname.includes("/nearby")) {
 		return "addresses_nearby";
 	}
 	if (pathname.includes("/reverse")) {
 		return "addresses_reverse";
 	}
-	return "addresses_byId";
+	if (pathname.includes("/zones/contains")) {
+		return "zones_contains";
+	}
+	if (/\/zones\/\d+\/addresses/.test(pathname)) {
+		return "zones_addresses";
+	}
+	if (pathname.includes("/zones")) {
+		return "zones";
+	}
+	if (/\/devices\/[^/]+\/zones/.test(pathname)) {
+		return "devices_zones";
+	}
+	if (/\/devices\/[^/]+\/location/.test(pathname)) {
+		return "devices_location";
+	}
+	if (pathname.includes("/webhooks")) {
+		return "webhooks";
+	}
+	if (pathname.includes("/addresses")) {
+		return "addresses_byId";
+	}
+	return "unknown";
 }
 
 app.use("/api/v1/*", async (context) => {
