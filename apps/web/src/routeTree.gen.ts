@@ -14,8 +14,6 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RpcSplatRouteImport } from './routes/rpc/$'
-import { Route as PrototypeBatchMapRouteImport } from './routes/prototype.batch-map'
-import { Route as ApiPrototypeBatchPointsRouteImport } from './routes/api/prototype-batch-points'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ProtectedZonesRouteImport } from './routes/_protected/zones'
 import { Route as ProtectedWebhooksRouteImport } from './routes/_protected/webhooks'
@@ -67,16 +65,6 @@ const IndexRoute = IndexRouteImport.update({
 const RpcSplatRoute = RpcSplatRouteImport.update({
   id: '/rpc/$',
   path: '/rpc/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrototypeBatchMapRoute = PrototypeBatchMapRouteImport.update({
-  id: '/prototype/batch-map',
-  path: '/prototype/batch-map',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPrototypeBatchPointsRoute = ApiPrototypeBatchPointsRouteImport.update({
-  id: '/api/prototype-batch-points',
-  path: '/api/prototype-batch-points',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -243,8 +231,6 @@ export interface FileRoutesByFullPath {
   '/webhooks': typeof ProtectedWebhooksRoute
   '/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
-  '/api/prototype-batch-points': typeof ApiPrototypeBatchPointsRoute
-  '/prototype/batch-map': typeof PrototypeBatchMapRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
@@ -279,8 +265,6 @@ export interface FileRoutesByTo {
   '/webhooks': typeof ProtectedWebhooksRoute
   '/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
-  '/api/prototype-batch-points': typeof ApiPrototypeBatchPointsRoute
-  '/prototype/batch-map': typeof PrototypeBatchMapRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
@@ -317,8 +301,6 @@ export interface FileRoutesById {
   '/_protected/webhooks': typeof ProtectedWebhooksRoute
   '/_protected/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
-  '/api/prototype-batch-points': typeof ApiPrototypeBatchPointsRoute
-  '/prototype/batch-map': typeof PrototypeBatchMapRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
@@ -355,8 +337,6 @@ export interface FileRouteTypes {
     | '/webhooks'
     | '/zones'
     | '/api/health'
-    | '/api/prototype-batch-points'
-    | '/prototype/batch-map'
     | '/rpc/$'
     | '/api/auth/get-session'
     | '/api/auth/ok'
@@ -391,8 +371,6 @@ export interface FileRouteTypes {
     | '/webhooks'
     | '/zones'
     | '/api/health'
-    | '/api/prototype-batch-points'
-    | '/prototype/batch-map'
     | '/rpc/$'
     | '/api/auth/get-session'
     | '/api/auth/ok'
@@ -428,8 +406,6 @@ export interface FileRouteTypes {
     | '/_protected/webhooks'
     | '/_protected/zones'
     | '/api/health'
-    | '/api/prototype-batch-points'
-    | '/prototype/batch-map'
     | '/rpc/$'
     | '/api/auth/get-session'
     | '/api/auth/ok'
@@ -452,8 +428,6 @@ export interface RootRouteChildren {
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   ApiHealthRoute: typeof ApiHealthRoute
-  ApiPrototypeBatchPointsRoute: typeof ApiPrototypeBatchPointsRoute
-  PrototypeBatchMapRoute: typeof PrototypeBatchMapRoute
   RpcSplatRoute: typeof RpcSplatRoute
   ApiAuthGetSessionRoute: typeof ApiAuthGetSessionRoute
   ApiAuthOkRoute: typeof ApiAuthOkRoute
@@ -501,20 +475,6 @@ declare module '@tanstack/react-router' {
       path: '/rpc/$'
       fullPath: '/rpc/$'
       preLoaderRoute: typeof RpcSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prototype/batch-map': {
-      id: '/prototype/batch-map'
-      path: '/prototype/batch-map'
-      fullPath: '/prototype/batch-map'
-      preLoaderRoute: typeof PrototypeBatchMapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/prototype-batch-points': {
-      id: '/api/prototype-batch-points'
-      path: '/api/prototype-batch-points'
-      fullPath: '/api/prototype-batch-points'
-      preLoaderRoute: typeof ApiPrototypeBatchPointsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -764,8 +724,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   ApiHealthRoute: ApiHealthRoute,
-  ApiPrototypeBatchPointsRoute: ApiPrototypeBatchPointsRoute,
-  PrototypeBatchMapRoute: PrototypeBatchMapRoute,
   RpcSplatRoute: RpcSplatRoute,
   ApiAuthGetSessionRoute: ApiAuthGetSessionRoute,
   ApiAuthOkRoute: ApiAuthOkRoute,

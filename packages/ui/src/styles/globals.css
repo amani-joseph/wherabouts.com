@@ -3,6 +3,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Loaded globally (not inside the map component) so it lands in <head> and
+   avoids an SSR "<link> outside the main document" hydration warning. */
+@import "maplibre-gl/dist/maplibre-gl.css";
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
@@ -130,10 +133,10 @@
 	html {
 		@apply font-sans;
 	}
-  .maplibregl-popup-content {
-    @apply bg-transparent! shadow-none! p-0! rounded-none!;
+	.maplibregl-popup-content {
+		@apply bg-transparent! shadow-none! p-0! rounded-none!;
 	}
-  .maplibregl-popup-tip {
-    @apply hidden!;
+	.maplibregl-popup-tip {
+		@apply hidden!;
 	}
 }
