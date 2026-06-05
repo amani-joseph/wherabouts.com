@@ -1,4 +1,3 @@
-import { env } from "@wherabouts.com/env/web";
 import {
 	Map,
 	MapClusterLayer,
@@ -7,12 +6,10 @@ import {
 	useMap,
 } from "@wherabouts.com/ui/components/ui/map";
 import { useEffect, useMemo, useState } from "react";
-import { buildMapStyleUrl } from "@/components/map/map-style";
 import type { BatchResultRow } from "./results-table";
 
-// Reuse the project's basemap (matches the zone maps) — also keeps glyphs on a
-// CORS-clean provider (MapTiler / OSM raster) instead of the mapcn Carto default.
-const projectStyle = buildMapStyleUrl(env.VITE_MAPTILER_KEY);
+// Basemap: use mapcn's theme-aware default (CARTO dark-matter under the dark
+// dashboard) for the sleek shadcn-aligned look — intentionally not overridden.
 const MAP_HEIGHT_PX = 480;
 const CLUSTER_COLORS: [string, string, string] = [
 	"#3b82f6",
@@ -112,12 +109,7 @@ export function ResultsMap({ results }: ResultsMapProps) {
 				className="overflow-hidden rounded-md border"
 				style={{ height: MAP_HEIGHT_PX }}
 			>
-				<Map
-					center={AU_CENTER}
-					fadeDuration={0}
-					styles={{ dark: projectStyle as never, light: projectStyle as never }}
-					zoom={AU_ZOOM}
-				>
+				<Map center={AU_CENTER} fadeDuration={0} zoom={AU_ZOOM}>
 					<MapClusterLayer<PointProps>
 						clusterColors={CLUSTER_COLORS}
 						clusterMaxZoom={14}
