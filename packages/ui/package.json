@@ -23,6 +23,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "catalog:",
+    "maplibre-gl": "^5.24.0",
     "next-themes": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

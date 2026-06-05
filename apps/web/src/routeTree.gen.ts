@@ -14,6 +14,8 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RpcSplatRouteImport } from './routes/rpc/$'
+import { Route as PrototypeBatchMapRouteImport } from './routes/prototype.batch-map'
+import { Route as ApiPrototypeBatchPointsRouteImport } from './routes/api/prototype-batch-points'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ProtectedZonesRouteImport } from './routes/_protected/zones'
 import { Route as ProtectedWebhooksRouteImport } from './routes/_protected/webhooks'
@@ -31,6 +33,8 @@ import { Route as ProtectedApiDocsRouteImport } from './routes/_protected/api-do
 import { Route as ProtectedAnalyticsRouteImport } from './routes/_protected/analytics'
 import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
+import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
+import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
 import { Route as ApiV1SplatRouteImport } from './routes/api/v1/$'
 import { Route as ApiOpenapiJsonRouteImport } from './routes/api/openapi.json'
 import { Route as ApiAuthSignOutRouteImport } from './routes/api/auth/sign-out'
@@ -63,6 +67,16 @@ const IndexRoute = IndexRouteImport.update({
 const RpcSplatRoute = RpcSplatRouteImport.update({
   id: '/rpc/$',
   path: '/rpc/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrototypeBatchMapRoute = PrototypeBatchMapRouteImport.update({
+  id: '/prototype/batch-map',
+  path: '/prototype/batch-map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPrototypeBatchPointsRoute = ApiPrototypeBatchPointsRouteImport.update({
+  id: '/api/prototype-batch-points',
+  path: '/api/prototype-batch-points',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -150,6 +164,16 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/_auth/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/_auth/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1SplatRoute = ApiV1SplatRouteImport.update({
   id: '/api/v1/$',
   path: '/api/v1/$',
@@ -200,6 +224,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/forgot-password': typeof AuthForgotPasswordRoute
+  '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
   '/analytics': typeof ProtectedAnalyticsRoute
@@ -217,6 +243,8 @@ export interface FileRoutesByFullPath {
   '/webhooks': typeof ProtectedWebhooksRoute
   '/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/prototype-batch-points': typeof ApiPrototypeBatchPointsRoute
+  '/prototype/batch-map': typeof PrototypeBatchMapRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
@@ -232,6 +260,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/forgot-password': typeof AuthForgotPasswordRoute
+  '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
   '/analytics': typeof ProtectedAnalyticsRoute
@@ -249,6 +279,8 @@ export interface FileRoutesByTo {
   '/webhooks': typeof ProtectedWebhooksRoute
   '/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/prototype-batch-points': typeof ApiPrototypeBatchPointsRoute
+  '/prototype/batch-map': typeof PrototypeBatchMapRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
@@ -266,6 +298,8 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteWithChildren
   '/docs': typeof DocsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/sign-up': typeof AuthSignUpRoute
   '/_protected/analytics': typeof ProtectedAnalyticsRoute
@@ -283,6 +317,8 @@ export interface FileRoutesById {
   '/_protected/webhooks': typeof ProtectedWebhooksRoute
   '/_protected/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/prototype-batch-points': typeof ApiPrototypeBatchPointsRoute
+  '/prototype/batch-map': typeof PrototypeBatchMapRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
@@ -300,6 +336,8 @@ export interface FileRouteTypes {
     | '/'
     | '/docs'
     | '/sitemap.xml'
+    | '/forgot-password'
+    | '/reset-password'
     | '/sign-in'
     | '/sign-up'
     | '/analytics'
@@ -317,6 +355,8 @@ export interface FileRouteTypes {
     | '/webhooks'
     | '/zones'
     | '/api/health'
+    | '/api/prototype-batch-points'
+    | '/prototype/batch-map'
     | '/rpc/$'
     | '/api/auth/get-session'
     | '/api/auth/ok'
@@ -332,6 +372,8 @@ export interface FileRouteTypes {
     | '/'
     | '/docs'
     | '/sitemap.xml'
+    | '/forgot-password'
+    | '/reset-password'
     | '/sign-in'
     | '/sign-up'
     | '/analytics'
@@ -349,6 +391,8 @@ export interface FileRouteTypes {
     | '/webhooks'
     | '/zones'
     | '/api/health'
+    | '/api/prototype-batch-points'
+    | '/prototype/batch-map'
     | '/rpc/$'
     | '/api/auth/get-session'
     | '/api/auth/ok'
@@ -365,6 +409,8 @@ export interface FileRouteTypes {
     | '/_protected'
     | '/docs'
     | '/sitemap.xml'
+    | '/_auth/forgot-password'
+    | '/_auth/reset-password'
     | '/_auth/sign-in'
     | '/_auth/sign-up'
     | '/_protected/analytics'
@@ -382,6 +428,8 @@ export interface FileRouteTypes {
     | '/_protected/webhooks'
     | '/_protected/zones'
     | '/api/health'
+    | '/api/prototype-batch-points'
+    | '/prototype/batch-map'
     | '/rpc/$'
     | '/api/auth/get-session'
     | '/api/auth/ok'
@@ -399,9 +447,13 @@ export interface RootRouteChildren {
   ProtectedRoute: typeof ProtectedRouteWithChildren
   DocsRoute: typeof DocsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiPrototypeBatchPointsRoute: typeof ApiPrototypeBatchPointsRoute
+  PrototypeBatchMapRoute: typeof PrototypeBatchMapRoute
   RpcSplatRoute: typeof RpcSplatRoute
   ApiAuthGetSessionRoute: typeof ApiAuthGetSessionRoute
   ApiAuthOkRoute: typeof ApiAuthOkRoute
@@ -449,6 +501,20 @@ declare module '@tanstack/react-router' {
       path: '/rpc/$'
       fullPath: '/rpc/$'
       preLoaderRoute: typeof RpcSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prototype/batch-map': {
+      id: '/prototype/batch-map'
+      path: '/prototype/batch-map'
+      fullPath: '/prototype/batch-map'
+      preLoaderRoute: typeof PrototypeBatchMapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/prototype-batch-points': {
+      id: '/api/prototype-batch-points'
+      path: '/api/prototype-batch-points'
+      fullPath: '/api/prototype-batch-points'
+      preLoaderRoute: typeof ApiPrototypeBatchPointsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -570,6 +636,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/reset-password': {
+      id: '/_auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/forgot-password': {
+      id: '/_auth/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/$': {
       id: '/api/v1/$'
       path: '/api/v1/$'
@@ -679,9 +759,13 @@ const rootRouteChildren: RootRouteChildren = {
   ProtectedRoute: ProtectedRouteWithChildren,
   DocsRoute: DocsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   ApiHealthRoute: ApiHealthRoute,
+  ApiPrototypeBatchPointsRoute: ApiPrototypeBatchPointsRoute,
+  PrototypeBatchMapRoute: PrototypeBatchMapRoute,
   RpcSplatRoute: RpcSplatRoute,
   ApiAuthGetSessionRoute: ApiAuthGetSessionRoute,
   ApiAuthOkRoute: ApiAuthOkRoute,
