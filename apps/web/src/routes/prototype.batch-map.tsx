@@ -6,10 +6,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	Map,
-	type MapRef,
 	MapClusterLayer,
 	MapControls,
 	MapPopup,
+	type MapRef,
 	useMap,
 } from "@wherabouts.com/ui/components/ui/map";
 import { useEffect, useRef, useState } from "react";
@@ -84,7 +84,7 @@ function VariantClusters({ geo }: { geo: FeatureCollection }) {
 
 	return (
 		<div className="h-full w-full">
-			<Map center={AU_CENTER} zoom={AU_ZOOM} fadeDuration={0}>
+			<Map center={AU_CENTER} fadeDuration={0} zoom={AU_ZOOM}>
 				<MapClusterLayer<PointProps>
 					clusterColors={CLUSTER_COLORS}
 					clusterMaxZoom={14}
@@ -148,11 +148,21 @@ function HeatmapLayer({ geo }: { geo: FeatureCollection }) {
 			});
 		}
 		return () => {
-			if (map.getLayer(LYR)) {
-				map.removeLayer(LYR);
+			// On unmount (e.g. switching variants) the <Map> may have already
+			// torn down the MapLibre instance, leaving map.style undefined —
+			// calling getLayer/removeLayer then throws. Skip if removed.
+			if ((map as unknown as { _removed?: boolean })._removed) {
+				return;
 			}
-			if (map.getSource(SRC)) {
-				map.removeSource(SRC);
+			try {
+				if (map.getLayer(LYR)) {
+					map.removeLayer(LYR);
+				}
+				if (map.getSource(SRC)) {
+					map.removeSource(SRC);
+				}
+			} catch {
+				// Map torn down during unmount — nothing to clean up.
 			}
 		};
 	}, [map, isLoaded, geo]);
@@ -162,7 +172,7 @@ function HeatmapLayer({ geo }: { geo: FeatureCollection }) {
 function VariantHeatmap({ geo }: { geo: FeatureCollection }) {
 	return (
 		<div className="h-full w-full">
-			<Map center={AU_CENTER} zoom={AU_ZOOM} fadeDuration={0}>
+			<Map center={AU_CENTER} fadeDuration={0} zoom={AU_ZOOM}>
 				<HeatmapLayer geo={geo} />
 				<MapControls />
 			</Map>
@@ -178,7 +188,7 @@ function VariantSplit({ geo }: { geo: FeatureCollection }) {
 	return (
 		<div className="grid h-full w-full grid-cols-[1fr_320px]">
 			<div className="h-full">
-				<Map center={AU_CENTER} ref={mapRef} zoom={AU_ZOOM} fadeDuration={0}>
+				<Map center={AU_CENTER} fadeDuration={0} ref={mapRef} zoom={AU_ZOOM}>
 					<MapClusterLayer<PointProps>
 						clusterColors={CLUSTER_COLORS}
 						clusterMaxZoom={14}
@@ -191,8 +201,7 @@ function VariantSplit({ geo }: { geo: FeatureCollection }) {
 			</div>
 			<div className="h-full overflow-auto border-l bg-background">
 				<div className="sticky top-0 border-b bg-background/95 px-3 py-2 text-muted-foreground text-xs backdrop-blur">
-					Showing first {rows.length} of{" "}
-					{geo.features.length.toLocaleString()}
+					Showing first {rows.length} of {geo.features.length.toLocaleString()}
 				</div>
 				<ul>
 					{rows.map((f, i) => {
@@ -225,7 +234,10 @@ function VariantSplit({ geo }: { geo: FeatureCollection }) {
 // --- Floating variant switcher (dev-only) -----------------------------------
 function PrototypeSwitcher({ current }: { current: string }) {
 	const navigate = useNavigate();
-	const idx = Math.max(0, VARIANTS.indexOf(current as (typeof VARIANTS)[number]));
+	const idx = Math.max(
+		0,
+		VARIANTS.indexOf(current as (typeof VARIANTS)[number])
+	);
 
 	useEffect(() => {
 		if (import.meta.env.PROD) {
@@ -238,7 +250,8 @@ function PrototypeSwitcher({ current }: { current: string }) {
 			}
 			if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
 				const delta = e.key === "ArrowRight" ? 1 : -1;
-				const next = VARIANTS[(idx + delta + VARIANTS.length) % VARIANTS.length];
+				const next =
+					VARIANTS[(idx + delta + VARIANTS.length) % VARIANTS.length];
 				navigate({ to: "/prototype/batch-map", search: { variant: next } });
 			}
 		};
@@ -256,7 +269,7 @@ function PrototypeSwitcher({ current }: { current: string }) {
 	};
 
 	return (
-		<div className="-translate-x-1/2 fixed bottom-4 left-1/2 z-50 flex items-center gap-2 rounded-full border border-white/20 bg-black/80 px-2 py-1.5 text-white shadow-lg backdrop-blur">
+		<div className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/20 bg-black/80 px-2 py-1.5 text-white shadow-lg backdrop-blur">
 			<button
 				className="rounded-full px-2 py-0.5 hover:bg-white/15"
 				onClick={() => go(-1)}
