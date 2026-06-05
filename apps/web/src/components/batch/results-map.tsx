@@ -8,8 +8,13 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import type { BatchResultRow } from "./results-table";
 
-// Basemap: use mapcn's theme-aware default (CARTO dark-matter under the dark
-// dashboard) for the sleek shadcn-aligned look — intentionally not overridden.
+// Basemap: OpenFreeMap dark/positron — free, no API key, CORS-open vector tiles
+// that ship working glyphs (labels). Keeps the sleek dark shadcn look without
+// CARTO's CORS-blocked glyph endpoint dropping the map labels.
+const BASEMAP = {
+	dark: "https://tiles.openfreemap.org/styles/dark",
+	light: "https://tiles.openfreemap.org/styles/positron",
+};
 const MAP_HEIGHT_PX = 480;
 const CLUSTER_COLORS: [string, string, string] = [
 	"#3b82f6",
@@ -109,7 +114,12 @@ export function ResultsMap({ results }: ResultsMapProps) {
 				className="overflow-hidden rounded-md border"
 				style={{ height: MAP_HEIGHT_PX }}
 			>
-				<Map center={AU_CENTER} fadeDuration={0} zoom={AU_ZOOM}>
+				<Map
+					center={AU_CENTER}
+					fadeDuration={0}
+					styles={BASEMAP}
+					zoom={AU_ZOOM}
+				>
 					<MapClusterLayer<PointProps>
 						clusterColors={CLUSTER_COLORS}
 						clusterMaxZoom={14}
