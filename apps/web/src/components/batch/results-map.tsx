@@ -6,15 +6,14 @@ import {
 	useMap,
 } from "@wherabouts.com/ui/components/ui/map";
 import { useEffect, useMemo, useState } from "react";
+import {
+	OPENFREEMAP_DARK,
+	OPENFREEMAP_LIGHT,
+} from "@/components/map/map-style";
 import type { BatchResultRow } from "./results-table";
 
-// Basemap: OpenFreeMap dark/positron — free, no API key, CORS-open vector tiles
-// that ship working glyphs (labels). Keeps the sleek dark shadcn look without
-// CARTO's CORS-blocked glyph endpoint dropping the map labels.
-const BASEMAP = {
-	dark: "https://tiles.openfreemap.org/styles/dark",
-	light: "https://tiles.openfreemap.org/styles/positron",
-};
+// Shared dark basemap (same one the zone maps use) — free, no key, CORS-open.
+const BASEMAP = { dark: OPENFREEMAP_DARK, light: OPENFREEMAP_LIGHT };
 const MAP_HEIGHT_PX = 480;
 const CLUSTER_COLORS: [string, string, string] = [
 	"#3b82f6",

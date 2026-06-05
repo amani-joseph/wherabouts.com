@@ -1,28 +1,20 @@
 /**
- * MapLibre style resolution. With a MapTiler key we use their vector "streets"
- * style; without one we fall back to a free raster OpenStreetMap style so maps
- * still render in dev/CI that hasn't set the key.
+ * MapLibre basemap resolution for the (dark) dashboard. We use a dark vector
+ * style everywhere for visual consistency. Without a MapTiler key we use the
+ * free, no-key, CORS-open OpenFreeMap dark style (also used by the batch
+ * results map); with a key we use MapTiler's dark style.
  */
 
-export type MapStyle = string | object;
+export type MapStyle = string;
 
-/** A self-contained raster style using OSM tiles — no API key required. */
-export const FALLBACK_STYLE = {
-	version: 8,
-	sources: {
-		osm: {
-			type: "raster",
-			tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-			tileSize: 256,
-			attribution: "© OpenStreetMap contributors",
-		},
-	},
-	layers: [{ id: "osm", type: "raster", source: "osm" }],
-} as const;
+/** Free, no-key, CORS-open dark vector basemap (ships glyphs/labels). */
+export const OPENFREEMAP_DARK = "https://tiles.openfreemap.org/styles/dark";
+/** Light counterpart (for any future light-themed surface). */
+export const OPENFREEMAP_LIGHT = "https://tiles.openfreemap.org/styles/positron";
 
-export function buildMapStyleUrl(maptilerKey: string | undefined): MapStyle {
-	if (!maptilerKey) {
-		return FALLBACK_STYLE;
+export function buildMapStyleUrl(maptilerKey?: string): MapStyle {
+	if (maptilerKey) {
+		return `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${maptilerKey}`;
 	}
-	return `https://api.maptiler.com/maps/streets-v2/style.json?key=${maptilerKey}`;
+	return OPENFREEMAP_DARK;
 }
