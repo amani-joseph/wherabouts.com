@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Button } from "@wherabouts.com/ui/components/button";
 import {
 	Card,
 	CardContent,
@@ -9,10 +10,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ActiveProjectSelector } from "@/components/active-project-selector";
 import { BatchInput } from "@/components/batch/batch-input";
+import {
+	JobHistory,
+	type JobHistoryItem,
+} from "@/components/batch/job-history";
 import { JobProgress } from "@/components/batch/job-progress";
-import { JobHistory, type JobHistoryItem } from "@/components/batch/job-history";
-import { ResultsTable, type BatchResultRow } from "@/components/batch/results-table";
 import { parseAddresses } from "@/components/batch/parse-addresses";
+import { ResultsMap } from "@/components/batch/results-map";
+import {
+	type BatchResultRow,
+	ResultsTable,
+} from "@/components/batch/results-table";
 import { useActiveProject } from "@/lib/active-project";
 import { orpcClient } from "@/lib/orpc";
 
@@ -21,12 +29,12 @@ export const Route = createFileRoute("/_protected/batch")({
 });
 
 interface PollResult {
-	jobId: string;
-	status: string;
-	inputCount: number;
-	processedCount: number;
 	completedAt: Date | string | null;
 	error: string | null;
+	inputCount: number;
+	jobId: string;
+	processedCount: number;
+	status: string;
 }
 
 function RouteComponent() {
@@ -37,6 +45,7 @@ function RouteComponent() {
 	const [submitting, setSubmitting] = useState(false);
 	const [job, setJob] = useState<PollResult | null>(null);
 	const [results, setResults] = useState<BatchResultRow[] | null>(null);
+	const [resultView, setResultView] = useState<"table" | "map">("map");
 	const [jobs, setJobs] = useState<JobHistoryItem[]>([]);
 	const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -173,7 +182,33 @@ function RouteComponent() {
 							status={job.status}
 						/>
 					) : null}
-					{results ? <ResultsTable results={results} /> : null}
+					{results ? (
+						<div className="space-y-2">
+							<div className="flex justify-end gap-1">
+								<Button
+									onClick={() => setResultView("map")}
+									size="sm"
+									type="button"
+									variant={resultView === "map" ? "secondary" : "ghost"}
+								>
+									Map
+								</Button>
+								<Button
+									onClick={() => setResultView("table")}
+									size="sm"
+									type="button"
+									variant={resultView === "table" ? "secondary" : "ghost"}
+								>
+									Table
+								</Button>
+							</div>
+							{resultView === "map" ? (
+								<ResultsMap results={results} />
+							) : (
+								<ResultsTable results={results} />
+							)}
+						</div>
+					) : null}
 				</CardContent>
 			</Card>
 			<Card>
