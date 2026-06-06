@@ -45,6 +45,9 @@ export function buildMapStyle(tilesBaseUrl?: string): MapStyle {
 				maxzoom: MAX_ZOOM,
 			},
 		},
-		layers: layers(SOURCE_NAME, namedTheme("dark")),
+		// `lang` is required for protomaps-themes-base v4 to emit the label
+		// layers (place/road/water names). Without it, `layers()` returns only
+		// geometry layers and the map renders with no text. See map-style.test.ts.
+		layers: layers(SOURCE_NAME, namedTheme("dark"), { lang: "en" }),
 	};
 }
