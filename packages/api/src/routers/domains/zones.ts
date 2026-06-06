@@ -3,6 +3,7 @@ import { z } from "zod";
 import { protectedProcedure } from "../../procedures.ts";
 import { requireProjectOwnership } from "../../shared/project-ownership.ts";
 import {
+	addressesInBbox,
 	addressesInZone,
 	countZones,
 	deleteZoneRow,
@@ -96,7 +97,10 @@ export const zonesRouter = {
 				input.projectId,
 				context.session.user.id
 			);
-			if (input.geometry && !(await isValidPolygon(context.db, input.geometry))) {
+			if (
+				input.geometry &&
+				!(await isValidPolygon(context.db, input.geometry))
+			) {
 				throw new ORPCError("UNPROCESSABLE_CONTENT", {
 					message: "Provided geometry is not a valid polygon.",
 				});
@@ -183,5 +187,22 @@ export const zonesRouter = {
 				...out,
 				query: { id: input.id, page: input.page, limit: input.limit },
 			};
+		}),
+
+	inViewport: protectedProcedure
+		.input(
+			z.object({
+				bbox: z.tuple([
+					z.number().min(-180).max(180),
+					z.number().min(-90).max(90),
+					z.number().min(-180).max(180),
+					z.number().min(-90).max(90),
+				]),
+				limit: z.number().int().min(1).max(5000).default(2000),
+			})
+		)
+		.handler(async ({ context, input }) => {
+			const out = await addressesInBbox(context.db, input.bbox, input.limit);
+			return out;
 		}),
 };
