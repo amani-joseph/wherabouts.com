@@ -17,7 +17,8 @@
     "@wherabouts.com/database": "workspace:*",
     "@wherabouts.com/env": "workspace:*",
     "drizzle-orm": "^0.44.0",
-    "hono": "^4.10.4"
+    "hono": "^4.10.4",
+    "pmtiles": "^4.4.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260416.2",
@@ -25,7 +26,7 @@
     "@wherabouts.com/config": "workspace:*",
     "tsx": "^4.21.0",
     "typescript": "^5",
-    "wrangler": "^4.81.1",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.4",
+    "wrangler": "^4.81.1"
   }
 }
