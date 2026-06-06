@@ -1,20 +1,22 @@
+import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import { MapCanvas } from "@/components/map/map-canvas";
-import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
-import { useZoneDraw, type UseZoneDraw } from "./use-zone-draw.ts";
+import { useAddressOverlay } from "./use-address-overlay.ts";
+import { type UseZoneDraw, useZoneDraw } from "./use-zone-draw.ts";
 
 const EXISTING_SRC = "existing-zones";
 const MAP_HEIGHT_PX = 480;
 
 export interface ZoneMapProps {
-	zones: ZoneWithGeometryRow[];
 	onReady?: (controls: UseZoneDraw) => void;
+	zones: ZoneWithGeometryRow[];
 }
 
 export function ZoneMap({ zones, onReady }: ZoneMapProps) {
 	const [map, setMap] = useState<MapLibreMap | null>(null);
 	const draw = useZoneDraw(map);
+	useAddressOverlay(map);
 
 	const onReadyRef = useRef(onReady);
 	onReadyRef.current = onReady;
