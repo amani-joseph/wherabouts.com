@@ -1,10 +1,14 @@
 import { ORPCError } from "@orpc/server";
 import { autocompleteAddresses } from "@wherabouts.com/database/queries";
-import { batchGeocodeJobs } from "@wherabouts.com/database/schema";
-import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { ValidatedApiKey } from "../../api-key-auth.ts";
 import { o as baseBuilder } from "../../builder.ts";
+import {
+	createBatchGeocodeJob,
+	getBatchGeocodeJob,
+	getBatchGeocodeResults,
+	MAX_BATCH_ADDRESSES,
+} from "../../shared/batch-geocode.ts";
 import { apiKeyAuth, usageMiddleware } from "../public-middleware.ts";
 // buildGeocodeQuery lives in the env-free geocode-query.ts module so it stays
 // unit-testable without loading serverEnv.
@@ -137,15 +141,13 @@ export const batchGeocodeSubmit = baseBuilder
 			addresses: z
 				.array(z.string().min(5))
 				.min(1)
-				.max(1000, "Maximum 1,000 addresses per job"),
+				.max(MAX_BATCH_ADDRESSES, "Maximum 1,000 addresses per job"),
 		})
 	)
 	.handler(async ({ input, context }) => {
 		const ctx = context as typeof context & {
 			validatedApiKey: ValidatedApiKey;
-			// CF binding — available in Worker env, may be absent in tests
-			// biome-ignore lint: Queue type from @cloudflare/workers-types not in this package's tsconfig
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			// biome-ignore lint/suspicious/noExplicitAny: CF Queue binding not typed in this package
 			env?: { BATCH_GEOCODE_QUEUE?: any };
 		};
 		const projectId = ctx.validatedApiKey.projectId;
@@ -155,45 +157,12 @@ export const batchGeocodeSubmit = baseBuilder
 			});
 		}
 
-		const [job] = await context.db
-			.insert(batchGeocodeJobs)
-			.values({
-				projectId,
-				apiKeyId: ctx.validatedApiKey.apiKeyId,
-				status: "pending",
-				inputCount: input.addresses.length,
-			})
-			.returning({ id: batchGeocodeJobs.id });
-
-		if (ctx.env?.BATCH_GEOCODE_QUEUE) {
-			try {
-				await ctx.env.BATCH_GEOCODE_QUEUE.send({
-					type: "batch-geocode",
-					jobId: job!.id,
-					addresses: input.addresses,
-					projectId,
-				});
-				await context.db
-					.update(batchGeocodeJobs)
-					.set({ status: "processing" })
-					.where(eq(batchGeocodeJobs.id, job!.id));
-			} catch (err) {
-				await context.db
-					.update(batchGeocodeJobs)
-					.set({ status: "failed", error: "Failed to enqueue job." })
-					.where(eq(batchGeocodeJobs.id, job!.id));
-				throw new ORPCError("INTERNAL_SERVER_ERROR", {
-					message: "Failed to enqueue batch job. Please retry.",
-				});
-			}
-		}
-
-		const finalStatus = ctx.env?.BATCH_GEOCODE_QUEUE ? "processing" : "pending";
-		return {
-			jobId: job!.id,
-			status: finalStatus,
-			inputCount: input.addresses.length,
-		};
+		return await createBatchGeocodeJob(context.db, {
+			projectId,
+			apiKeyId: ctx.validatedApiKey.apiKeyId,
+			addresses: input.addresses,
+			queue: ctx.env?.BATCH_GEOCODE_QUEUE,
+		});
 	});
 
 export const batchGeocodePoll = baseBuilder
@@ -217,21 +186,7 @@ export const batchGeocodePoll = baseBuilder
 			});
 		}
 
-		const [job] = await context.db
-			.select()
-			.from(batchGeocodeJobs)
-			.where(
-				and(
-					eq(batchGeocodeJobs.id, input.jobId),
-					eq(batchGeocodeJobs.projectId, projectId)
-				)
-			)
-			.limit(1);
-
-		if (!job) {
-			throw new ORPCError("NOT_FOUND", { message: "Job not found." });
-		}
-
+		const job = await getBatchGeocodeJob(context.db, projectId, input.jobId);
 		return {
 			jobId: job.id,
 			status: job.status,
@@ -259,8 +214,7 @@ export const batchGeocodeResults = baseBuilder
 	.handler(async ({ input, context }) => {
 		const ctx = context as typeof context & {
 			validatedApiKey: ValidatedApiKey;
-			// biome-ignore lint: R2Bucket type from @cloudflare/workers-types not in this package's tsconfig
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			// biome-ignore lint/suspicious/noExplicitAny: CF R2 binding not typed in this package
 			env?: { GEOCODE_RESULTS?: any };
 		};
 		const projectId = ctx.validatedApiKey.projectId;
@@ -270,40 +224,10 @@ export const batchGeocodeResults = baseBuilder
 			});
 		}
 
-		const [job] = await context.db
-			.select({
-				status: batchGeocodeJobs.status,
-				resultsR2Key: batchGeocodeJobs.resultsR2Key,
-			})
-			.from(batchGeocodeJobs)
-			.where(
-				and(
-					eq(batchGeocodeJobs.id, input.jobId),
-					eq(batchGeocodeJobs.projectId, projectId)
-				)
-			)
-			.limit(1);
-
-		if (!job) {
-			throw new ORPCError("NOT_FOUND", { message: "Job not found." });
-		}
-		if (job.status !== "completed" || !job.resultsR2Key) {
-			throw new ORPCError("NOT_FOUND", {
-				message: `Results not ready. Job status: ${job.status}`,
-			});
-		}
-		if (!ctx.env?.GEOCODE_RESULTS) {
-			throw new ORPCError("INTERNAL_SERVER_ERROR", {
-				message: "Storage binding unavailable.",
-			});
-		}
-
-		const obj = await ctx.env.GEOCODE_RESULTS.get(job.resultsR2Key);
-		if (!obj) {
-			throw new ORPCError("NOT_FOUND", { message: "Results file not found." });
-		}
-
-		// biome-ignore lint: obj is any (R2Bucket not in this package's tsconfig)
-		const results = (await obj.json()) as unknown[];
-		return { results, count: results.length };
+		return await getBatchGeocodeResults(
+			context.db,
+			projectId,
+			input.jobId,
+			ctx.env?.GEOCODE_RESULTS
+		);
 	});

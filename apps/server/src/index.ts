@@ -202,7 +202,17 @@ function endpointKeyFromPath(pathname: string): string {
 
 app.use("/api/v1/*", async (context) => {
 	const startedAt = performance.now();
-	const rpcContext = await createContext({ req: context.req });
+	// Thread CF bindings (queues, R2) into the public context — without this the
+	// device-location webhook enqueue and batch submit/results bindings are
+	// undefined and silently no-op.
+	const cfEnv = context.env as
+		| {
+				BATCH_GEOCODE_QUEUE?: unknown;
+				WEBHOOK_DELIVERY_QUEUE?: unknown;
+				GEOCODE_RESULTS?: unknown;
+		  }
+		| undefined;
+	const rpcContext = await createContext({ env: cfEnv, req: context.req });
 	const result = await openApiHandler.handle(context.req.raw, {
 		prefix: "/" as `/${string}`,
 		context: rpcContext,
@@ -270,6 +280,7 @@ app.use("/*", async (context, next) => {
 	const cfEnv = context.env as
 		| {
 				BATCH_GEOCODE_QUEUE?: unknown;
+				WEBHOOK_DELIVERY_QUEUE?: unknown;
 				GEOCODE_RESULTS?: unknown;
 		  }
 		| undefined;
