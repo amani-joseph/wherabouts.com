@@ -38,6 +38,7 @@
 		]
 	},
 	"r2_buckets": [
-		{ "binding": "GEOCODE_RESULTS", "bucket_name": "wherabouts-geocode-results" }
+		{ "binding": "GEOCODE_RESULTS", "bucket_name": "wherabouts-geocode-results" },
+		{ "binding": "MAP_TILES", "bucket_name": "wherabouts-tiles" }
 	]
 }

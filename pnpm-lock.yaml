@@ -96,6 +96,9 @@ importers:
       hono:
         specifier: ^4.10.4
         version: 4.12.12
+      pmtiles:
+        specifier: ^4.4.1
+        version: 4.4.1
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260416.2
@@ -4553,6 +4556,9 @@ packages:
   pkce-challenge@5.0.1:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
+
+  pmtiles@4.4.1:
+    resolution: {integrity: sha512-5oTeQc/yX/ft1evbpIlnoCZugQuug/iYIAj/ZTqIqzdGek4uZEho99En890EE6NOSI3JTI3IG8R7r8+SltphxA==}
 
   point-in-polygon-hao@1.2.4:
     resolution: {integrity: sha512-x2pcvXeqhRHlNRdhLs/tgFapAbSSe86wa/eqmj1G6pWftbEs5aVRJhRGM6FYSUERKu0PjekJzMq0gsI2XyiclQ==}
@@ -9318,6 +9324,10 @@ snapshots:
   picomatch@4.0.4: {}
 
   pkce-challenge@5.0.1: {}
+
+  pmtiles@4.4.1:
+    dependencies:
+      fflate: 0.8.2
 
   point-in-polygon-hao@1.2.4:
     dependencies:
