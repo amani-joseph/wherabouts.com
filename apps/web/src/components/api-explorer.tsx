@@ -24,6 +24,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
 	type ApiEndpoint,
 	apiExplorerEndpoints,
+	buildApiExplorerCurl,
 	buildApiExplorerUrl,
 } from "@/lib/api-explorer-endpoints";
 import { orpcClient } from "@/lib/orpc";
@@ -55,6 +56,57 @@ const buildAuthNotReadyError = (mode: ExplorerAuthMode): string =>
 
 const getApiKeyLoadErrorMessage = (error: unknown): string =>
 	error instanceof Error ? error.message : "Failed to load managed API keys.";
+
+/** Docs-only curl block for non-GET endpoints (the proxy can't send a body). */
+function CurlExampleBlock({
+	baseUrl,
+	endpoint,
+	paramValues,
+}: {
+	baseUrl: string;
+	endpoint: ApiEndpoint;
+	paramValues: Record<string, string>;
+}) {
+	const [copied, setCopied] = useState(false);
+	const curl = buildApiExplorerCurl(endpoint, baseUrl, paramValues);
+
+	const handleCopy = async () => {
+		await navigator.clipboard.writeText(curl);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	};
+
+	return (
+		<div className="rounded-md border">
+			<div className="flex items-center justify-between gap-2 border-b px-3 py-2">
+				<div className="flex items-center gap-2">
+					<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+						curl example
+					</span>
+					<Badge variant="outline">Docs only</Badge>
+				</div>
+				<Button
+					className="h-7 text-xs"
+					onClick={handleCopy}
+					size="sm"
+					variant="ghost"
+				>
+					<CopyIcon className="size-3" />
+					{copied ? "Copied" : "Copy"}
+				</Button>
+			</div>
+			<pre className="max-h-96 overflow-auto p-3 font-mono text-xs leading-relaxed">
+				{curl}
+			</pre>
+			<p className="border-t px-3 py-2 text-muted-foreground text-xs">
+				This endpoint sends a request body, so it isn't run through the live
+				tester. Copy the command, replace the API key
+				{endpoint.exampleBody ? " and adjust the JSON body" : ""}, then run it
+				from your terminal.
+			</p>
+		</div>
+	);
+}
 
 function methodColor(method: string): string {
 	switch (method) {
@@ -143,9 +195,11 @@ function useExplorerApiKeys() {
 
 function EndpointCard({
 	authState,
+	baseUrl,
 	endpoint,
 }: {
 	authState: ExplorerAuthState;
+	baseUrl: string;
 	endpoint: ApiEndpoint;
 }) {
 	const [isOpen, setIsOpen] = useState(false);
@@ -155,6 +209,9 @@ function EndpointCard({
 	const [durationMs, setDurationMs] = useState<number | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [copied, setCopied] = useState(false);
+	// Only GET endpoints are executable through the server-side proxy; everything
+	// else is documented with a copy-paste curl command (the proxy can't send a body).
+	const isExecutable = endpoint.method === "GET";
 	const requestUrl = buildApiExplorerUrl(endpoint, paramValues);
 	const missingRequiredParams = endpoint.params.filter(
 		(param) => param.required && !paramValues[param.name]?.trim()
@@ -328,51 +385,65 @@ function EndpointCard({
 						</div>
 					</div>
 
-					{/* Request URL Preview */}
-					<div className="mb-4 rounded-md bg-muted/50 p-3">
-						<div className="mb-1 flex items-center justify-between gap-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">
-							Request URL
-							<Badge className="gap-1" variant="outline">
-								<ShieldCheckIcon className="size-3" />
-								Test request
-							</Badge>
-						</div>
-						<code className="break-all font-mono text-sm">{requestUrl}</code>
-					</div>
+					{isExecutable ? (
+						<>
+							{/* Request URL Preview */}
+							<div className="mb-4 rounded-md bg-muted/50 p-3">
+								<div className="mb-1 flex items-center justify-between gap-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">
+									Request URL
+									<Badge className="gap-1" variant="outline">
+										<ShieldCheckIcon className="size-3" />
+										Test request
+									</Badge>
+								</div>
+								<code className="break-all font-mono text-sm">
+									{requestUrl}
+								</code>
+							</div>
 
-					{/* Send Button */}
-					<div className="mb-4 flex flex-col gap-3">
-						<div className="flex flex-wrap items-center gap-2">
-							<Badge variant="secondary">
-								{authState.mode === "managed"
-									? "Managed key proxy"
-									: "Raw key proxy"}
-							</Badge>
-							<Badge variant="outline">Usage: explorer_test</Badge>
-						</div>
-						<Button
-							disabled={
-								loading ||
-								!authState.isReady ||
-								missingRequiredParams.length > 0
-							}
-							onClick={handleSend}
-						>
-							{loading ? (
-								<LoaderIcon className="size-4 animate-spin" />
-							) : (
-								<PlayIcon className="size-4" />
-							)}
-							{loading ? "Sending..." : "Send Test Request"}
-						</Button>
-						{missingRequiredParams.length > 0 ? (
-							<p className="text-muted-foreground text-xs">
-								Add{" "}
-								{missingRequiredParams.map((param) => param.name).join(", ")}{" "}
-								before sending this request.
-							</p>
-						) : null}
-					</div>
+							{/* Send Button */}
+							<div className="mb-4 flex flex-col gap-3">
+								<div className="flex flex-wrap items-center gap-2">
+									<Badge variant="secondary">
+										{authState.mode === "managed"
+											? "Managed key proxy"
+											: "Raw key proxy"}
+									</Badge>
+									<Badge variant="outline">Usage: explorer_test</Badge>
+								</div>
+								<Button
+									disabled={
+										loading ||
+										!authState.isReady ||
+										missingRequiredParams.length > 0
+									}
+									onClick={handleSend}
+								>
+									{loading ? (
+										<LoaderIcon className="size-4 animate-spin" />
+									) : (
+										<PlayIcon className="size-4" />
+									)}
+									{loading ? "Sending..." : "Send Test Request"}
+								</Button>
+								{missingRequiredParams.length > 0 ? (
+									<p className="text-muted-foreground text-xs">
+										Add{" "}
+										{missingRequiredParams
+											.map((param) => param.name)
+											.join(", ")}{" "}
+										before sending this request.
+									</p>
+								) : null}
+							</div>
+						</>
+					) : (
+						<CurlExampleBlock
+							baseUrl={baseUrl}
+							endpoint={endpoint}
+							paramValues={paramValues}
+						/>
+					)}
 
 					{/* Response */}
 					{response !== null && (
@@ -593,6 +664,7 @@ export function ApiExplorer() {
 				{apiExplorerEndpoints.map((endpoint) => (
 					<EndpointCard
 						authState={authState}
+						baseUrl={baseUrl}
 						endpoint={endpoint}
 						key={`${endpoint.method}-${endpoint.path}`}
 					/>

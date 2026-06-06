@@ -3,29 +3,12 @@ import { autocompleteAddresses } from "@wherabouts.com/database/queries";
 import { batchGeocodeJobs } from "@wherabouts.com/database/schema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
+import type { ValidatedApiKey } from "../../api-key-auth.ts";
 import { o as baseBuilder } from "../../builder.ts";
 import { apiKeyAuth, usageMiddleware } from "../public-middleware.ts";
-import type { ValidatedApiKey } from "../../api-key-auth.ts";
-
-// ---------------------------------------------------------------------------
-// Query builder (pure, exported for unit tests)
-// ---------------------------------------------------------------------------
-
-export function buildGeocodeQuery(
-	input:
-		| { structured: "false"; q: string }
-		| {
-				structured: "true";
-				street: string;
-				locality: string;
-				state?: string;
-		  }
-): string {
-	if (input.structured !== "true") {
-		return input.q;
-	}
-	return [input.street, input.locality, input.state].filter(Boolean).join(", ");
-}
+// buildGeocodeQuery lives in the env-free geocode-query.ts module so it stays
+// unit-testable without loading serverEnv.
+import { buildGeocodeQuery } from "./geocode-query.ts";
 
 // ---------------------------------------------------------------------------
 // Input schema — uses string literals since GET query params are always strings.
@@ -47,15 +30,21 @@ const geocodeInput = z.preprocess(
 	z.discriminatedUnion("structured", [
 		z.object({
 			structured: z.literal("true"),
-			street: z.string().min(1, "Parameter 'street' is required in structured mode."),
-			locality: z.string().min(1, "Parameter 'locality' is required in structured mode."),
+			street: z
+				.string()
+				.min(1, "Parameter 'street' is required in structured mode."),
+			locality: z
+				.string()
+				.min(1, "Parameter 'locality' is required in structured mode."),
 			state: z.string().optional(),
 			postcode: z.string().optional(),
 			country: z.string().optional(),
 		}),
 		z.object({
 			structured: z.literal("false"),
-			q: z.string().min(5, "Query parameter 'q' must be at least 5 characters."),
+			q: z
+				.string()
+				.min(5, "Query parameter 'q' must be at least 5 characters."),
 			country: z.string().optional(),
 			state: z.string().optional(),
 		}),
@@ -218,7 +207,9 @@ export const batchGeocodePoll = baseBuilder
 	})
 	.input(z.object({ jobId: z.string().uuid() }))
 	.handler(async ({ input, context }) => {
-		const ctx = context as typeof context & { validatedApiKey: ValidatedApiKey };
+		const ctx = context as typeof context & {
+			validatedApiKey: ValidatedApiKey;
+		};
 		const projectId = ctx.validatedApiKey.projectId;
 		if (!projectId) {
 			throw new ORPCError("UNAUTHORIZED", {

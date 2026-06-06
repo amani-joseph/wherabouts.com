@@ -34,6 +34,8 @@ export type ApiEndpointId =
 
 export type ApiEndpoint = {
 	description: string;
+	/** Example JSON request body for non-GET (docs-only) endpoints' curl example. */
+	exampleBody?: Record<string, unknown>;
 	id: ApiEndpointId;
 	method: "GET" | "POST" | "PUT" | "DELETE";
 	params: ApiParam[];
@@ -235,6 +237,12 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		description:
 			"Submit an array of address strings for background geocoding. Returns a jobId immediately. POST with JSON body — use the curl example in the docs page to test.",
 		params: [],
+		exampleBody: {
+			addresses: [
+				"123 Main St Melbourne VIC 3000",
+				"1 George St Sydney NSW 2000",
+			],
+		},
 	},
 	{
 		id: "geocode.batch.poll",
@@ -248,8 +256,8 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 				name: "jobId",
 				type: "string",
 				required: true,
-				description: "Job ID returned by batch submit",
-				example: "job_abc123xyz",
+				description: "Job ID (UUID) returned by batch submit",
+				example: "550e8400-e29b-41d4-a716-446655440000",
 			},
 		],
 	},
@@ -265,8 +273,8 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 				name: "jobId",
 				type: "string",
 				required: true,
-				description: "Job ID returned by batch submit",
-				example: "job_abc123xyz",
+				description: "Job ID (UUID) returned by batch submit",
+				example: "550e8400-e29b-41d4-a716-446655440000",
 			},
 		],
 	},
@@ -280,6 +288,21 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		description:
 			"Create a named geofence zone defined by a GeoJSON Polygon. POST with JSON body — use the curl example in the docs page to test.",
 		params: [],
+		exampleBody: {
+			name: "Melbourne CBD",
+			description: "Central business district",
+			geometry: {
+				type: "Polygon",
+				coordinates: [
+					[
+						[144.96, -37.81],
+						[144.97, -37.81],
+						[144.97, -37.82],
+						[144.96, -37.81],
+					],
+				],
+			},
+		},
 	},
 	{
 		id: "zones.list",
@@ -287,14 +310,21 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		path: "/api/v1/zones",
 		summary: "List zones for a project",
 		description:
-			"Return all zones for a project including their GeoJSON geometry.",
+			"Return zones for the API key's project, including GeoJSON geometry. The project is derived from the API key — no projectId param is required.",
 		params: [
 			{
-				name: "projectId",
-				type: "string",
-				required: true,
-				description: "Project identifier",
-				example: "proj_abc",
+				name: "page",
+				type: "number",
+				required: false,
+				description: "Page number (default 1)",
+				example: "1",
+			},
+			{
+				name: "limit",
+				type: "number",
+				required: false,
+				description: "Results per page (1-100, default 20)",
+				example: "20",
 			},
 		],
 	},
@@ -307,10 +337,10 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		params: [
 			{
 				name: "id",
-				type: "string",
+				type: "number",
 				required: true,
-				description: "Zone identifier",
-				example: "zone_01HX3K9R",
+				description: "Numeric zone ID",
+				example: "1",
 			},
 		],
 	},
@@ -325,12 +355,15 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		params: [
 			{
 				name: "id",
-				type: "string",
+				type: "number",
 				required: true,
-				description: "Zone identifier",
-				example: "zone_01HX3K9R",
+				description: "Numeric zone ID",
+				example: "1",
 			},
 		],
+		exampleBody: {
+			name: "Updated zone name",
+		},
 	},
 	// DELETE /zones/{id} — docs-only
 	{
@@ -343,10 +376,10 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		params: [
 			{
 				name: "id",
-				type: "string",
+				type: "number",
 				required: true,
-				description: "Zone identifier",
-				example: "zone_01HX3K9R",
+				description: "Numeric zone ID",
+				example: "1",
 			},
 		],
 	},
@@ -356,15 +389,8 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		path: "/api/v1/zones/contains",
 		summary: "Point-in-polygon zone test",
 		description:
-			"Test whether a coordinate falls inside any project zone using PostGIS ST_Contains.",
+			"Test whether a coordinate falls inside any zone in the API key's project using PostGIS ST_Contains.",
 		params: [
-			{
-				name: "projectId",
-				type: "string",
-				required: true,
-				description: "Project identifier",
-				example: "proj_abc",
-			},
 			{
 				name: "lat",
 				type: "number",
@@ -391,24 +417,24 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		params: [
 			{
 				name: "id",
-				type: "string",
+				type: "number",
 				required: true,
-				description: "Zone identifier",
-				example: "zone_01HX3K9R",
+				description: "Numeric zone ID",
+				example: "1",
+			},
+			{
+				name: "page",
+				type: "number",
+				required: false,
+				description: "Page number (default 1)",
+				example: "1",
 			},
 			{
 				name: "limit",
 				type: "number",
 				required: false,
-				description: "Maximum addresses to return (1-10000, default 100)",
-				example: "100",
-			},
-			{
-				name: "offset",
-				type: "number",
-				required: false,
-				description: "Pagination offset",
-				example: "0",
+				description: "Addresses per page (1-500, default 50)",
+				example: "50",
 			},
 		],
 	},
@@ -430,6 +456,10 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 				example: "truck-42",
 			},
 		],
+		exampleBody: {
+			lat: -37.8136,
+			lng: 144.9631,
+		},
 	},
 	{
 		id: "devices.zones",
@@ -446,13 +476,6 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 				description: "Device identifier",
 				example: "truck-42",
 			},
-			{
-				name: "projectId",
-				type: "string",
-				required: true,
-				description: "Project identifier",
-				example: "proj_abc",
-			},
 		],
 	},
 	// --- Webhooks (POST/DELETE docs-only; GET executable) ---
@@ -465,6 +488,10 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		description:
 			"Subscribe to zone boundary crossing events. POST with JSON body — use the curl example in the docs page to test.",
 		params: [],
+		exampleBody: {
+			url: "https://example.com/webhooks/wherabouts",
+			events: ["entry", "exit"],
+		},
 	},
 	{
 		id: "webhooks.list",
@@ -472,16 +499,8 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		path: "/api/v1/webhooks",
 		summary: "List webhook subscriptions",
 		description:
-			"Return all webhook subscriptions for a project (signing secret not included).",
-		params: [
-			{
-				name: "projectId",
-				type: "string",
-				required: true,
-				description: "Project identifier",
-				example: "proj_abc",
-			},
-		],
+			"Return all webhook subscriptions for the API key's project (signing secret not included).",
+		params: [],
 	},
 	// DELETE /webhooks/{id} — docs-only
 	{
@@ -494,10 +513,10 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		params: [
 			{
 				name: "id",
-				type: "string",
+				type: "number",
 				required: true,
-				description: "Webhook subscription identifier",
-				example: "wh_01HX9AB",
+				description: "Numeric webhook subscription ID",
+				example: "1",
 			},
 		],
 	},
@@ -539,4 +558,40 @@ export const buildApiExplorerUrl = (
 	}
 
 	return url;
+};
+
+/**
+ * Build a copyable curl snippet for docs-only (non-GET) endpoints. Path params
+ * are substituted from the provided values (falling back to their example), and
+ * the JSON body comes from the endpoint's `exampleBody`. Used by the explorer UI
+ * to document POST/PUT/DELETE endpoints the GET-only proxy cannot execute.
+ */
+export const buildApiExplorerCurl = (
+	endpoint: ApiEndpoint,
+	baseUrl: string,
+	paramValues: Record<string, string> = {}
+): string => {
+	let path = endpoint.path;
+	for (const param of endpoint.params) {
+		const pathToken = `{${param.name}}`;
+		if (path.includes(pathToken)) {
+			const value = paramValues[param.name] || param.example || param.name;
+			path = path.replace(pathToken, value);
+		}
+	}
+
+	const lines = [
+		`curl -X ${endpoint.method} '${baseUrl}${path}' \\`,
+		"  -H 'Authorization: Bearer wh_<id>_<secret>' \\",
+	];
+
+	if (endpoint.exampleBody) {
+		lines.push("  -H 'Content-Type: application/json' \\");
+		lines.push(`  -d '${JSON.stringify(endpoint.exampleBody, null, 2)}'`);
+	} else {
+		// Drop the trailing line-continuation on the final line.
+		lines[lines.length - 1] = lines[lines.length - 1].replace(/ \\$/, "");
+	}
+
+	return lines.join("\n");
 };

@@ -1,4 +1,4 @@
-import { db, decryptSecret } from "@wherabouts.com/api";
+import { db, decryptSecret, validateWebhookUrl } from "@wherabouts.com/api";
 import {
 	webhookDeliveryAttempts,
 	webhookSubscriptions,
@@ -10,15 +10,15 @@ import { hmacSign } from "./hmac.ts";
 export { hmacSign } from "./hmac.ts";
 
 export interface WebhookDeliveryMessage {
-	type: "webhook-delivery";
-	projectId: string;
 	deviceId: string;
+	event: "entry" | "exit";
 	lat: number;
 	lng: number;
+	projectId: string;
+	timestamp: string;
+	type: "webhook-delivery";
 	zoneId: number;
 	zoneName: string;
-	event: "entry" | "exit";
-	timestamp: string;
 }
 
 const MAX_ATTEMPTS = 3;
@@ -41,9 +41,17 @@ async function deliverOnce(
 			body,
 			signal: AbortSignal.timeout(DELIVERY_TIMEOUT_MS),
 		});
-		return { ok: res.ok, statusCode: res.status, error: res.ok ? null : `HTTP ${res.status}` };
+		return {
+			ok: res.ok,
+			statusCode: res.status,
+			error: res.ok ? null : `HTTP ${res.status}`,
+		};
 	} catch (err) {
-		return { ok: false, statusCode: null, error: err instanceof Error ? err.message : "Request failed" };
+		return {
+			ok: false,
+			statusCode: null,
+			error: err instanceof Error ? err.message : "Request failed",
+		};
 	}
 }
 
@@ -99,6 +107,27 @@ export async function processWebhookDeliveryMessage(
 					ok: false,
 					attempt: 0,
 					error: "decrypt failed",
+				});
+				return;
+			}
+
+			// Defense-in-depth SSRF re-check: block private/internal targets and
+			// any legacy rows created before create-time validation existed.
+			const urlError = validateWebhookUrl(sub.url);
+			if (urlError) {
+				await db
+					.update(webhookSubscriptions)
+					.set({ failing: true })
+					.where(eq(webhookSubscriptions.id, sub.id));
+				await db.insert(webhookDeliveryAttempts).values({
+					subscriptionId: sub.id,
+					event: msg.event,
+					zoneId: msg.zoneId,
+					deviceId: msg.deviceId,
+					statusCode: null,
+					ok: false,
+					attempt: 0,
+					error: urlError,
 				});
 				return;
 			}

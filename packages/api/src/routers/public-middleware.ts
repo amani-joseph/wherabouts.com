@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { ORPCError } from "@orpc/server";
 import { serverEnv } from "@wherabouts.com/env/server";
 import {
@@ -20,9 +21,26 @@ export type { ValidatedApiKey } from "../api-key-auth.ts";
 // API-key auth middleware
 // ---------------------------------------------------------------------------
 
+/**
+ * Constant-time string comparison. The internal-auth header gates the
+ * validate-by-key-id path (auth without the key secret), so its comparison must
+ * not leak the secret via timing. Returns false on null/length mismatch.
+ */
+const constantTimeEqual = (a: string | null, b: string): boolean => {
+	if (a === null) {
+		return false;
+	}
+	const aBuf = Buffer.from(a);
+	const bBuf = Buffer.from(b);
+	if (aBuf.length !== bBuf.length) {
+		return false;
+	}
+	return timingSafeEqual(aBuf, bBuf);
+};
+
 const resolveTrustedRequestSource = (request: Request): string | null => {
 	const authHeader = request.headers.get(INTERNAL_API_AUTH_HEADER);
-	if (authHeader !== serverEnv.BETTER_AUTH_SECRET) {
+	if (!constantTimeEqual(authHeader, serverEnv.BETTER_AUTH_SECRET)) {
 		return null;
 	}
 	const source = request.headers.get(INTERNAL_REQUEST_SOURCE_HEADER);
