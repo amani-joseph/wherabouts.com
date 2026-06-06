@@ -3,12 +3,18 @@ import { Button } from "@wherabouts.com/ui/components/button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ActiveProjectSelector } from "@/components/active-project-selector";
+import {
+	type PointTestResult,
+	PointTestTool,
+} from "@/components/zones/point-test-tool";
+import type { UseZoneDraw } from "@/components/zones/use-zone-draw";
+import {
+	ZoneAddressesDrawer,
+	type ZoneAddressItem,
+} from "@/components/zones/zone-addresses-drawer";
 import { ZoneCreateDialog } from "@/components/zones/zone-create-dialog";
-import { PointTestTool, type PointTestResult } from "@/components/zones/point-test-tool";
-import { ZoneAddressesDrawer, type ZoneAddressItem } from "@/components/zones/zone-addresses-drawer";
 import { ZoneList } from "@/components/zones/zone-list";
 import { ZoneMap } from "@/components/zones/zone-map";
-import type { UseZoneDraw } from "@/components/zones/use-zone-draw";
 import { useActiveProject } from "@/lib/active-project";
 import { orpcClient } from "@/lib/orpc";
 
@@ -16,7 +22,9 @@ export const Route = createFileRoute("/_protected/zones")({
 	component: RouteComponent,
 });
 
-type ZoneListItem = Awaited<ReturnType<typeof orpcClient.zones.list>>["zones"][number];
+type ZoneListItem = Awaited<
+	ReturnType<typeof orpcClient.zones.list>
+>["zones"][number];
 
 function RouteComponent() {
 	const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
@@ -40,9 +48,17 @@ function RouteComponent() {
 	const [addrZoneName, setAddrZoneName] = useState("");
 
 	useEffect(() => {
+		void import("maplibre-gl");
+		void import("terra-draw");
+		void import("terra-draw-maplibre-gl-adapter");
+	}, []);
+
+	useEffect(() => {
 		orpcClient.projects
 			.list()
-			.then((rows) => setProjects(rows.map((r) => ({ id: r.id, name: r.name }))))
+			.then((rows) =>
+				setProjects(rows.map((r) => ({ id: r.id, name: r.name })))
+			)
 			.catch(() => toast.error("Failed to load projects."));
 	}, []);
 
@@ -86,7 +102,9 @@ function RouteComponent() {
 			controls?.resetDrawn();
 			await refreshZones(activeId);
 		} catch (err) {
-			toast.error(err instanceof Error ? err.message : "Failed to create zone.");
+			toast.error(
+				err instanceof Error ? err.message : "Failed to create zone."
+			);
 		} finally {
 			setSaving(false);
 		}
@@ -99,8 +117,14 @@ function RouteComponent() {
 		}
 		setTesting(true);
 		try {
-			const res = await orpcClient.zones.contains({ projectId: activeId, lat, lng });
-			setTestResult({ zones: res.zones.map((z) => ({ id: z.id, name: z.name })) });
+			const res = await orpcClient.zones.contains({
+				projectId: activeId,
+				lat,
+				lng,
+			});
+			setTestResult({
+				zones: res.zones.map((z) => ({ id: z.id, name: z.name })),
+			});
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : "Point test failed.");
 		} finally {
@@ -133,7 +157,9 @@ function RouteComponent() {
 			);
 			setAddrTruncated(res.truncated);
 		} catch (err) {
-			toast.error(err instanceof Error ? err.message : "Failed to load addresses.");
+			toast.error(
+				err instanceof Error ? err.message : "Failed to load addresses."
+			);
 		} finally {
 			setAddrLoading(false);
 		}
@@ -167,7 +193,9 @@ function RouteComponent() {
 			controls.resetDrawn();
 			await refreshZones(activeId);
 		} catch (err) {
-			toast.error(err instanceof Error ? err.message : "Failed to update zone.");
+			toast.error(
+				err instanceof Error ? err.message : "Failed to update zone."
+			);
 		}
 	};
 
@@ -186,16 +214,25 @@ function RouteComponent() {
 			toast.success("Zone deleted.");
 			await refreshZones(activeId);
 		} catch (err) {
-			toast.error(err instanceof Error ? err.message : "Failed to delete zone.");
+			toast.error(
+				err instanceof Error ? err.message : "Failed to delete zone."
+			);
 		}
 	};
 
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
-				<ActiveProjectSelector activeId={activeId} onSelect={select} projects={projects} />
+				<ActiveProjectSelector
+					activeId={activeId}
+					onSelect={select}
+					projects={projects}
+				/>
 				{editingId === null ? (
-					<Button disabled={!(activeId && controls)} onClick={() => controls?.startDrawing()}>
+					<Button
+						disabled={!(activeId && controls)}
+						onClick={() => controls?.startDrawing()}
+					>
 						Draw zone
 					</Button>
 				) : (
@@ -210,8 +247,19 @@ function RouteComponent() {
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
 				<ZoneMap onReady={(c) => setControls(c)} zones={zones} />
 				<div className="space-y-4">
-					<ZoneList onDelete={handleDelete} onEdit={handleEdit} onSelect={setSelectedId} onViewAddresses={handleViewAddresses} selectedId={selectedId} zones={zones} />
-					<PointTestTool onTest={handleTest} result={testResult} testing={testing} />
+					<ZoneList
+						onDelete={handleDelete}
+						onEdit={handleEdit}
+						onSelect={setSelectedId}
+						onViewAddresses={handleViewAddresses}
+						selectedId={selectedId}
+						zones={zones}
+					/>
+					<PointTestTool
+						onTest={handleTest}
+						result={testResult}
+						testing={testing}
+					/>
 				</div>
 			</div>
 			<ZoneCreateDialog
