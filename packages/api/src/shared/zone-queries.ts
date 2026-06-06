@@ -1,5 +1,5 @@
 import type { Database } from "@wherabouts.com/database";
-import { type Zone, addresses, zones } from "@wherabouts.com/database/schema";
+import { addresses, type Zone, zones } from "@wherabouts.com/database/schema";
 import { and, eq, sql } from "drizzle-orm";
 import type { GeoJsonPolygon } from "../routers/public/zones-schema.ts";
 
@@ -47,7 +47,9 @@ export async function insertZone(
 			name: input.name,
 			// biome-ignore lint/suspicious/noExplicitAny: SQL expression for geometry column
 			geom: sql`ST_GeomFromGeoJSON(${geomJson})` as any,
-			...(input.description !== undefined && { description: input.description }),
+			...(input.description !== undefined && {
+				description: input.description,
+			}),
 			...(input.metadata !== undefined && { metadata: input.metadata }),
 		})
 		.returning({
@@ -125,13 +127,13 @@ export async function deleteZoneRow(
 export const ADDRESSES_IN_ZONE_HARD_CAP = 10_000;
 
 export interface ZoneWithGeometryRow {
-	id: number;
-	projectId: string;
-	name: string;
-	description: string | null;
-	metadata: Record<string, unknown> | null;
-	geometry: GeoJsonPolygon;
 	createdAt: string;
+	description: string | null;
+	geometry: GeoJsonPolygon;
+	id: number;
+	metadata: Record<string, unknown> | null;
+	name: string;
+	projectId: string;
 	updatedAt: string;
 }
 
@@ -214,25 +216,25 @@ export async function updateZoneRow(
 }
 
 export interface ZoneAddressRow {
-	id: number;
+	buildingName: string | null;
 	country: string;
-	state: string;
+	flatNumber: string | null;
+	flatType: string | null;
+	id: number;
+	latitude: number;
 	locality: string;
-	postcode: string;
-	streetName: string;
-	streetType: string | null;
+	longitude: number;
 	numberFirst: string | null;
 	numberLast: string | null;
-	buildingName: string | null;
-	flatType: string | null;
-	flatNumber: string | null;
-	longitude: number;
-	latitude: number;
+	postcode: string;
+	state: string;
+	streetName: string;
+	streetType: string | null;
 }
 
 export interface ZoneAddressesResult {
-	results: ZoneAddressRow[];
 	count: number;
+	results: ZoneAddressRow[];
 	truncated: boolean;
 }
 
@@ -279,4 +281,73 @@ export async function addressesInZone(
 
 	const truncated = offset + rows.length >= ADDRESSES_IN_ZONE_HARD_CAP;
 	return { results: rows as ZoneAddressRow[], count: rows.length, truncated };
+}
+
+import {
+	type AddressLabelParts,
+	composeAddressLabel,
+} from "./address-label.ts";
+
+const ADDRESSES_IN_BBOX_HARD_CAP = 5000;
+
+export interface BboxAddressPoint {
+	id: number;
+	gnafPid: string | null;
+	label: string;
+	lng: number;
+	lat: number;
+}
+
+export interface AddressesInBboxResult {
+	results: BboxAddressPoint[];
+	count: number;
+	truncated: boolean;
+}
+
+/**
+ * G-NAF address points whose geometry falls inside the [west,south,east,north]
+ * bbox. Uses the idx_addresses_geom GIST index via the && operator. Capped at
+ * ADDRESSES_IN_BBOX_HARD_CAP; ordered by populationScore desc so the most
+ * relevant points survive the cap. `limit` is clamped to the hard cap.
+ */
+export async function addressesInBbox(
+	db: Database,
+	bbox: [number, number, number, number],
+	limit: number
+): Promise<AddressesInBboxResult> {
+	const [west, south, east, north] = bbox;
+	const effectiveLimit = Math.min(limit, ADDRESSES_IN_BBOX_HARD_CAP);
+	const envelope = sql`ST_MakeEnvelope(${west}, ${south}, ${east}, ${north}, 4326)`;
+
+	const rows = await db
+		.select({
+			id: addresses.id,
+			gnafPid: addresses.gnafPid,
+			flatType: addresses.flatType,
+			flatNumber: addresses.flatNumber,
+			numberFirst: addresses.numberFirst,
+			numberLast: addresses.numberLast,
+			streetName: addresses.streetName,
+			streetType: addresses.streetType,
+			locality: addresses.locality,
+			longitude: addresses.longitude,
+			latitude: addresses.latitude,
+		})
+		.from(addresses)
+		.where(sql`${addresses.geom} && ${envelope}`)
+		.orderBy(sql`${addresses.populationScore} DESC`)
+		.limit(effectiveLimit + 1);
+
+	const truncated = rows.length > effectiveLimit;
+	const kept = truncated ? rows.slice(0, effectiveLimit) : rows;
+
+	const results: BboxAddressPoint[] = kept.map((r) => ({
+		id: r.id,
+		gnafPid: r.gnafPid,
+		label: composeAddressLabel(r as AddressLabelParts),
+		lng: r.longitude,
+		lat: r.latitude,
+	}));
+
+	return { results, count: results.length, truncated };
 }
