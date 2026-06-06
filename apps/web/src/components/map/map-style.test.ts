@@ -20,4 +20,15 @@ describe("buildMapStyle", () => {
 		expect(Array.isArray(s.layers)).toBe(true);
 		expect(s.layers.length).toBeGreaterThan(5);
 	});
+
+	it("includes label layers so place/road names render", () => {
+		const style = buildMapStyle("https://api.wherabouts.com");
+		const s = style as Exclude<ReturnType<typeof buildMapStyle>, string>;
+		// protomaps-themes-base v4 only emits label layers when `lang` is passed.
+		// Without them, the basemap renders with no text. Guard against regressing.
+		const labelLayers = s.layers.filter(
+			(layer) => layer?.layout?.["text-field"] !== undefined
+		);
+		expect(labelLayers.length).toBeGreaterThan(0);
+	});
 });

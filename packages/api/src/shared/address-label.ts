@@ -1,18 +1,16 @@
 export interface AddressLabelParts {
-	flatType: string | null;
 	flatNumber: string | null;
+	flatType: string | null;
+	locality: string;
 	numberFirst: string | null;
 	numberLast: string | null;
 	streetName: string;
 	streetType: string | null;
-	locality: string;
 }
 
 /** Title-case a G-NAF uppercase token, e.g. "BOXGROVE" -> "Boxgrove". */
 function titleCase(value: string): string {
-	return value
-		.toLowerCase()
-		.replace(/\b\w/g, (c) => c.toUpperCase());
+	return value.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /**

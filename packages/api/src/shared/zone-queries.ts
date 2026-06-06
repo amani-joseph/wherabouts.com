@@ -291,16 +291,16 @@ import {
 const ADDRESSES_IN_BBOX_HARD_CAP = 5000;
 
 export interface BboxAddressPoint {
-	id: number;
 	gnafPid: string | null;
+	id: number;
 	label: string;
-	lng: number;
 	lat: number;
+	lng: number;
 }
 
 export interface AddressesInBboxResult {
-	results: BboxAddressPoint[];
 	count: number;
+	results: BboxAddressPoint[];
 	truncated: boolean;
 }
 

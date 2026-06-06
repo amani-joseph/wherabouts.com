@@ -65,7 +65,10 @@ export function MapCanvas({
 	return (
 		<div className="relative h-full w-full" style={{ minHeight: 360 }}>
 			{!ready && (
-				<div className="absolute inset-0 z-10 animate-pulse bg-muted/40" aria-hidden />
+				<div
+					aria-hidden
+					className="absolute inset-0 z-10 animate-pulse bg-muted/40"
+				/>
 			)}
 			<div
 				className={className}
