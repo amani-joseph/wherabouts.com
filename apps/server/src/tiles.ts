@@ -73,9 +73,12 @@ export async function handleTileRequest(
 
 	const font = pathname.match(FONT_RE);
 	if (font) {
+		// MapLibre URL-encodes the fontstack (e.g. "Noto%20Sans%20Regular"); the
+		// R2 keys use the literal (space-containing) names, so decode to match.
+		const fontstack = decodeURIComponent(font[1] as string);
 		return r2Passthrough(
 			bucket,
-			`fonts/${font[1]}/${font[2]}.pbf`,
+			`fonts/${fontstack}/${font[2]}.pbf`,
 			"application/x-protobuf"
 		);
 	}
@@ -100,7 +103,10 @@ export async function handleTileRequest(
 	const z = Number(tile[1]);
 	const x = Number(tile[2]);
 	const y = Number(tile[3]);
-	const archive = new PMTiles(new R2Source(bucket), undefined as unknown as Cache);
+	const archive = new PMTiles(
+		new R2Source(bucket),
+		undefined as unknown as Cache
+	);
 	try {
 		const result = await archive.getZxy(z, x, y);
 		if (!result) {
