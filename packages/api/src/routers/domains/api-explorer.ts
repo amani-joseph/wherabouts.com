@@ -16,7 +16,8 @@ type ApiEndpointId =
 	| "addresses.autocomplete"
 	| "addresses.byId"
 	| "addresses.nearby"
-	| "addresses.reverse";
+	| "addresses.reverse"
+	| "regions.classify";
 
 type ApiEndpoint = {
 	id: ApiEndpointId;
@@ -71,6 +72,15 @@ const endpointMap = new Map<ApiEndpointId, ApiEndpoint>([
 			method: "GET",
 			path: "/api/v1/addresses/reverse",
 			params: [{ name: "lat" }, { name: "lng" }],
+		},
+	],
+	[
+		"regions.classify",
+		{
+			id: "regions.classify",
+			method: "GET",
+			path: "/api/v1/regions",
+			params: [{ name: "lat" }, { name: "lng" }, { name: "layers" }],
 		},
 	],
 ]);
