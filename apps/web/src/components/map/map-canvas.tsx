@@ -1,7 +1,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import { env } from "@wherabouts.com/env/web";
 import type { Map as MapLibreMap } from "maplibre-gl";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { buildMapStyle } from "./map-style.ts";
 
 export interface MapCanvasProps {
@@ -25,6 +25,7 @@ export function MapCanvas({
 }: MapCanvasProps) {
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const mapRef = useRef<MapLibreMap | null>(null);
+	const [ready, setReady] = useState(false);
 
 	useEffect(() => {
 		if (typeof window === "undefined" || !containerRef.current) {
@@ -47,6 +48,7 @@ export function MapCanvas({
 			map.on("load", () => {
 				if (!cancelled && map) {
 					onMapReady?.(map);
+					setReady(true);
 				}
 			});
 		});
@@ -61,10 +63,15 @@ export function MapCanvas({
 	}, []);
 
 	return (
-		<div
-			className={className}
-			ref={containerRef}
-			style={{ width: "100%", height: "100%", minHeight: 360 }}
-		/>
+		<div className="relative h-full w-full" style={{ minHeight: 360 }}>
+			{!ready && (
+				<div className="absolute inset-0 z-10 animate-pulse bg-muted/40" aria-hidden />
+			)}
+			<div
+				className={className}
+				ref={containerRef}
+				style={{ width: "100%", height: "100%", minHeight: 360 }}
+			/>
+		</div>
 	);
 }
