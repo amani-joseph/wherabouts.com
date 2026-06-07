@@ -1,21 +1,14 @@
-export { createWheraboutsClient } from "./client.ts";
+export { createWheraboutsClient, type WheraboutsClient } from "./client.ts";
 export { WheraboutsApiError } from "./errors.ts";
-export type {
-	AddressRecord,
-	AddressSuggestion,
-	AutocompleteParams,
-	AutocompleteResponse,
-	NearbyAddress,
-	NearbyParams,
-	NearbyResponse,
-	ReverseGeocodeAddress,
-	ReverseParams,
-	ReverseResponse,
-	WheraboutsApiErrorPayload,
-	WheraboutsClient,
-	WheraboutsClientConfig,
-} from "./types.ts";
+export * from "./resources/addresses.ts";
+export * from "./resources/devices.ts";
+export * from "./resources/geocode.ts";
+export * from "./resources/regions.ts";
+export * from "./resources/webhooks.ts";
+export * from "./resources/zones.ts";
 export {
 	WHERABOUTS_API_VERSION,
 	WHERABOUTS_SDK_VERSION,
-} from "./types.ts";
+	type WheraboutsApiErrorPayload,
+	type WheraboutsClientConfig,
+} from "./shared-types.ts";
