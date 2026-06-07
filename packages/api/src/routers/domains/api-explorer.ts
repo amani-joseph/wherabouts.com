@@ -12,30 +12,36 @@ const INTERNAL_REQUEST_SOURCE_HEADER = "x-wherabouts-request-source";
 const REQUEST_SOURCE_EXPLORER_TEST = "explorer_test";
 const RAW_KEY_FORMAT_RE = /^wh_[^_]+_.+$/i;
 
-// Only GET endpoints are proxied here. POST/PUT/DELETE endpoints are docs-only
-// (the explorer cannot send a request body), so they are intentionally absent
-// and the UI surfaces a curl example for them instead.
 type ApiEndpointId =
 	| "addresses.autocomplete"
 	| "addresses.byId"
 	| "addresses.nearby"
 	| "addresses.reverse"
 	| "addresses.geocode"
+	| "geocode.batch.submit"
 	| "geocode.batch.poll"
 	| "geocode.batch.results"
+	| "zones.create"
 	| "zones.list"
 	| "zones.get"
+	| "zones.update"
+	| "zones.delete"
 	| "zones.contains"
 	| "zones.addresses"
+	| "devices.location.push"
 	| "devices.zones"
-	| "webhooks.list";
+	| "webhooks.create"
+	| "webhooks.list"
+	| "webhooks.delete"
+	| "webhooks.reactivate"
+	| "regions.classify";
 
-type ApiEndpoint = {
+interface ApiEndpoint {
 	id: ApiEndpointId;
-	method: "GET";
+	method: "GET" | "POST" | "PUT" | "DELETE";
 	params: { name: string; pathParam?: boolean }[];
 	path: string;
-};
+}
 
 const endpointMap = new Map<ApiEndpointId, ApiEndpoint>([
 	[
@@ -178,24 +184,118 @@ const endpointMap = new Map<ApiEndpointId, ApiEndpoint>([
 			params: [{ name: "projectId" }],
 		},
 	],
+	[
+		"zones.create",
+		{ id: "zones.create", method: "POST", path: "/api/v1/zones", params: [] },
+	],
+	[
+		"zones.update",
+		{
+			id: "zones.update",
+			method: "PUT",
+			path: "/api/v1/zones/{id}",
+			params: [{ name: "id", pathParam: true }],
+		},
+	],
+	[
+		"zones.delete",
+		{
+			id: "zones.delete",
+			method: "DELETE",
+			path: "/api/v1/zones/{id}",
+			params: [{ name: "id", pathParam: true }],
+		},
+	],
+	[
+		"webhooks.create",
+		{
+			id: "webhooks.create",
+			method: "POST",
+			path: "/api/v1/webhooks",
+			params: [],
+		},
+	],
+	[
+		"webhooks.delete",
+		{
+			id: "webhooks.delete",
+			method: "DELETE",
+			path: "/api/v1/webhooks/{id}",
+			params: [{ name: "id", pathParam: true }],
+		},
+	],
+	[
+		"webhooks.reactivate",
+		{
+			id: "webhooks.reactivate",
+			method: "POST",
+			path: "/api/v1/webhooks/{id}/reactivate",
+			params: [{ name: "id", pathParam: true }],
+		},
+	],
+	[
+		"devices.location.push",
+		{
+			id: "devices.location.push",
+			method: "POST",
+			path: "/api/v1/devices/{deviceId}/location",
+			params: [{ name: "deviceId", pathParam: true }],
+		},
+	],
+	[
+		"geocode.batch.submit",
+		{
+			id: "geocode.batch.submit",
+			method: "POST",
+			path: "/api/v1/geocode/batch",
+			params: [],
+		},
+	],
+	[
+		"regions.classify",
+		{
+			id: "regions.classify",
+			method: "GET",
+			path: "/api/v1/regions",
+			params: [{ name: "lat" }, { name: "lng" }, { name: "layers" }],
+		},
+	],
 ]);
 
-const explorerRequestSchema = z.object({
-	authMode: z.enum(["managed", "raw"]),
-	endpointId: z.string(),
-	managedKeyId: z.string().uuid().optional(),
-	paramValues: z.record(z.string(), z.string()).default({}),
-	rawApiKey: z.string().optional(),
-});
+export const EXPLORER_ENDPOINT_IDS: ReadonlySet<string> = new Set(
+	endpointMap.keys()
+);
 
-const buildUrl = (
+/**
+ * Look up an allowlisted explorer endpoint by id. Test-only helper — the
+ * request handler uses `endpointMap.get` with an `ORPCError` instead; this
+ * throws a plain Error and must not be called from the request path.
+ */
+export function getExplorerEndpoint(id: string): ApiEndpoint {
+	const ep = endpointMap.get(id as ApiEndpointId);
+	if (!ep) {
+		throw new Error(`Unknown explorer endpoint: ${id}`);
+	}
+	return ep;
+}
+
+export function buildProxyRequest(
 	endpoint: ApiEndpoint,
-	paramValues: Record<string, string>
-): string => {
+	paramValues: Record<string, string>,
+	body: Record<string, unknown> | undefined
+): {
+	method: ApiEndpoint["method"];
+	url: string;
+	body?: Record<string, unknown>;
+} {
 	let url = endpoint.path;
 	for (const param of endpoint.params) {
 		if (param.pathParam) {
-			url = url.replace(`{${param.name}}`, paramValues[param.name] ?? "");
+			// Encode path-param values so free-form values can't traverse segments.
+			url = url.replace(
+				`{${param.name}}`,
+				encodeURIComponent(paramValues[param.name] ?? "")
+			);
 		}
 	}
 	const queryParts: string[] = [];
@@ -212,8 +312,19 @@ const buildUrl = (
 	if (queryParts.length > 0) {
 		url = `${url}?${queryParts.join("&")}`;
 	}
-	return url;
-};
+	// Body is suppressed for GET; DELETE endpoints are called with body=undefined.
+	const sendBody = endpoint.method === "GET" ? undefined : body;
+	return { method: endpoint.method, url, body: sendBody };
+}
+
+const explorerRequestSchema = z.object({
+	authMode: z.enum(["managed", "raw"]),
+	endpointId: z.string(),
+	managedKeyId: z.string().uuid().optional(),
+	paramValues: z.record(z.string(), z.string()).default({}),
+	rawApiKey: z.string().optional(),
+	body: z.record(z.string(), z.unknown()).optional(),
+});
 
 const parseResponseBody = async (response: Response): Promise<unknown> => {
 	const contentType = response.headers.get("content-type") ?? "";
@@ -236,8 +347,12 @@ export const apiExplorerRouter = {
 				});
 			}
 
-			const requestUrl = buildUrl(endpoint, input.paramValues);
-			const targetUrl = new URL(requestUrl, serverEnv.BETTER_AUTH_URL);
+			const proxyReq = buildProxyRequest(
+				endpoint,
+				input.paramValues,
+				input.body
+			);
+			const targetUrl = new URL(proxyReq.url, serverEnv.BETTER_AUTH_URL);
 			const fetchFn = context.localFetch ?? fetch;
 			const headers = new Headers({
 				accept: "application/json",
@@ -302,12 +417,19 @@ export const apiExplorerRouter = {
 				headers.set("Authorization", `Bearer ${rawApiKey}`);
 			}
 
+			if (proxyReq.body !== undefined) {
+				headers.set("content-type", "application/json");
+			}
 			const startedAt = Date.now();
 			// No `cache` option: this fetch runs in-process via localFetch and the
 			// Workers runtime does not support the `cache` RequestInit field.
 			const response = await fetchFn(targetUrl, {
-				method: endpoint.method,
+				method: proxyReq.method,
 				headers,
+				body:
+					proxyReq.body === undefined
+						? undefined
+						: JSON.stringify(proxyReq.body),
 			});
 			const durationMs = Date.now() - startedAt;
 			const body = await parseResponseBody(response);
@@ -316,7 +438,7 @@ export const apiExplorerRouter = {
 				body,
 				durationMs,
 				ok: response.ok,
-				requestUrl,
+				requestUrl: proxyReq.url,
 				statusCode: response.status,
 			};
 		}),
