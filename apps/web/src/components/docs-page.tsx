@@ -135,6 +135,10 @@ const docsNavGroups: DocsSectionGroup[] = [
 		],
 	},
 	{
+		label: "Regions",
+		items: [{ title: "Classify Coordinate", href: "#regions-classify" }],
+	},
+	{
 		label: "Implementation Notes",
 		items: [
 			{ title: "Errors and Constraints", href: "#errors-and-constraints" },
@@ -1014,6 +1018,51 @@ const endpointDocs: EndpointDoc[] = [
 			"Returns `404` for unknown webhook IDs.",
 		],
 		exampleResponse: "204 No Content",
+	},
+	// --- Regions ---
+	{
+		title: "Classify Coordinate",
+		href: "#regions-classify",
+		method: "GET",
+		path: "/api/v1/regions",
+		summary: "Return the administrative regions that contain a coordinate.",
+		description:
+			"Classifies a latitude/longitude into the official ABS/ASGS regions that contain it — state, SA1–SA4, LGA, postcode, electoral divisions, and mesh block — keyed by layer. Outside Australia the regions object is empty.",
+		params: [
+			{
+				name: "lat",
+				type: "number",
+				required: true,
+				description: "Latitude of the coordinate to classify (e.g. -37.8136).",
+			},
+			{
+				name: "lng",
+				type: "number",
+				required: true,
+				description: "Longitude of the coordinate to classify (e.g. 144.9631).",
+			},
+			{
+				name: "layers",
+				type: "string",
+				required: false,
+				description:
+					"Comma-separated list of region layers to return (e.g. `sa2,lga,poa`). Omit to return all available layers.",
+			},
+		],
+		notes: [
+			"Outside Australia the `regions` object is empty — not a `404`.",
+			"Use the `layers` parameter to limit the response to only the layers you need.",
+			'curl example: curl "https://api.wherabouts.com/api/v1/regions?lat=-37.8136&lng=144.9631" -H "Authorization: Bearer YOUR_API_KEY"',
+		],
+		exampleResponse: `{
+  "query": { "lat": -37.8136, "lng": 144.9631 },
+  "regions": {
+    "state": { "code": "2", "name": "Victoria" },
+    "sa2": { "code": "206041122", "name": "Melbourne" },
+    "lga": { "code": "24600", "name": "Melbourne (C)" },
+    "poa": { "code": "3000", "name": "3000" }
+  }
+}`,
 	},
 ];
 
