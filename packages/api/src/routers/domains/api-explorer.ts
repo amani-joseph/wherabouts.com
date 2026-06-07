@@ -12,12 +12,24 @@ const INTERNAL_REQUEST_SOURCE_HEADER = "x-wherabouts-request-source";
 const REQUEST_SOURCE_EXPLORER_TEST = "explorer_test";
 const RAW_KEY_FORMAT_RE = /^wh_[^_]+_.+$/i;
 
+// Only GET endpoints are proxied here. POST/PUT/DELETE endpoints are docs-only
+// (the explorer cannot send a request body), so they are intentionally absent
+// and the UI surfaces a curl example for them instead.
 type ApiEndpointId =
 	| "addresses.autocomplete"
 	| "addresses.byId"
 	| "addresses.nearby"
 	| "addresses.reverse"
 	| "regions.classify";
+	| "addresses.geocode"
+	| "geocode.batch.poll"
+	| "geocode.batch.results"
+	| "zones.list"
+	| "zones.get"
+	| "zones.contains"
+	| "zones.addresses"
+	| "devices.zones"
+	| "webhooks.list";
 
 type ApiEndpoint = {
 	id: ApiEndpointId;
@@ -81,6 +93,96 @@ const endpointMap = new Map<ApiEndpointId, ApiEndpoint>([
 			method: "GET",
 			path: "/api/v1/regions",
 			params: [{ name: "lat" }, { name: "lng" }, { name: "layers" }],
+		"addresses.geocode",
+		{
+			id: "addresses.geocode",
+			method: "GET",
+			path: "/api/v1/addresses/geocode",
+			params: [
+				{ name: "q" },
+				{ name: "structured" },
+				{ name: "street" },
+				{ name: "locality" },
+				{ name: "state" },
+				{ name: "postcode" },
+				{ name: "country" },
+			],
+		},
+	],
+	[
+		"geocode.batch.poll",
+		{
+			id: "geocode.batch.poll",
+			method: "GET",
+			path: "/api/v1/geocode/batch/{jobId}",
+			params: [{ name: "jobId", pathParam: true }],
+		},
+	],
+	[
+		"geocode.batch.results",
+		{
+			id: "geocode.batch.results",
+			method: "GET",
+			path: "/api/v1/geocode/batch/{jobId}/results",
+			params: [{ name: "jobId", pathParam: true }],
+		},
+	],
+	[
+		"zones.list",
+		{
+			id: "zones.list",
+			method: "GET",
+			path: "/api/v1/zones",
+			params: [{ name: "projectId" }],
+		},
+	],
+	[
+		"zones.get",
+		{
+			id: "zones.get",
+			method: "GET",
+			path: "/api/v1/zones/{id}",
+			params: [{ name: "id", pathParam: true }],
+		},
+	],
+	[
+		"zones.contains",
+		{
+			id: "zones.contains",
+			method: "GET",
+			path: "/api/v1/zones/contains",
+			params: [{ name: "projectId" }, { name: "lat" }, { name: "lng" }],
+		},
+	],
+	[
+		"zones.addresses",
+		{
+			id: "zones.addresses",
+			method: "GET",
+			path: "/api/v1/zones/{id}/addresses",
+			params: [
+				{ name: "id", pathParam: true },
+				{ name: "limit" },
+				{ name: "offset" },
+			],
+		},
+	],
+	[
+		"devices.zones",
+		{
+			id: "devices.zones",
+			method: "GET",
+			path: "/api/v1/devices/{deviceId}/zones",
+			params: [{ name: "deviceId", pathParam: true }, { name: "projectId" }],
+		},
+	],
+	[
+		"webhooks.list",
+		{
+			id: "webhooks.list",
+			method: "GET",
+			path: "/api/v1/webhooks",
+			params: [{ name: "projectId" }],
 		},
 	],
 ]);
@@ -208,10 +310,11 @@ export const apiExplorerRouter = {
 			}
 
 			const startedAt = Date.now();
+			// No `cache` option: this fetch runs in-process via localFetch and the
+			// Workers runtime does not support the `cache` RequestInit field.
 			const response = await fetchFn(targetUrl, {
 				method: endpoint.method,
 				headers,
-				cache: "no-store",
 			});
 			const durationMs = Date.now() - startedAt;
 			const body = await parseResponseBody(response);

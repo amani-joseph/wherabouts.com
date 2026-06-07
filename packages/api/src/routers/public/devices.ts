@@ -9,11 +9,11 @@ import {
 	type ValidatedApiKey,
 } from "../public-middleware.ts";
 import {
-	computeBoundaryCrossings,
 	type BoundaryCrossing,
+	computeBoundaryCrossings,
 } from "./boundary-crossings.ts";
 
-export { computeBoundaryCrossings, type BoundaryCrossing };
+export { type BoundaryCrossing, computeBoundaryCrossings };
 
 // ---------------------------------------------------------------------------
 // Helper
@@ -61,7 +61,7 @@ export const pushDeviceLocation = baseBuilder
 
 		const point = sql`ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)`;
 
-		// Current containing zones (needed outside transaction — reads zones table)
+		// Zones currently containing the point.
 		const containingZones = await context.db
 			.select({ id: zones.id })
 			.from(zones)
@@ -71,73 +71,55 @@ export const pushDeviceLocation = baseBuilder
 					sql`ST_Contains(${zones.geom}, ${point})`
 				)
 			);
-
 		const currentZoneIds = containingZones.map((z) => z.id);
 
-		// Atomic read + upsert of device_zone_state with row-level locking
-		// to prevent TOCTOU races on concurrent pushes for the same device.
-		const { crossings } = await context.db.transaction(
-			async (tx) => {
-				// Lock the row (or no-op if it doesn't exist yet)
-				const lockResult = await tx.execute(sql`
-					SELECT zone_ids FROM device_zone_state
-					WHERE project_id = ${projectId} AND device_id = ${deviceId}
-					FOR UPDATE
-				`);
-				const prevZoneIds: number[] =
-					(lockResult.rows[0]?.zone_ids as number[] | undefined) ?? [];
+		// Previous membership. The neon-http driver has no interactive
+		// transactions / row locks (db.transaction() throws), so this is a
+		// read-then-write rather than a locked `SELECT ... FOR UPDATE`. That is
+		// safe here: the state write below is idempotent (zone_ids derive from
+		// the point, not from prevZoneIds), so there is no lost update. Only the
+		// crossing diff for two *simultaneous* pushes of the same device could
+		// race, which is acceptable for location pings.
+		const [prev] = await context.db
+			.select({ zoneIds: deviceZoneState.zoneIds })
+			.from(deviceZoneState)
+			.where(
+				and(
+					eq(deviceZoneState.projectId, projectId),
+					eq(deviceZoneState.deviceId, deviceId)
+				)
+			)
+			.limit(1);
+		const prevZoneIds: number[] = prev?.zoneIds ?? [];
 
-				// Build zone names for UNION of previous + current ids
-				// so exit crossings get real names, not "".
-				const allZoneIds = Array.from(
-					new Set([...prevZoneIds, ...currentZoneIds])
+		// Zone names for the union of previous + current ids so exit crossings
+		// get real names, not "".
+		const allZoneIds = Array.from(new Set([...prevZoneIds, ...currentZoneIds]));
+		const zoneNames: Record<number, string> = {};
+		if (allZoneIds.length > 0) {
+			const named = await context.db
+				.select({ id: zones.id, name: zones.name })
+				.from(zones)
+				.where(
+					and(eq(zones.projectId, projectId), inArray(zones.id, allZoneIds))
 				);
-				const zoneNames: Record<number, string> = {};
-				if (allZoneIds.length > 0) {
-					const named = await context.db
-						.select({ id: zones.id, name: zones.name })
-						.from(zones)
-						.where(
-							and(eq(zones.projectId, projectId), inArray(zones.id, allZoneIds))
-						);
-					for (const z of named) {
-						zoneNames[z.id] = z.name;
-					}
-				}
-
-				const txCrossings = computeBoundaryCrossings(
-					prevZoneIds,
-					currentZoneIds,
-					zoneNames
-				);
-
-				// Upsert device state — parameterized ARRAY constructor to safely
-				// handle both empty and non-empty arrays without sql.raw injection risk.
-				const zoneIdsArray =
-					currentZoneIds.length > 0
-						? sql`ARRAY[${sql.join(
-								currentZoneIds.map((id) => sql`${id}`),
-								sql`, `
-							)}]::integer[]`
-						: sql`ARRAY[]::integer[]`;
-
-				await tx.execute(sql`
-					INSERT INTO device_zone_state (project_id, device_id, zone_ids, latitude, longitude, updated_at)
-					VALUES (${projectId}, ${deviceId}, ${zoneIdsArray}, ${lat}, ${lng}, now())
-					ON CONFLICT (project_id, device_id)
-					DO UPDATE SET
-						zone_ids = EXCLUDED.zone_ids,
-						latitude = EXCLUDED.latitude,
-						longitude = EXCLUDED.longitude,
-						updated_at = EXCLUDED.updated_at
-				`);
-
-				return { crossings: txCrossings };
+			for (const z of named) {
+				zoneNames[z.id] = z.name;
 			}
+		}
+
+		const crossings = computeBoundaryCrossings(
+			prevZoneIds,
+			currentZoneIds,
+			zoneNames
 		);
 
-		// Enqueue webhook delivery after transaction commits — avoids enqueue-then-rollback.
-		// Promise.all so a single failure doesn't silently drop remaining crossings.
+		// Enqueue webhooks BEFORE advancing persisted state. If the enqueue
+		// throws we never write the new membership, so the next push re-detects
+		// the same crossing (at-least-once — no silently dropped events). The
+		// only residual failure mode is a *duplicate* delivery if the upsert
+		// below fails after a successful enqueue, and webhook consumers are
+		// expected to be idempotent (deliveries are HMAC-signed).
 		if (crossings.length > 0 && ctx.env?.WEBHOOK_DELIVERY_QUEUE) {
 			await Promise.all(
 				crossings.map((crossing) =>
@@ -155,6 +137,26 @@ export const pushDeviceLocation = baseBuilder
 				)
 			);
 		}
+
+		// Advance persisted membership (idempotent single-statement upsert).
+		await context.db
+			.insert(deviceZoneState)
+			.values({
+				projectId,
+				deviceId,
+				zoneIds: currentZoneIds,
+				latitude: lat,
+				longitude: lng,
+			})
+			.onConflictDoUpdate({
+				target: [deviceZoneState.projectId, deviceZoneState.deviceId],
+				set: {
+					zoneIds: currentZoneIds,
+					latitude: lat,
+					longitude: lng,
+					updatedAt: new Date(),
+				},
+			});
 
 		return { zones: currentZoneIds, crossings };
 	});

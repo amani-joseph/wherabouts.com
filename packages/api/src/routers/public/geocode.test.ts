@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildGeocodeQuery } from "./geocode.ts";
+import { buildGeocodeQuery } from "./geocode-query.ts";
 
 describe("buildGeocodeQuery", () => {
 	describe("unstructured mode", () => {

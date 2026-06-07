@@ -3,13 +3,14 @@ import { webhookSubscriptions, zones } from "@wherabouts.com/database/schema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { o as baseBuilder } from "../../builder.ts";
+import { encryptSecret, generateWebhookSecret } from "../../secret-crypto.ts";
+import { reactivateWebhook } from "../../shared/webhook-queries.ts";
+import { validateWebhookUrl } from "../../shared/webhook-url.ts";
 import {
 	apiKeyAuth,
 	usageMiddleware,
 	type ValidatedApiKey,
 } from "../public-middleware.ts";
-import { encryptSecret, generateWebhookSecret } from "../../secret-crypto.ts";
-import { reactivateWebhook } from "../../shared/webhook-queries.ts";
 
 // ---------------------------------------------------------------------------
 // Helper
@@ -52,6 +53,12 @@ export const createWebhook = baseBuilder
 	.handler(async ({ input, context }) => {
 		const ctx = context as typeof context & AuthContext;
 		const projectId = requireProjectId(ctx.validatedApiKey.projectId);
+
+		// SSRF guard: reject private/loopback/internal targets and require https.
+		const urlError = validateWebhookUrl(input.url, { requireHttps: true });
+		if (urlError) {
+			throw new ORPCError("BAD_REQUEST", { message: urlError });
+		}
 
 		// If zoneId provided, verify it belongs to this project
 		if (input.zoneId) {

@@ -20,12 +20,9 @@ import {
 	usageMiddleware,
 	type ValidatedApiKey,
 } from "../public-middleware.ts";
-import {
-	geoJsonPolygonSchema,
-	type GeoJsonPolygon,
-} from "./zones-schema.ts";
+import { type GeoJsonPolygon, geoJsonPolygonSchema } from "./zones-schema.ts";
 
-export { geoJsonPolygonSchema, type GeoJsonPolygon };
+export { type GeoJsonPolygon, geoJsonPolygonSchema };
 
 // ---------------------------------------------------------------------------
 // Helper: cast context to include validatedApiKey
@@ -72,7 +69,8 @@ export const zoneCreate = baseBuilder
 		const count = await countZones(context.db, projectId);
 		if (count >= ZONE_LIMIT) {
 			throw new ORPCError("FORBIDDEN", {
-				message: "Zone limit reached (500). Delete unused zones to create new ones.",
+				message:
+					"Zone limit reached (500). Delete unused zones to create new ones.",
 			});
 		}
 
@@ -223,9 +221,11 @@ export const zoneContains = baseBuilder
 		tags: ["zones"],
 	})
 	.input(
+		// GET query params arrive as strings — coerce like every other GET handler.
+		// Bare z.number() here makes the OpenAPI handler reject every request with 400.
 		z.object({
-			lat: z.number().min(-90).max(90),
-			lng: z.number().min(-180).max(180),
+			lat: z.coerce.number().min(-90).max(90),
+			lng: z.coerce.number().min(-180).max(180),
 		})
 	)
 	.handler(async ({ input, context }) => {
