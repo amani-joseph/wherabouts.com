@@ -1,10 +1,12 @@
-export type ApiParam = {
+const TRAILING_CONTINUATION_RE = / \\$/;
+
+export interface ApiParam {
 	description: string;
 	example?: string;
 	name: string;
 	required: boolean;
 	type: string;
-};
+}
 
 export type ApiEndpointId =
 	| "addresses.autocomplete"
@@ -30,9 +32,11 @@ export type ApiEndpointId =
 	// Webhooks
 	| "webhooks.create"
 	| "webhooks.list"
-	| "webhooks.delete";
+	| "webhooks.delete"
+	// Regions
+	| "regions.classify";
 
-export type ApiEndpoint = {
+export interface ApiEndpoint {
 	description: string;
 	/** Example JSON request body for non-GET (docs-only) endpoints' curl example. */
 	exampleBody?: Record<string, unknown>;
@@ -41,7 +45,7 @@ export type ApiEndpoint = {
 	params: ApiParam[];
 	path: string;
 	summary: string;
-};
+}
 
 export const apiExplorerEndpoints: ApiEndpoint[] = [
 	{
@@ -520,6 +524,38 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 			},
 		],
 	},
+	// --- Regions ---
+	{
+		id: "regions.classify",
+		method: "GET",
+		path: "/api/v1/regions",
+		summary: "Classify a coordinate into administrative regions",
+		description:
+			"Returns the ABS/ASGS administrative regions that contain a coordinate (state, SA1–SA4, LGA, postcode, electoral divisions, mesh block), keyed by layer.",
+		params: [
+			{
+				name: "lat",
+				type: "number",
+				required: true,
+				description: "Latitude (-90 to 90)",
+				example: "-37.8136",
+			},
+			{
+				name: "lng",
+				type: "number",
+				required: true,
+				description: "Longitude (-180 to 180)",
+				example: "144.9631",
+			},
+			{
+				name: "layers",
+				type: "string",
+				required: false,
+				description: "Comma-separated layer filter (e.g. sa2,lga,poa)",
+				example: "sa2,lga,poa",
+			},
+		],
+	},
 ];
 
 export const apiExplorerEndpointMap = new Map(
@@ -590,7 +626,8 @@ export const buildApiExplorerCurl = (
 		lines.push(`  -d '${JSON.stringify(endpoint.exampleBody, null, 2)}'`);
 	} else {
 		// Drop the trailing line-continuation on the final line.
-		lines[lines.length - 1] = lines[lines.length - 1].replace(/ \\$/, "");
+		lines[lines.length - 1] =
+			lines.at(-1)?.replace(TRAILING_CONTINUATION_RE, "") ?? "";
 	}
 
 	return lines.join("\n");
