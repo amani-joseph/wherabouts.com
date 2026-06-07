@@ -280,10 +280,10 @@ export interface WebhookCreateResponse {
 // --- Batch geocoding (dashboard) ---
 
 export interface DashboardBatchJobSummary {
+	completedAt: string | null;
+	createdAt: string;
 	id: string;
-	status: "pending" | "processing" | "completed" | "failed";
 	inputCount: number;
 	processedCount: number;
-	createdAt: string;
-	completedAt: string | null;
+	status: "pending" | "processing" | "completed" | "failed";
 }

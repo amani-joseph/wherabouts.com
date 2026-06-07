@@ -6,8 +6,8 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
-import { projects } from "./projects.ts";
 import { apiKeys } from "./api-keys.ts";
+import { projects } from "./projects.ts";
 
 export const batchGeocodeJobs = pgTable(
 	"batch_geocode_jobs",

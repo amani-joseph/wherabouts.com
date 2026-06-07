@@ -5,7 +5,11 @@ describe("computeBoundaryCrossings", () => {
 	it("entry when device enters a new zone (prev [], curr [1])", () => {
 		const result = computeBoundaryCrossings([], [1], { 1: "Zone A" });
 		expect(result).toHaveLength(1);
-		expect(result[0]).toEqual({ zoneId: 1, zoneName: "Zone A", event: "entry" });
+		expect(result[0]).toEqual({
+			zoneId: 1,
+			zoneName: "Zone A",
+			event: "entry",
+		});
 	});
 
 	it("exit when device leaves (prev [1], curr [])", () => {

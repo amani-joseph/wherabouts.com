@@ -1,18 +1,16 @@
+import { db } from "@wherabouts.com/api";
 import { autocompleteAddresses } from "@wherabouts.com/database/queries";
 import { batchGeocodeJobs } from "@wherabouts.com/database/schema";
-import { db } from "@wherabouts.com/api";
 import { eq } from "drizzle-orm";
 
 export interface BatchGeocodeMessage {
-	type: "batch-geocode";
-	jobId: string;
 	addresses: string[];
+	jobId: string;
 	projectId: string;
+	type: "batch-geocode";
 }
 
 export interface BatchGeocodeResult {
-	input: string;
-	matched: boolean;
 	address?: {
 		id: number;
 		formattedAddress: string;
@@ -24,6 +22,8 @@ export interface BatchGeocodeResult {
 		postcode: string;
 	};
 	error?: string;
+	input: string;
+	matched: boolean;
 }
 
 export async function processBatchGeocodeMessage(
@@ -36,7 +36,9 @@ export async function processBatchGeocodeMessage(
 
 		for (const address of msg.addresses) {
 			try {
-				const { results: matches } = await autocompleteAddresses(db, address, { limit: 1 });
+				const { results: matches } = await autocompleteAddresses(db, address, {
+					limit: 1,
+				});
 				if (matches.length > 0) {
 					const m = matches[0]!;
 					results.push({

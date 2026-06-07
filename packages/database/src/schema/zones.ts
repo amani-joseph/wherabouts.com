@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
 	customType,
 	doublePrecision,
@@ -11,7 +12,6 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 import { projects } from "./projects.ts";
 
 const polygon = customType<{ data: string }>({
@@ -61,9 +61,7 @@ export const deviceZoneState = pgTable(
 			.notNull()
 			.defaultNow(),
 	},
-	(table) => [
-		primaryKey({ columns: [table.projectId, table.deviceId] }),
-	]
+	(table) => [primaryKey({ columns: [table.projectId, table.deviceId] })]
 );
 
 export type Zone = typeof zones.$inferSelect;

@@ -33,5 +33,7 @@ export const webhookDeliveryAttempts = pgTable(
 	]
 );
 
-export type WebhookDeliveryAttempt = typeof webhookDeliveryAttempts.$inferSelect;
-export type NewWebhookDeliveryAttempt = typeof webhookDeliveryAttempts.$inferInsert;
+export type WebhookDeliveryAttempt =
+	typeof webhookDeliveryAttempts.$inferSelect;
+export type NewWebhookDeliveryAttempt =
+	typeof webhookDeliveryAttempts.$inferInsert;

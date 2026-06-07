@@ -38,9 +38,7 @@ export const teamMembers = pgTable(
 			.notNull()
 			.defaultNow(),
 	},
-	(t) => [
-		uniqueIndex("uq_team_members_team_user").on(t.teamId, t.userId),
-	]
+	(t) => [uniqueIndex("uq_team_members_team_user").on(t.teamId, t.userId)]
 );
 
 export const teamInvitations = pgTable("team_invitations", {

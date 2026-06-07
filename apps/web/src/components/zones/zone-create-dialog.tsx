@@ -12,13 +12,18 @@ import { Label } from "@wherabouts.com/ui/components/label";
 import { useEffect, useState } from "react";
 
 export interface ZoneCreateDialogProps {
-	open: boolean;
-	saving: boolean;
 	onCancel: () => void;
 	onSubmit: (values: { name: string; description?: string }) => void;
+	open: boolean;
+	saving: boolean;
 }
 
-export function ZoneCreateDialog({ open, saving, onCancel, onSubmit }: ZoneCreateDialogProps) {
+export function ZoneCreateDialog({
+	open,
+	saving,
+	onCancel,
+	onSubmit,
+}: ZoneCreateDialogProps) {
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
 
@@ -34,7 +39,9 @@ export function ZoneCreateDialog({ open, saving, onCancel, onSubmit }: ZoneCreat
 			<DialogContent showCloseButton={false}>
 				<DialogHeader>
 					<DialogTitle>Name your zone</DialogTitle>
-					<DialogDescription>Give the polygon you drew a name to save it.</DialogDescription>
+					<DialogDescription>
+						Give the polygon you drew a name to save it.
+					</DialogDescription>
 				</DialogHeader>
 				<div className="space-y-3">
 					<div className="space-y-1">
@@ -56,11 +63,16 @@ export function ZoneCreateDialog({ open, saving, onCancel, onSubmit }: ZoneCreat
 					</div>
 				</div>
 				<DialogFooter>
-					<Button onClick={onCancel} variant="outline">Cancel</Button>
+					<Button onClick={onCancel} variant="outline">
+						Cancel
+					</Button>
 					<Button
 						disabled={saving || name.trim().length === 0}
 						onClick={() =>
-							onSubmit({ name: name.trim(), description: description.trim() || undefined })
+							onSubmit({
+								name: name.trim(),
+								description: description.trim() || undefined,
+							})
 						}
 					>
 						{saving ? "Saving…" : "Save zone"}

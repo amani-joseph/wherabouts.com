@@ -160,17 +160,12 @@ const LoginForm = () => {
 														Remember this device
 													</Label>
 												</div>
-												<button
+												<Link
 													className="font-medium text-foreground text-sm underline-offset-4 transition-all hover:underline"
-													onClick={() =>
-														setErrorMessage(
-															"Password reset isn't available yet. Please contact support."
-														)
-													}
-													type="button"
+													to="/forgot-password"
 												>
 													Forgot Password?
-												</button>
+												</Link>
 											</div>
 										</div>
 

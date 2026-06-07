@@ -21,9 +21,13 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+// OpenFreeMap dark/positron — free, no API key, CORS-open vector tiles that
+// ship working glyphs (labels). CARTO's default GL styles reference a glyph
+// endpoint (tiles.basemaps.cartocdn.com/fonts/...) that 404s with no CORS
+// header, which drops every text label including cluster counts.
 const defaultStyles = {
-	dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-	light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+	dark: "https://tiles.openfreemap.org/styles/dark",
+	light: "https://tiles.openfreemap.org/styles/positron",
 };
 
 type Theme = "light" | "dark";
@@ -1711,7 +1715,9 @@ function MapClusterLayer<
 			filter: ["has", "point_count"],
 			layout: {
 				"text-field": "{point_count_abbreviated}",
-				"text-font": ["Open Sans"],
+				// Must match a fontstack the basemap's glyphs endpoint serves.
+				// OpenFreeMap ships "Noto Sans Regular"; "Open Sans" 404s.
+				"text-font": ["Noto Sans Regular"],
 				"text-size": 12,
 			},
 			paint: {

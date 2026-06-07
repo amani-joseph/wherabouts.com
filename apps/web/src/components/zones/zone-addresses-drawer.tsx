@@ -16,19 +16,19 @@ import {
 
 export interface ZoneAddressItem {
 	id: number;
-	streetName: string;
 	locality: string;
-	state: string;
 	postcode: string;
+	state: string;
+	streetName: string;
 }
 
 export interface ZoneAddressesDrawerProps {
-	open: boolean;
-	zoneName: string;
-	loading: boolean;
-	truncated: boolean;
 	addresses: ZoneAddressItem[];
+	loading: boolean;
 	onClose: () => void;
+	open: boolean;
+	truncated: boolean;
+	zoneName: string;
 }
 
 export function ZoneAddressesDrawer({

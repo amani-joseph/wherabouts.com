@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { GeoJsonPolygon } from "@wherabouts.com/api/routers/public/zones-schema";
 import { Button } from "@wherabouts.com/ui/components/button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ActiveProjectSelector } from "@/components/active-project-selector";
+import { pointInPolygon } from "@/components/zones/geometry";
 import {
 	type PointTestResult,
 	PointTestTool,
@@ -38,6 +40,14 @@ function RouteComponent() {
 	const [saving, setSaving] = useState(false);
 	const [testing, setTesting] = useState(false);
 	const [testResult, setTestResult] = useState<PointTestResult | null>(null);
+	const [testLat, setTestLat] = useState("-33.87");
+	const [testLng, setTestLng] = useState("151.21");
+	const [picking, setPicking] = useState(false);
+	const [testPoint, setTestPoint] = useState<{
+		lat: number;
+		lng: number;
+	} | null>(null);
+	const [matchedZoneIds, setMatchedZoneIds] = useState<number[]>([]);
 
 	const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -77,12 +87,30 @@ function RouteComponent() {
 		}
 	}, [activeId, refreshZones]);
 
-	const drawn = controls?.drawnPolygon ?? null;
+	// Clear any prior point-test state when switching projects.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: activeId is the trigger, not a value read in the body
 	useEffect(() => {
-		if (drawn && editingId === null) {
+		setTestResult(null);
+		setTestPoint(null);
+		setMatchedZoneIds([]);
+		setPicking(false);
+	}, [activeId]);
+
+	// Reactive drawn-polygon state, fed by ZoneMap's onDrawnPolygonChange. The
+	// control methods (start/stop/clear/load) come from `controls`, but the
+	// polygon VALUE must arrive through this channel — `controls` is a one-shot
+	// snapshot whose drawnPolygon never updates.
+	const [drawn, setDrawn] = useState<GeoJsonPolygon | null>(null);
+
+	// Open the create dialog only when a brand-new polygon is fully drawn. This
+	// is driven by terra-draw's draw-completion event (via ZoneMap.onPolygonDrawn),
+	// NOT by `drawn` changing — `drawn` updates on every vertex while drawing, which
+	// would pop the dialog open mid-draw. Editing an existing zone never triggers it.
+	const handlePolygonDrawn = useCallback(() => {
+		if (editingId === null) {
 			setDialogOpen(true);
 		}
-	}, [drawn, editingId]);
+	}, [editingId]);
 
 	const handleSave = async (values: { name: string; description?: string }) => {
 		if (!(activeId && drawn)) {
@@ -110,27 +138,55 @@ function RouteComponent() {
 		}
 	};
 
-	const handleTest = async (lat: number, lng: number) => {
-		if (!activeId || Number.isNaN(lat) || Number.isNaN(lng)) {
-			toast.error("Enter valid coordinates.");
-			return;
-		}
-		setTesting(true);
-		try {
-			const res = await orpcClient.zones.contains({
-				projectId: activeId,
-				lat,
-				lng,
-			});
-			setTestResult({
-				zones: res.zones.map((z) => ({ id: z.id, name: z.name })),
-			});
-		} catch (err) {
-			toast.error(err instanceof Error ? err.message : "Point test failed.");
-		} finally {
-			setTesting(false);
-		}
+	const runTest = useCallback(
+		async (lat: number, lng: number) => {
+			if (!activeId) {
+				toast.error("Select a project first.");
+				return;
+			}
+			if (Number.isNaN(lat) || Number.isNaN(lng)) {
+				toast.error("Enter valid coordinates.");
+				return;
+			}
+			setTesting(true);
+			setTestPoint({ lat, lng });
+			try {
+				const res = await orpcClient.zones.contains({
+					projectId: activeId,
+					lat,
+					lng,
+				});
+				const savedZones = res.zones.map((z) => ({ id: z.id, name: z.name }));
+				setMatchedZoneIds(savedZones.map((z) => z.id));
+				// Also test against the unsaved drawn zone, if any (client-side preview).
+				const drawnMatch = drawn
+					? pointInPolygon([lng, lat], drawn)
+					: undefined;
+				setTestResult({ zones: savedZones, drawnMatch });
+			} catch (err) {
+				toast.error(err instanceof Error ? err.message : "Point test failed.");
+			} finally {
+				setTesting(false);
+			}
+		},
+		[activeId, drawn]
+	);
+
+	const handleTest = () => {
+		runTest(Number(testLat), Number(testLng));
 	};
+
+	const handlePick = useCallback(
+		(lat: number, lng: number) => {
+			setPicking(false);
+			const roundedLat = Number(lat.toFixed(6));
+			const roundedLng = Number(lng.toFixed(6));
+			setTestLat(String(roundedLat));
+			setTestLng(String(roundedLng));
+			runTest(roundedLat, roundedLng);
+		},
+		[runTest]
+	);
 
 	const handleViewAddresses = async (id: number) => {
 		if (!activeId) {
@@ -177,7 +233,7 @@ function RouteComponent() {
 	};
 
 	const handleSaveEdit = async () => {
-		if (!(activeId && editingId && controls?.drawnPolygon)) {
+		if (!(activeId && editingId && drawn)) {
 			toast.error("Move a point to change the shape before saving.");
 			return;
 		}
@@ -185,12 +241,12 @@ function RouteComponent() {
 			await orpcClient.zones.update({
 				projectId: activeId,
 				id: editingId,
-				geometry: controls.drawnPolygon,
+				geometry: drawn,
 			});
 			toast.success("Zone updated.");
 			setEditingId(null);
-			controls.clear();
-			controls.resetDrawn();
+			controls?.clear();
+			controls?.resetDrawn();
 			await refreshZones(activeId);
 		} catch (err) {
 			toast.error(
@@ -245,7 +301,16 @@ function RouteComponent() {
 				)}
 			</div>
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-				<ZoneMap onReady={(c) => setControls(c)} zones={zones} />
+				<ZoneMap
+					highlightZoneIds={matchedZoneIds}
+					onDrawnPolygonChange={setDrawn}
+					onPick={handlePick}
+					onPolygonDrawn={handlePolygonDrawn}
+					onReady={(c) => setControls(c)}
+					picking={picking}
+					testPoint={testPoint}
+					zones={zones}
+				/>
 				<div className="space-y-4">
 					<ZoneList
 						onDelete={handleDelete}
@@ -256,7 +321,13 @@ function RouteComponent() {
 						zones={zones}
 					/>
 					<PointTestTool
+						lat={testLat}
+						lng={testLng}
+						onLatChange={setTestLat}
+						onLngChange={setTestLng}
+						onPick={() => setPicking((p) => !p)}
 						onTest={handleTest}
+						picking={picking}
 						result={testResult}
 						testing={testing}
 					/>

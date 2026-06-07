@@ -3,8 +3,8 @@ import { Textarea } from "@wherabouts.com/ui/components/textarea";
 import { useRef, useState } from "react";
 
 export interface BatchInputProps {
-	submitting: boolean;
 	onSubmit: (text: string) => void;
+	submitting: boolean;
 }
 
 export function BatchInput({ submitting, onSubmit }: BatchInputProps) {
@@ -34,7 +34,9 @@ export function BatchInput({ submitting, onSubmit }: BatchInputProps) {
 				className="min-h-[120px] font-mono text-sm"
 				disabled={submitting}
 				onChange={(e) => setText(e.target.value)}
-				placeholder={"Paste addresses here, one per line.\nOr upload a CSV — the first column will be used."}
+				placeholder={
+					"Paste addresses here, one per line.\nOr upload a CSV — the first column will be used."
+				}
 				value={text}
 			/>
 			<div className="flex items-center gap-2">
