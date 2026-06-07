@@ -30,7 +30,9 @@ export type ApiEndpointId =
 	// Webhooks
 	| "webhooks.create"
 	| "webhooks.list"
-	| "webhooks.delete";
+	| "webhooks.delete"
+	// Regions
+	| "regions.classify";
 
 export type ApiEndpoint = {
 	description: string;
@@ -498,6 +500,39 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 				required: true,
 				description: "Webhook subscription identifier",
 				example: "wh_01HX9AB",
+			},
+		],
+	},
+	// --- Regions ---
+	{
+		id: "regions.classify",
+		method: "GET",
+		path: "/api/v1/regions",
+		summary: "Classify a coordinate into administrative regions",
+		description:
+			"Returns the official ABS/ASGS administrative regions that contain a coordinate — state, SA1–SA4, LGA, postcode (POA), electoral divisions, and mesh block. Results are keyed by layer. Optionally filter with the `layers` parameter.",
+		params: [
+			{
+				name: "lat",
+				type: "number",
+				required: true,
+				description: "Latitude (-90 to 90)",
+				example: "-37.8136",
+			},
+			{
+				name: "lng",
+				type: "number",
+				required: true,
+				description: "Longitude (-180 to 180)",
+				example: "144.9631",
+			},
+			{
+				name: "layers",
+				type: "string",
+				required: false,
+				description:
+					"Comma-separated layer filter (state,sa1,sa2,sa3,sa4,lga,poa,ced,sed,mb). Omit to return all layers.",
+				example: "sa2,lga,poa",
 			},
 		],
 	},
