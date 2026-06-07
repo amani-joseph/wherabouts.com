@@ -338,14 +338,16 @@ export const getOpenApiDocument = () =>
 							in: "query",
 							required: false,
 							schema: { type: "string", minLength: 5 },
-							description: "Unstructured address text (min 5 chars). Omit when using structured mode.",
+							description:
+								"Unstructured address text (min 5 chars). Omit when using structured mode.",
 						},
 						{
 							name: "structured",
 							in: "query",
 							required: false,
 							schema: { type: "string", enum: ["true", "false"] },
-							description: "Set to `true` to use structured field inputs instead of `q`.",
+							description:
+								"Set to `true` to use structured field inputs instead of `q`.",
 						},
 						{
 							name: "street",
@@ -366,7 +368,8 @@ export const getOpenApiDocument = () =>
 							in: "query",
 							required: false,
 							schema: { type: "string" },
-							description: "State abbreviation such as `VIC` (structured mode).",
+							description:
+								"State abbreviation such as `VIC` (structured mode).",
 						},
 						{
 							name: "postcode",
@@ -491,7 +494,8 @@ export const getOpenApiDocument = () =>
 					],
 					responses: {
 						"200": {
-							description: "Job status (pending | processing | completed | failed).",
+							description:
+								"Job status (pending | processing | completed | failed).",
 							content: {
 								"application/json": {
 									schema: {
@@ -624,7 +628,8 @@ export const getOpenApiDocument = () =>
 							},
 						},
 						"400": {
-							description: "Validation error (e.g. invalid geometry, 500-zone limit).",
+							description:
+								"Validation error (e.g. invalid geometry, 500-zone limit).",
 							content: {
 								"application/json": {
 									schema: { $ref: "#/components/schemas/ApiError" },
@@ -906,7 +911,12 @@ export const getOpenApiDocument = () =>
 							name: "limit",
 							in: "query",
 							required: false,
-							schema: { type: "integer", minimum: 1, maximum: 10_000, default: 100 },
+							schema: {
+								type: "integer",
+								minimum: 1,
+								maximum: 10_000,
+								default: 100,
+							},
 							description: "Maximum addresses to return (capped at 10 000).",
 						},
 						{
@@ -984,7 +994,8 @@ export const getOpenApiDocument = () =>
 										timestamp: {
 											type: "string",
 											format: "date-time",
-											description: "ISO-8601 timestamp (defaults to server time).",
+											description:
+												"ISO-8601 timestamp (defaults to server time).",
 										},
 									},
 								},
@@ -993,7 +1004,8 @@ export const getOpenApiDocument = () =>
 					},
 					responses: {
 						"200": {
-							description: "Location recorded; zone crossings (if any) returned.",
+							description:
+								"Location recorded; zone crossings (if any) returned.",
 							content: {
 								"application/json": {
 									schema: { type: "object", additionalProperties: true },
@@ -1107,7 +1119,8 @@ export const getOpenApiDocument = () =>
 					},
 					responses: {
 						"201": {
-							description: "Webhook created — includes once-shown signing secret.",
+							description:
+								"Webhook created — includes once-shown signing secret.",
 							content: {
 								"application/json": {
 									schema: {
@@ -1155,7 +1168,8 @@ export const getOpenApiDocument = () =>
 					],
 					responses: {
 						"200": {
-							description: "Array of webhook records (signing secret not included).",
+							description:
+								"Array of webhook records (signing secret not included).",
 							content: {
 								"application/json": {
 									schema: {

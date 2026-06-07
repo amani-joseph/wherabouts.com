@@ -4,8 +4,8 @@ import { authRouter } from "./domains/auth.ts";
 import { dashboardRouter } from "./domains/dashboard.ts";
 import { geocodeRouter } from "./domains/geocode.ts";
 import { projectsRouter } from "./domains/projects.ts";
-import { zonesRouter } from "./domains/zones.ts";
 import { webhooksRouter } from "./domains/webhooks.ts";
+import { zonesRouter } from "./domains/zones.ts";
 
 export const appRouter = {
 	apiExplorer: apiExplorerRouter,

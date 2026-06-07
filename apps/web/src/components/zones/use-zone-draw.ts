@@ -1,21 +1,31 @@
+import type { GeoJsonPolygon } from "@wherabouts.com/api/routers/public/zones-schema";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { GeoJsonPolygon } from "@wherabouts.com/api/routers/public/zones-schema";
-import { featureToPolygon, polygonToFeature, type DrawFeature } from "./geometry.ts";
+import {
+	type DrawFeature,
+	featureToPolygon,
+	polygonToFeature,
+} from "./geometry.ts";
 
 export interface UseZoneDraw {
+	clear: () => void;
+	drawnPolygon: GeoJsonPolygon | null;
+	loadPolygon: (polygon: GeoJsonPolygon) => void;
+	resetDrawn: () => void;
 	startDrawing: () => void;
 	stopDrawing: () => void;
-	clear: () => void;
-	loadPolygon: (polygon: GeoJsonPolygon) => void;
-	drawnPolygon: GeoJsonPolygon | null;
-	resetDrawn: () => void;
 }
 
-export function useZoneDraw(map: MapLibreMap | null): UseZoneDraw {
+export function useZoneDraw(
+	map: MapLibreMap | null,
+	options?: { onPolygonDrawn?: () => void }
+): UseZoneDraw {
 	// biome-ignore lint/suspicious/noExplicitAny: terra-draw instance type
 	const drawRef = useRef<any>(null);
 	const [drawnPolygon, setDrawnPolygon] = useState<GeoJsonPolygon | null>(null);
+	// Ref so the terra-draw listener (registered once) always calls the latest callback.
+	const onPolygonDrawnRef = useRef(options?.onPolygonDrawn);
+	onPolygonDrawnRef.current = options?.onPolygonDrawn;
 
 	useEffect(() => {
 		if (!map) {
@@ -44,9 +54,7 @@ export function useZoneDraw(map: MapLibreMap | null): UseZoneDraw {
 				// Our flows clear() before drawing/loading, so the store holds a single
 				// editable polygon at a time. Take the last Polygon feature (ignoring any
 				// terra-draw guide/midpoint features which are non-Polygon).
-				const polygons = snapshot.filter(
-					(f) => f.geometry.type === "Polygon",
-				);
+				const polygons = snapshot.filter((f) => f.geometry.type === "Polygon");
 				const last = polygons.at(-1);
 				if (last) {
 					const polygon = featureToPolygon(last);
@@ -56,9 +64,24 @@ export function useZoneDraw(map: MapLibreMap | null): UseZoneDraw {
 				}
 			};
 
-			// "finish" fires when a polygon is completed; "change" covers vertex edits in select mode
-			draw.on("finish", captureLatest);
+			// "change" fires on every store edit, including each click while drawing
+			// a polygon — so it keeps `drawnPolygon` live for edit-save and point
+			// testing, but must NOT be used to detect "polygon finished".
 			draw.on("change", captureLatest);
+			// "finish" fires once an action completes. terra-draw reports the action
+			// in the context: "draw" means a brand-new polygon was just completed —
+			// that (and only that) is when we open the create dialog. Editing actions
+			// (dragCoordinate, dragFeature, edit, …) must not trigger it.
+			draw.on(
+				"finish",
+				// biome-ignore lint/suspicious/noExplicitAny: terra-draw OnFinishContext
+				(_id: any, context: any) => {
+					captureLatest();
+					if (context?.action === "draw") {
+						onPolygonDrawnRef.current?.();
+					}
+				}
+			);
 			drawRef.current = draw;
 		});
 
@@ -104,6 +127,6 @@ export function useZoneDraw(map: MapLibreMap | null): UseZoneDraw {
 			drawnPolygon,
 			resetDrawn,
 		}),
-		[startDrawing, stopDrawing, clear, loadPolygon, drawnPolygon, resetDrawn],
+		[startDrawing, stopDrawing, clear, loadPolygon, drawnPolygon, resetDrawn]
 	);
 }

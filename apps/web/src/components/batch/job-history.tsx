@@ -8,11 +8,11 @@ import {
 } from "@wherabouts.com/ui/components/table";
 
 export interface JobHistoryItem {
+	createdAt: string;
 	id: string;
-	status: string;
 	inputCount: number;
 	processedCount: number;
-	createdAt: string;
+	status: string;
 }
 
 export interface JobHistoryProps {
@@ -45,7 +45,9 @@ export function JobHistory({ jobs, onSelect }: JobHistoryProps) {
 						key={j.id}
 						onClick={() => onSelect(j.id)}
 					>
-						<TableCell className="font-mono text-xs">{j.id.slice(0, 8)}</TableCell>
+						<TableCell className="font-mono text-xs">
+							{j.id.slice(0, 8)}
+						</TableCell>
 						<TableCell className="text-xs capitalize">{j.status}</TableCell>
 						<TableCell className="text-xs">{j.inputCount}</TableCell>
 						<TableCell className="text-xs">

@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
 	boolean,
 	index,
@@ -7,7 +8,6 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 import { projects } from "./projects.ts";
 import { zones } from "./zones.ts";
 

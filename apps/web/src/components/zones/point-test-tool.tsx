@@ -7,52 +7,96 @@ import {
 } from "@wherabouts.com/ui/components/card";
 import { Input } from "@wherabouts.com/ui/components/input";
 import { Label } from "@wherabouts.com/ui/components/label";
-import { useState } from "react";
 
 export interface PointTestResult {
+	/** Whether the point fell inside the unsaved drawn zone (undefined = none drawn). */
+	drawnMatch?: boolean;
 	zones: { id: number; name: string }[];
 }
 
 export interface PointTestToolProps {
-	testing: boolean;
+	lat: string;
+	lng: string;
+	onLatChange: (value: string) => void;
+	onLngChange: (value: string) => void;
+	onPick: () => void;
+	onTest: () => void;
+	picking: boolean;
 	result: PointTestResult | null;
-	onTest: (lat: number, lng: number) => void;
+	testing: boolean;
 }
 
-export function PointTestTool({ testing, result, onTest }: PointTestToolProps) {
-	const [lat, setLat] = useState("-33.87");
-	const [lng, setLng] = useState("151.21");
-
+export function PointTestTool({
+	lat,
+	lng,
+	onLatChange,
+	onLngChange,
+	onTest,
+	onPick,
+	picking,
+	result,
+	testing,
+}: PointTestToolProps) {
 	return (
 		<Card>
 			<CardHeader>
 				<CardTitle className="text-sm">Test a point</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-2">
+				<p className="text-muted-foreground text-xs">
+					Click <span className="font-medium">Pick on map</span> then click the
+					map, or type coordinates, to see which zones contain a point.
+				</p>
 				<div className="flex gap-2">
 					<div className="flex-1 space-y-1">
 						<Label htmlFor="test-lat">Lat</Label>
-						<Input id="test-lat" onChange={(e) => setLat(e.target.value)} value={lat} />
+						<Input
+							id="test-lat"
+							onChange={(e) => onLatChange(e.target.value)}
+							value={lat}
+						/>
 					</div>
 					<div className="flex-1 space-y-1">
 						<Label htmlFor="test-lng">Lng</Label>
-						<Input id="test-lng" onChange={(e) => setLng(e.target.value)} value={lng} />
+						<Input
+							id="test-lng"
+							onChange={(e) => onLngChange(e.target.value)}
+							value={lng}
+						/>
 					</div>
 				</div>
 				<Button
 					className="w-full"
+					onClick={onPick}
+					size="sm"
+					type="button"
+					variant={picking ? "default" : "outline"}
+				>
+					{picking ? "Click the map…" : "Pick on map"}
+				</Button>
+				<Button
+					className="w-full"
 					disabled={testing}
-					onClick={() => onTest(Number(lat), Number(lng))}
+					onClick={onTest}
 					size="sm"
 				>
 					{testing ? "Testing…" : "Check zones"}
 				</Button>
 				{result ? (
-					<p className="text-muted-foreground text-sm">
-						{result.zones.length === 0
-							? "Point is in no zones."
-							: `In: ${result.zones.map((z) => z.name).join(", ")}`}
-					</p>
+					<div className="space-y-1 text-sm">
+						<p className="text-muted-foreground">
+							{result.zones.length === 0
+								? "Point is in no saved zones."
+								: `Saved zones: ${result.zones.map((z) => z.name).join(", ")}`}
+						</p>
+						{result.drawnMatch === undefined ? null : (
+							<p className="text-muted-foreground">
+								{result.drawnMatch
+									? "Inside the unsaved drawn zone."
+									: "Outside the unsaved drawn zone."}
+							</p>
+						)}
+					</div>
 				) : null}
 			</CardContent>
 		</Card>

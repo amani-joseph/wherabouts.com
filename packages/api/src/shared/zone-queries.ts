@@ -107,7 +107,9 @@ export async function zonesContainingPoint(
 		.where(
 			and(
 				eq(zones.projectId, projectId),
-				sql`ST_Contains(${zones.geom}, ${point})`
+				// ST_Covers (not ST_Contains) so points exactly on a zone's boundary
+				// or vertex count as inside — ST_Contains excludes the boundary.
+				sql`ST_Covers(${zones.geom}, ${point})`
 			)
 		);
 }

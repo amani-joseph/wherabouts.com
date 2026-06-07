@@ -2578,5 +2578,364 @@
 				</p>
 			</div>
 		</footer>
+
+		<!-- ═══════════════════════════════════════════════════
+		     08 · ASSET INVENTORY
+		════════════════════════════════════════════════════ -->
+		<section id="assets">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="sec-num">08</span>
+					<span class="sec-title">Asset Inventory</span>
+				</div>
+
+				<style>
+				.asset-groups {
+					display: flex;
+					flex-direction: column;
+					gap: 40px;
+				}
+				.asset-group-title {
+					padding-bottom: 12px;
+					margin-bottom: 14px;
+					font-family: var(--font-ui);
+					font-size: 10px;
+					font-weight: 600;
+					color: var(--mist);
+					text-transform: uppercase;
+					letter-spacing: 0.18em;
+					border-bottom: 1px solid var(--border);
+				}
+				.asset-table {
+					width: 100%;
+					font-size: 13px;
+					border-collapse: collapse;
+				}
+				.asset-table th {
+					padding: 0 16px 10px 0;
+					font-family: var(--font-ui);
+					font-size: 10px;
+					font-weight: 600;
+					color: var(--mist);
+					text-align: left;
+					text-transform: uppercase;
+					letter-spacing: 0.12em;
+				}
+				.asset-table td {
+					padding: 10px 16px 10px 0;
+					line-height: 1.5;
+					vertical-align: top;
+					color: var(--silver);
+					border-top: 1px solid var(--border);
+				}
+				.asset-table td:first-child {
+					font-family: var(--font-mono);
+					font-size: 12px;
+					color: var(--white);
+					white-space: nowrap;
+				}
+				.asset-table td .dim {
+					font-size: 11px;
+					color: var(--mist);
+				}
+				.asset-cols {
+					display: grid;
+					grid-template-columns: 1fr 1fr;
+					gap: 48px;
+				}
+				@media (max-width: 700px) {
+					.asset-cols {
+						grid-template-columns: 1fr;
+					}
+				}
+				</style>
+
+				<div class="asset-groups">
+					<!-- SVG files -->
+					<div>
+						<p class="asset-group-title">
+							SVG — Vector source files &nbsp;/brand/
+						</p>
+						<table class="asset-table">
+							<thead>
+								<tr>
+									<th style="width:260px;">File</th>
+									<th>Description</th>
+									<th>Background</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>logo.svg</td>
+									<td>Primary stacked lockup — mark + wordmark</td>
+									<td><span class="dim">Dark</span></td>
+								</tr>
+								<tr>
+									<td>logo-mark.svg</td>
+									<td>Route W mark only, no wordmark</td>
+									<td><span class="dim">Dark</span></td>
+								</tr>
+								<tr>
+									<td>logo-horizontal.svg</td>
+									<td>Horizontal lockup — mark + rule + wordmark</td>
+									<td><span class="dim">Dark</span></td>
+								</tr>
+								<tr>
+									<td>logo-wordmark.svg</td>
+									<td>Wordmark only, no mark</td>
+									<td><span class="dim">Dark</span></td>
+								</tr>
+								<tr>
+									<td>logo-inverted.svg</td>
+									<td>Stacked lockup for light backgrounds</td>
+									<td><span class="dim">Light</span></td>
+								</tr>
+								<tr>
+									<td>logo-mark-inverted.svg</td>
+									<td>Mark only for light backgrounds</td>
+									<td><span class="dim">Light</span></td>
+								</tr>
+								<tr>
+									<td>logo-wordmark-inverted.svg</td>
+									<td>Wordmark only for light backgrounds</td>
+									<td><span class="dim">Light</span></td>
+								</tr>
+								<tr>
+									<td>logo-monochrome.svg</td>
+									<td>All-black — print, emboss, engraving</td>
+									<td><span class="dim">Light</span></td>
+								</tr>
+								<tr>
+									<td>logo-monochrome-white.svg</td>
+									<td>All-white — dark / photographic use</td>
+									<td><span class="dim">Dark</span></td>
+								</tr>
+								<tr>
+									<td>favicon.svg</td>
+									<td>Rounded-square app icon (simplified W)</td>
+									<td><span class="dim">#0C0C0C</span></td>
+								</tr>
+								<tr>
+									<td>apple-touch-icon.svg</td>
+									<td>iOS home-screen icon (180 × 180)</td>
+									<td><span class="dim">#0C0C0C</span></td>
+								</tr>
+								<tr>
+									<td>og-image.svg</td>
+									<td>Open Graph / social card (1200 × 630)</td>
+									<td><span class="dim">#0C0C0C</span></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<!-- PNG files, two columns -->
+					<div>
+						<p class="asset-group-title">
+							PNG — Raster exports &nbsp;/brand/png/
+						</p>
+						<div class="asset-cols">
+							<table class="asset-table">
+								<thead>
+									<tr>
+										<th>File</th>
+										<th>Size</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>favicon-16x16.png</td>
+										<td>
+											<span class="dim">16 × 16 — Browser tab (legacy)</span>
+										</td>
+									</tr>
+									<tr>
+										<td>favicon-32x32.png</td>
+										<td>
+											<span class="dim">32 × 32 — Browser tab (retina)</span>
+										</td>
+									</tr>
+									<tr>
+										<td>favicon-48x48.png</td>
+										<td><span class="dim">48 × 48 — Windows shortcut</span></td>
+									</tr>
+									<tr>
+										<td>favicon-64x64.png</td>
+										<td><span class="dim">64 × 64 — General favicon</span></td>
+									</tr>
+									<tr>
+										<td>favicon-96x96.png</td>
+										<td><span class="dim">96 × 96 — Android shortcut</span></td>
+									</tr>
+									<tr>
+										<td>favicon-192x192.png</td>
+										<td>
+											<span class="dim">192 × 192 — PWA maskable icon</span>
+										</td>
+									</tr>
+									<tr>
+										<td>favicon-512x512.png</td>
+										<td>
+											<span class="dim">512 × 512 — PWA splash / store</span>
+										</td>
+									</tr>
+									<tr>
+										<td>apple-touch-icon-180x180.png</td>
+										<td>
+											<span class="dim">180 × 180 — iOS home screen</span>
+										</td>
+									</tr>
+									<tr>
+										<td>logo-200.png</td>
+										<td>
+											<span class="dim">200 px wide — emails, embeds</span>
+										</td>
+									</tr>
+									<tr>
+										<td>logo-400.png</td>
+										<td><span class="dim">400 px wide — standard web</span></td>
+									</tr>
+									<tr>
+										<td>logo-800.png</td>
+										<td><span class="dim">800 px wide — retina / 2×</span></td>
+									</tr>
+								</tbody>
+							</table>
+							<table class="asset-table">
+								<thead>
+									<tr>
+										<th>File</th>
+										<th>Size</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>logo-inverted-200.png</td>
+										<td><span class="dim">200 px — light-bg emails</span></td>
+									</tr>
+									<tr>
+										<td>logo-inverted-400.png</td>
+										<td><span class="dim">400 px — light-bg web</span></td>
+									</tr>
+									<tr>
+										<td>logo-horizontal-310.png</td>
+										<td><span class="dim">310 px — nav bars</span></td>
+									</tr>
+									<tr>
+										<td>logo-horizontal-620.png</td>
+										<td><span class="dim">620 px — retina nav bars</span></td>
+									</tr>
+									<tr>
+										<td>logo-mark-64.png</td>
+										<td><span class="dim">64 px — inline avatars</span></td>
+									</tr>
+									<tr>
+										<td>logo-mark-128.png</td>
+										<td><span class="dim">128 px — profile pictures</span></td>
+									</tr>
+									<tr>
+										<td>logo-mark-256.png</td>
+										<td><span class="dim">256 px — high-res avatars</span></td>
+									</tr>
+									<tr>
+										<td>logo-mark-512.png</td>
+										<td><span class="dim">512 px — app store</span></td>
+									</tr>
+									<tr>
+										<td>logo-mark-inverted-64.png</td>
+										<td><span class="dim">64 px — light-bg avatar</span></td>
+									</tr>
+									<tr>
+										<td>logo-mark-inverted-128.png</td>
+										<td><span class="dim">128 px — light-bg profile</span></td>
+									</tr>
+									<tr>
+										<td>logo-mark-inverted-256.png</td>
+										<td><span class="dim">256 px — light-bg high-res</span></td>
+									</tr>
+									<tr>
+										<td>logo-monochrome-256.png</td>
+										<td>
+											<span class="dim">256 px — single-colour print</span>
+										</td>
+									</tr>
+									<tr>
+										<td>logo-monochrome-white-256.png</td>
+										<td>
+											<span class="dim">256 px — white print version</span>
+										</td>
+									</tr>
+									<tr>
+										<td>og-image-1200x630.png</td>
+										<td>
+											<span class="dim">1200 × 630 — social previews</span>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<!-- Tokens + Favicon setup -->
+					<div>
+						<p class="asset-group-title">Other assets</p>
+						<table class="asset-table">
+							<thead>
+								<tr>
+									<th style="width:260px;">File</th>
+									<th>Description</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>tokens.css</td>
+									<td>
+										CSS custom properties — colour, spacing, typography,
+										shadows, transitions. Import at stylesheet root.
+									</td>
+								</tr>
+								<tr>
+									<td>README.md</td>
+									<td>
+										Full usage guide, file inventory, favicon setup snippet,
+										do/don't reference.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<!-- Favicon HTML snippet -->
+					<div>
+						<p class="asset-group-title">Recommended &lt;head&gt; snippet</p>
+						<pre
+							style="
+							background: var(--ghost);
+							border: 1px solid var(--border);
+							border-radius: 6px;
+							padding: 24px 28px;
+							font-family: var(--font-mono);
+							font-size: 12px;
+							color: #A8D8A0;
+							line-height: 1.9;
+							overflow-x: auto;
+						"
+						><span style="color:#484848;">&lt;!-- Favicon --&gt;</span>
+&lt;<span style="color:#6DADFF;">link</span> rel=<span style="color:#F8D080;">"icon"</span> href=<span style="color:#F8D080;">"/brand/favicon.svg"</span> type=<span style="color:#F8D080;">"image/svg+xml"</span>&gt;
+&lt;<span style="color:#6DADFF;">link</span> rel=<span style="color:#F8D080;">"icon"</span> href=<span style="color:#F8D080;">"/brand/png/favicon-32x32.png"</span> sizes=<span style="color:#F8D080;">"32x32"</span>&gt;
+&lt;<span style="color:#6DADFF;">link</span> rel=<span style="color:#F8D080;">"icon"</span> href=<span style="color:#F8D080;">"/brand/png/favicon-16x16.png"</span> sizes=<span style="color:#F8D080;">"16x16"</span>&gt;
+&lt;<span style="color:#6DADFF;">link</span> rel=<span style="color:#F8D080;">"apple-touch-icon"</span> href=<span style="color:#F8D080;">"/brand/png/apple-touch-icon-180x180.png"</span>&gt;
+
+<span style="color:#484848;">&lt;!-- Open Graph / Twitter --&gt;</span>
+&lt;<span style="color:#6DADFF;">meta</span> property=<span style="color:#F8D080;">"og:image"</span> content=<span style="color:#F8D080;">"https://wherabouts.com/brand/png/og-image-1200x630.png"</span>&gt;
+&lt;<span style="color:#6DADFF;">meta</span> name=<span style="color:#F8D080;">"twitter:card"</span> content=<span style="color:#F8D080;">"summary_large_image"</span>&gt;
+&lt;<span style="color:#6DADFF;">meta</span> name=<span style="color:#F8D080;">"twitter:image"</span> content=<span style="color:#F8D080;">"https://wherabouts.com/brand/png/og-image-1200x630.png"</span>&gt;
+
+<span style="color:#484848;">&lt;!-- Design tokens --&gt;</span>
+&lt;<span style="color:#6DADFF;">link</span> rel=<span style="color:#F8D080;">"stylesheet"</span> href=<span style="color:#F8D080;">"/brand/tokens.css"</span>&gt;</pre>
+					</div>
+				</div>
+			</div>
+		</section>
 	</body>
 </html>

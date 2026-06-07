@@ -245,11 +245,14 @@ export async function autocompleteAddresses(
 		};
 	}
 
-	// Always try fast prefix search first (uses B-tree index, works without extensions)
+	// Always try fast prefix search first (uses B-tree index, works without extensions).
+	// Pass `parsed` so prefixSearch can reconstruct the number-first prefix that matches
+	// how search_text is stored (e.g. "120 Main St%") when the caller typed "5/120 Main St".
 	const prefixResults = await prefixSearch(db, searchInput, filterClauses, {
 		limit,
 		latitude,
 		longitude,
+		parsed,
 	});
 	if (prefixResults.length > 0) {
 		return { results: prefixResults, parsedQuery: parsed };
@@ -445,14 +448,54 @@ async function tieredSearch(
  * Fast prefix search that works without any extensions.
  * Uses `search_text ILIKE 'query%'` which can leverage a B-tree index
  * with text_pattern_ops or the default collation.
+ *
+ * When `parsed` carries a streetNumber (e.g. input was "5/120 Main St"),
+ * search_text is stored as "120 Main St ..." so the bare streetQuery prefix
+ * "Main St%" never matches. We try the number-prefixed form
+ * "${streetNumber} ${trimmed}%" first; if that returns nothing we fall back
+ * to the bare `trimmed%` so non-slash flows are unaffected.
  */
 async function prefixSearch(
 	db: Database,
 	trimmed: string,
 	filterClauses: SQL<unknown>[],
-	opts: { limit: number; latitude?: number; longitude?: number }
+	opts: {
+		limit: number;
+		latitude?: number;
+		longitude?: number;
+		parsed?: ParsedUnitAddress | null;
+	}
 ): Promise<AutocompleteResult[]> {
-	const { limit, latitude, longitude } = opts;
+	const { limit, latitude, longitude, parsed } = opts;
+
+	// When we have a street number, reconstruct the prefix that matches how
+	// search_text is stored: "120 Main St%".  This is the primary fix for the
+	// slash-unit input path ("5/120 Main St" → streetNumber="120", trimmed="Main St").
+	if (parsed?.streetNumber && trimmed) {
+		const numberFirstPattern = `${parsed.streetNumber} ${trimmed}%`;
+		const whereClause = buildWhereClause(
+			sql`search_text ILIKE ${numberFirstPattern}`,
+			filterClauses
+		);
+		const result = await db.execute(sql`
+			SELECT ${SELECT_COLUMNS}, 1.0 as similarity_score
+			FROM addresses
+			WHERE ${whereClause}
+			ORDER BY ${buildOrderBy(latitude, longitude)}
+			LIMIT ${limit}
+		`);
+		const rows = (result.rows as unknown as RawAddressRow[]).map(
+			mapRowToResult
+		);
+		if (rows.length > 0) {
+			return rows;
+		}
+		// Fall through to bare prefix below (handles edge cases where
+		// street_number is present in parsed but search_text is stored differently).
+	}
+
+	// Default: bare prefix search — used for all non-slash inputs and as
+	// fallback when the number-first form returned nothing.
 	const prefixPattern = `${trimmed}%`;
 	const whereClause = buildWhereClause(
 		sql`search_text ILIKE ${prefixPattern}`,

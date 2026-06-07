@@ -25,17 +25,17 @@ export interface WebhookZoneOption {
 }
 
 export interface WebhookCreateValues {
-	url: string;
 	events: ("entry" | "exit")[];
+	url: string;
 	zoneId?: number;
 }
 
 export interface WebhookCreateDialogProps {
+	onCancel: () => void;
+	onSubmit: (values: WebhookCreateValues) => void;
 	open: boolean;
 	saving: boolean;
 	zones: WebhookZoneOption[];
-	onSubmit: (values: WebhookCreateValues) => void;
-	onCancel: () => void;
 }
 
 export function WebhookCreateDialog({
@@ -70,7 +70,9 @@ export function WebhookCreateDialog({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Create webhook</DialogTitle>
-					<DialogDescription>Receive a signed POST when a device crosses a zone boundary.</DialogDescription>
+					<DialogDescription>
+						Receive a signed POST when a device crosses a zone boundary.
+					</DialogDescription>
 				</DialogHeader>
 				<div className="space-y-3">
 					<div className="space-y-1">
@@ -86,28 +88,45 @@ export function WebhookCreateDialog({
 						<Label>Events</Label>
 						<div className="flex gap-4">
 							<label className="flex items-center gap-2 text-sm">
-								<Checkbox checked={entry} onCheckedChange={(v) => setEntry(v === true)} /> Entry
+								<Checkbox
+									checked={entry}
+									onCheckedChange={(v) => setEntry(v === true)}
+								/>{" "}
+								Entry
 							</label>
 							<label className="flex items-center gap-2 text-sm">
-								<Checkbox checked={exit} onCheckedChange={(v) => setExit(v === true)} /> Exit
+								<Checkbox
+									checked={exit}
+									onCheckedChange={(v) => setExit(v === true)}
+								/>{" "}
+								Exit
 							</label>
 						</div>
 					</div>
 					<div className="space-y-1">
 						<Label htmlFor="wh-zone">Zone</Label>
-						<Select onValueChange={setZoneId} value={zoneId}>
-							<SelectTrigger id="wh-zone"><SelectValue /></SelectTrigger>
+						<Select
+							onValueChange={(value) => setZoneId(value ?? "all")}
+							value={zoneId}
+						>
+							<SelectTrigger id="wh-zone">
+								<SelectValue />
+							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="all">All zones</SelectItem>
 								{zones.map((z) => (
-									<SelectItem key={z.id} value={String(z.id)}>{z.name}</SelectItem>
+									<SelectItem key={z.id} value={String(z.id)}>
+										{z.name}
+									</SelectItem>
 								))}
 							</SelectContent>
 						</Select>
 					</div>
 				</div>
 				<DialogFooter>
-					<Button onClick={onCancel} variant="outline">Cancel</Button>
+					<Button onClick={onCancel} variant="outline">
+						Cancel
+					</Button>
 					<Button
 						disabled={saving || url.trim().length === 0 || events.length === 0}
 						onClick={() =>

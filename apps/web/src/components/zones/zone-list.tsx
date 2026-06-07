@@ -1,3 +1,4 @@
+import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
 import { Button } from "@wherabouts.com/ui/components/button";
 import {
 	Card,
@@ -5,19 +6,25 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@wherabouts.com/ui/components/card";
-import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
 import { ListIcon, MapPinIcon, PencilIcon, TrashIcon } from "lucide-react";
 
 export interface ZoneListProps {
-	zones: ZoneWithGeometryRow[];
-	selectedId: number | null;
-	onSelect: (id: number) => void;
 	onDelete: (id: number) => void;
-	onViewAddresses?: (id: number) => void;
 	onEdit?: (id: number) => void;
+	onSelect: (id: number) => void;
+	onViewAddresses?: (id: number) => void;
+	selectedId: number | null;
+	zones: ZoneWithGeometryRow[];
 }
 
-export function ZoneList({ zones, selectedId, onSelect, onDelete, onViewAddresses, onEdit }: ZoneListProps) {
+export function ZoneList({
+	zones,
+	selectedId,
+	onSelect,
+	onDelete,
+	onViewAddresses,
+	onEdit,
+}: ZoneListProps) {
 	if (zones.length === 0) {
 		return (
 			<Card>

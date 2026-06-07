@@ -15,7 +15,9 @@ function getKey(): Buffer {
 		throw new Error("KEY_ENC_KEY environment variable is not set.");
 	}
 	if (hex.length !== KEY_HEX_LENGTH || !KEY_HEX_PATTERN.test(hex)) {
-		throw new Error("KEY_ENC_KEY must be exactly 64 hex characters (32 bytes).");
+		throw new Error(
+			"KEY_ENC_KEY must be exactly 64 hex characters (32 bytes)."
+		);
 	}
 	return Buffer.from(hex, "hex");
 }

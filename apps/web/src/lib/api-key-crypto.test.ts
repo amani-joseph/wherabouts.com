@@ -20,7 +20,9 @@ beforeAll(() => {
 
 describe("api-key-crypto", () => {
 	it("encrypts then decrypts to the original plaintext", async () => {
-		const { encryptSecret, decryptSecret } = await import("./api-key-crypto.ts");
+		const { encryptSecret, decryptSecret } = await import(
+			"./api-key-crypto.ts"
+		);
 
 		const plaintext = "sk_live_super_secret_api_key_value_123";
 		const encrypted = encryptSecret(plaintext);
@@ -44,7 +46,9 @@ describe("api-key-crypto", () => {
 	});
 
 	it("throws when the ciphertext is tampered with (auth tag mismatch)", async () => {
-		const { encryptSecret, decryptSecret } = await import("./api-key-crypto.ts");
+		const { encryptSecret, decryptSecret } = await import(
+			"./api-key-crypto.ts"
+		);
 
 		const plaintext = "tamper-me";
 		const encrypted = encryptSecret(plaintext);

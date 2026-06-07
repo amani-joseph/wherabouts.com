@@ -1,10 +1,10 @@
 import { Progress } from "@wherabouts.com/ui/components/progress";
 
 export interface JobProgressProps {
-	status: string;
-	processedCount: number;
-	inputCount: number;
 	error?: string | null;
+	inputCount: number;
+	processedCount: number;
+	status: string;
 }
 
 export function JobProgress({

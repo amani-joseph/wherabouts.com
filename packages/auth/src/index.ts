@@ -22,14 +22,22 @@ const trustedOrigins = Array.from(
 	])
 );
 
-const cookieDomain = serverEnv.AUTH_COOKIE_DOMAIN?.trim();
+// On localhost the auth server runs at localhost:3003 and the web app at
+// localhost:3001. A cookie scoped to Domain=.wherabouts.com would not match
+// the `localhost` host, so the browser silently drops the session cookie and
+// the user never appears authenticated. Only attach the production cookie
+// domain when the auth server is not running on localhost.
+const isLocalhostAuth = serverEnv.BETTER_AUTH_URL.includes("localhost");
+const cookieDomain = isLocalhostAuth
+	? undefined
+	: serverEnv.AUTH_COOKIE_DOMAIN?.trim();
 
-type InviteTemplateParams = {
-	teamName: string;
-	inviterName: string;
+interface InviteTemplateParams {
 	inviterEmail: string;
+	inviterName: string;
 	inviteUrl: string;
-};
+	teamName: string;
+}
 
 /**
  * Build the HTML body for the Resend invitation email.
@@ -110,6 +118,73 @@ function buildInviteText({
 	].join("\n");
 }
 
+/**
+ * Build the HTML body for the password-reset email. Mirrors the invite
+ * template contract: single-column, 600px max, mono font stack, CTA
+ * bg #dedede / text #1a1a1a / radius 8px.
+ */
+function buildResetPasswordHtml(resetUrl: string): string {
+	const fontStack = "ui-monospace, 'Courier New', monospace";
+	return `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Reset your Wherabouts password</title>
+  </head>
+  <body style="margin:0;padding:0;background:#ffffff;color:#1a1a1a;font-family:${fontStack};">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+            <tr>
+              <td style="padding:0 0 24px 0;font-family:${fontStack};font-size:14px;font-weight:600;color:#1a1a1a;letter-spacing:0.02em;">
+                Wherabouts
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 0 16px 0;font-family:${fontStack};font-size:24px;font-weight:600;line-height:1.3;color:#1a1a1a;">
+                Reset your password
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 0 24px 0;font-family:${fontStack};font-size:14px;line-height:1.5;color:#1a1a1a;">
+                We received a request to reset your password. Click the button below to choose a new one. This link expires in 1 hour.
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 0 24px 0;">
+                <a href="${resetUrl}" style="display:inline-block;background:#dedede;color:#1a1a1a;text-decoration:none;padding:12px 24px;border-radius:8px;font-family:${fontStack};font-size:14px;font-weight:600;">Reset password</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 0 0 0;border-top:1px solid #ececec;font-family:${fontStack};font-size:12px;line-height:1.5;color:#6b6b6b;">
+                If you didn't request a password reset, you can safely ignore this email — your password won't change.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+/**
+ * Plain-text fallback for the password-reset email, with the full URL on
+ * its own line for clients that don't render HTML.
+ */
+function buildResetPasswordText(resetUrl: string): string {
+	return [
+		"Reset your Wherabouts password.",
+		"",
+		"We received a request to reset your password. Open the link below to choose a new one. It expires in 1 hour.",
+		"",
+		resetUrl,
+		"",
+		"If you didn't request this, you can safely ignore this email — your password won't change.",
+	].join("\n");
+}
+
 export const auth = betterAuth({
 	baseURL: serverEnv.BETTER_AUTH_URL,
 	secret: serverEnv.BETTER_AUTH_SECRET,
@@ -121,6 +196,23 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		minPasswordLength: 8,
+		resetPasswordTokenExpiresIn: 60 * 60, // 1 hour
+		sendResetPassword: async ({ user, token }) => {
+			const resend = new Resend(serverEnv.RESEND_API_KEY);
+			// Build the link to the web app directly (not the API origin) so the
+			// reset-password page can read the token from the query string.
+			const resetUrl = `${serverEnv.WEB_BASE_URL.replace(
+				TRAILING_SLASH_REGEX,
+				""
+			)}/reset-password?token=${token}`;
+			await resend.emails.send({
+				from: serverEnv.EMAIL_FROM,
+				to: user.email,
+				subject: "Reset your Wherabouts password",
+				html: buildResetPasswordHtml(resetUrl),
+				text: buildResetPasswordText(resetUrl),
+			});
+		},
 	},
 	socialProviders: {
 		github: {
@@ -129,12 +221,24 @@ export const auth = betterAuth({
 		},
 	},
 	advanced: {
-		defaultCookieAttributes: {
-			sameSite: "none",
-			secure: true,
-			httpOnly: true,
-			...(cookieDomain ? { domain: cookieDomain } : {}),
-		},
+		// In production the web app and auth API live on different subdomains of
+		// wherabouts.com, so the session cookie must be cross-site capable
+		// (SameSite=None; Secure) and shared across the parent domain. On
+		// localhost both apps are same-site (host `localhost`, different ports),
+		// where SameSite=Lax without Secure works reliably over plain http and
+		// avoids browsers dropping a Secure cookie served over http.
+		defaultCookieAttributes: isLocalhostAuth
+			? {
+					sameSite: "lax",
+					secure: false,
+					httpOnly: true,
+				}
+			: {
+					sameSite: "none",
+					secure: true,
+					httpOnly: true,
+					...(cookieDomain ? { domain: cookieDomain } : {}),
+				},
 	},
 	rateLimit: {
 		enabled: true,
@@ -149,8 +253,7 @@ export const auth = betterAuth({
 			sendInvitationEmail: async (data) => {
 				const resend = new Resend(serverEnv.RESEND_API_KEY);
 				const inviteUrl = `${serverEnv.WEB_BASE_URL.replace(TRAILING_SLASH_REGEX, "")}/invite/${data.id}`;
-				const inviterName =
-					data.inviter.user.name ?? data.inviter.user.email;
+				const inviterName = data.inviter.user.name ?? data.inviter.user.email;
 				await resend.emails.send({
 					from: serverEnv.EMAIL_FROM,
 					to: data.email,
@@ -174,8 +277,7 @@ export const auth = betterAuth({
 		user: {
 			create: {
 				after: async (user) => {
-					const displayName =
-						user.name ?? user.email.split("@")[0] ?? "user";
+					const displayName = user.name ?? user.email.split("@")[0] ?? "user";
 					const baseSlug = displayName
 						.toLowerCase()
 						.replace(SLUG_SANITIZE_REGEX, "-")
@@ -189,9 +291,7 @@ export const auth = betterAuth({
 						})
 						.returning();
 					if (!team) {
-						throw new Error(
-							"Failed to auto-create Personal team for new user"
-						);
+						throw new Error("Failed to auto-create Personal team for new user");
 					}
 					await db.insert(teamMembers).values({
 						teamId: team.id,

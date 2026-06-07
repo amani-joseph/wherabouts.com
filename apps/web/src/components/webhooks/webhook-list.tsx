@@ -11,20 +11,20 @@ import {
 import { ListIcon, RefreshCwIcon, TrashIcon } from "lucide-react";
 
 export interface WebhookRow {
+	active: boolean;
+	createdAt: string;
+	events: string[];
+	failing: boolean;
 	id: number;
 	url: string;
-	events: string[];
 	zoneId: number | null;
-	active: boolean;
-	failing: boolean;
-	createdAt: string;
 }
 
 export interface WebhookListProps {
-	webhooks: WebhookRow[];
 	onDelete: (id: number) => void;
 	onReactivate: (id: number) => void;
 	onViewDeliveries: (id: number) => void;
+	webhooks: WebhookRow[];
 }
 
 export function WebhookList({
@@ -34,7 +34,11 @@ export function WebhookList({
 	onViewDeliveries,
 }: WebhookListProps) {
 	if (webhooks.length === 0) {
-		return <p className="py-8 text-center text-muted-foreground text-sm">No webhooks yet.</p>;
+		return (
+			<p className="py-8 text-center text-muted-foreground text-sm">
+				No webhooks yet.
+			</p>
+		);
 	}
 	return (
 		<Table>
@@ -50,9 +54,13 @@ export function WebhookList({
 			<TableBody>
 				{webhooks.map((wh) => (
 					<TableRow key={wh.id}>
-						<TableCell className="max-w-[240px] truncate font-mono text-xs">{wh.url}</TableCell>
+						<TableCell className="max-w-[240px] truncate font-mono text-xs">
+							{wh.url}
+						</TableCell>
 						<TableCell>{wh.events.join(", ")}</TableCell>
-						<TableCell>{wh.zoneId === null ? "All" : `#${wh.zoneId}`}</TableCell>
+						<TableCell>
+							{wh.zoneId === null ? "All" : `#${wh.zoneId}`}
+						</TableCell>
 						<TableCell>
 							{wh.failing ? (
 								<Badge variant="destructive">Failing</Badge>
@@ -61,15 +69,30 @@ export function WebhookList({
 							)}
 						</TableCell>
 						<TableCell className="text-right">
-							<Button aria-label="View deliveries" onClick={() => onViewDeliveries(wh.id)} size="icon" variant="ghost">
+							<Button
+								aria-label="View deliveries"
+								onClick={() => onViewDeliveries(wh.id)}
+								size="icon"
+								variant="ghost"
+							>
 								<ListIcon className="size-4" />
 							</Button>
 							{wh.failing ? (
-								<Button aria-label="Reactivate" onClick={() => onReactivate(wh.id)} size="icon" variant="ghost">
+								<Button
+									aria-label="Reactivate"
+									onClick={() => onReactivate(wh.id)}
+									size="icon"
+									variant="ghost"
+								>
 									<RefreshCwIcon className="size-4" />
 								</Button>
 							) : null}
-							<Button aria-label="Delete webhook" onClick={() => onDelete(wh.id)} size="icon" variant="ghost">
+							<Button
+								aria-label="Delete webhook"
+								onClick={() => onDelete(wh.id)}
+								size="icon"
+								variant="ghost"
+							>
 								<TrashIcon className="size-4" />
 							</Button>
 						</TableCell>

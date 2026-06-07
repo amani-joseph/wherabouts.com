@@ -1,7 +1,7 @@
 export interface BoundaryCrossing {
+	event: "entry" | "exit";
 	zoneId: number;
 	zoneName: string;
-	event: "entry" | "exit";
 }
 
 /**
@@ -19,13 +19,21 @@ export function computeBoundaryCrossings(
 
 	for (const id of curr) {
 		if (!prev.has(id)) {
-			crossings.push({ zoneId: id, zoneName: zoneNames[id] ?? "", event: "entry" });
+			crossings.push({
+				zoneId: id,
+				zoneName: zoneNames[id] ?? "",
+				event: "entry",
+			});
 		}
 	}
 
 	for (const id of prev) {
 		if (!curr.has(id)) {
-			crossings.push({ zoneId: id, zoneName: zoneNames[id] ?? "", event: "exit" });
+			crossings.push({
+				zoneId: id,
+				zoneName: zoneNames[id] ?? "",
+				event: "exit",
+			});
 		}
 	}
 

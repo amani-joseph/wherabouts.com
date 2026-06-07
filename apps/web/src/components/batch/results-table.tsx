@@ -9,14 +9,14 @@ import {
 } from "@wherabouts.com/ui/components/table";
 
 export interface BatchResultRow {
-	input: string;
-	matched: boolean;
 	address?: {
 		formattedAddress: string;
 		latitude: number;
 		longitude: number;
 	};
 	error?: string;
+	input: string;
+	matched: boolean;
 }
 
 export interface ResultsTableProps {

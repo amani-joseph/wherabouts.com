@@ -1,3 +1,4 @@
+import type { GeoJsonPolygon } from "@wherabouts.com/api/routers/public/zones-schema";
 import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
@@ -6,21 +7,69 @@ import { useAddressOverlay } from "./use-address-overlay.ts";
 import { type UseZoneDraw, useZoneDraw } from "./use-zone-draw.ts";
 
 const EXISTING_SRC = "existing-zones";
+const TEST_POINT_SRC = "test-point";
+const HIGHLIGHT_LAYER = "existing-zones-highlight";
 const MAP_HEIGHT_PX = 480;
 
+const EMPTY_FC = {
+	type: "FeatureCollection" as const,
+	features: [] as unknown[],
+};
+
 export interface ZoneMapProps {
+	/** Saved-zone ids to highlight as containing the test point. */
+	highlightZoneIds?: number[];
+	/**
+	 * Fires whenever the in-progress drawn/edited polygon changes (or clears).
+	 * This is the reactive channel for the drawn geometry — `onReady` only
+	 * delivers the stable control methods once and must not be relied on for
+	 * the polygon value.
+	 */
+	onDrawnPolygonChange?: (polygon: GeoJsonPolygon | null) => void;
+	onPick?: (lat: number, lng: number) => void;
+	/** Fires once when a brand-new polygon is fully drawn (not on vertex edits). */
+	onPolygonDrawn?: () => void;
 	onReady?: (controls: UseZoneDraw) => void;
+	/** When true, the next map click reports its coordinates via onPick. */
+	picking?: boolean;
+	/** Marker location for the point test ([lng,lat] rendered as a dot). */
+	testPoint?: { lat: number; lng: number } | null;
 	zones: ZoneWithGeometryRow[];
 }
 
-export function ZoneMap({ zones, onReady }: ZoneMapProps) {
+export function ZoneMap({
+	zones,
+	onReady,
+	onDrawnPolygonChange,
+	onPolygonDrawn,
+	testPoint = null,
+	picking = false,
+	onPick,
+	highlightZoneIds = [],
+}: ZoneMapProps) {
 	const [map, setMap] = useState<MapLibreMap | null>(null);
-	const draw = useZoneDraw(map);
+	const draw = useZoneDraw(map, { onPolygonDrawn });
 	useAddressOverlay(map);
 
 	const onReadyRef = useRef(onReady);
 	onReadyRef.current = onReady;
 	const readyFiredRef = useRef(false);
+
+	const pickingRef = useRef(picking);
+	pickingRef.current = picking;
+	const onPickRef = useRef(onPick);
+	onPickRef.current = onPick;
+
+	// Reactive channel for the drawn polygon. `onReady` fires once (delivering
+	// the stable control methods), so the polygon value — which updates on every
+	// vertex edit — must propagate through its own effect instead. Without this,
+	// the parent's snapshot of `drawnPolygon` stays null and the create dialog
+	// never opens (regression from firing onReady a single time).
+	const onDrawnChangeRef = useRef(onDrawnPolygonChange);
+	onDrawnChangeRef.current = onDrawnPolygonChange;
+	useEffect(() => {
+		onDrawnChangeRef.current?.(draw.drawnPolygon);
+	}, [draw.drawnPolygon]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: draw in deps satisfies lint; readyFiredRef guard ensures body runs once only
 	useEffect(() => {
@@ -62,7 +111,95 @@ export function ZoneMap({ zones, onReady }: ZoneMapProps) {
 			source: EXISTING_SRC,
 			paint: { "line-color": "#6366f1", "line-width": 2 },
 		});
+		// Highlight layer for zones containing the tested point (filter set below).
+		map.addLayer({
+			id: HIGHLIGHT_LAYER,
+			type: "fill",
+			source: EXISTING_SRC,
+			filter: ["in", ["get", "id"], ["literal", []]],
+			paint: { "fill-color": "#22c55e", "fill-opacity": 0.35 },
+		});
+		// Test-point marker rendered as a circle from its own source.
+		// biome-ignore lint/suspicious/noExplicitAny: maplibre source typing
+		map.addSource(TEST_POINT_SRC, { type: "geojson", data: EMPTY_FC } as any);
+		map.addLayer({
+			id: "test-point",
+			type: "circle",
+			source: TEST_POINT_SRC,
+			paint: {
+				"circle-radius": 7,
+				"circle-color": "#f59e0b",
+				"circle-stroke-color": "#ffffff",
+				"circle-stroke-width": 2,
+			},
+		});
 	}, [map, zones]);
+
+	// Update which saved zones are highlighted as containing the test point.
+	useEffect(() => {
+		if (!map?.getLayer(HIGHLIGHT_LAYER)) {
+			return;
+		}
+		map.setFilter(HIGHLIGHT_LAYER, [
+			"in",
+			["get", "id"],
+			["literal", highlightZoneIds],
+		]);
+	}, [map, highlightZoneIds]);
+
+	// Move/clear the test-point marker.
+	useEffect(() => {
+		const src = map?.getSource(TEST_POINT_SRC);
+		if (!src) {
+			return;
+		}
+		const data = testPoint
+			? {
+					type: "FeatureCollection" as const,
+					features: [
+						{
+							type: "Feature" as const,
+							properties: {},
+							geometry: {
+								type: "Point" as const,
+								coordinates: [testPoint.lng, testPoint.lat],
+							},
+						},
+					],
+				}
+			: EMPTY_FC;
+		// biome-ignore lint/suspicious/noExplicitAny: GeoJSONSource setData
+		(src as any).setData(data);
+	}, [map, testPoint]);
+
+	// Report map clicks while in "pick" mode (refs keep the listener stable).
+	useEffect(() => {
+		if (!map) {
+			return;
+		}
+		// biome-ignore lint/suspicious/noExplicitAny: maplibre MapMouseEvent
+		const handler = (e: any) => {
+			if (pickingRef.current) {
+				onPickRef.current?.(e.lngLat.lat, e.lngLat.lng);
+			}
+		};
+		map.on("click", handler);
+		return () => {
+			map.off("click", handler);
+		};
+	}, [map]);
+
+	// Crosshair cursor while picking.
+	useEffect(() => {
+		if (!map) {
+			return;
+		}
+		const canvas = map.getCanvas();
+		canvas.style.cursor = picking ? "crosshair" : "";
+		return () => {
+			canvas.style.cursor = "";
+		};
+	}, [map, picking]);
 
 	const fittedRef = useRef(false);
 	useEffect(() => {

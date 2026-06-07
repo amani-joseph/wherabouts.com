@@ -11,11 +11,14 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 import { useState } from "react";
 
 export interface WebhookSecretRevealProps {
-	secret: string | null;
 	onClose: () => void;
+	secret: string | null;
 }
 
-export function WebhookSecretReveal({ secret, onClose }: WebhookSecretRevealProps) {
+export function WebhookSecretReveal({
+	secret,
+	onClose,
+}: WebhookSecretRevealProps) {
 	const [copied, setCopied] = useState(false);
 	const copy = async () => {
 		if (!secret) {
@@ -31,13 +34,23 @@ export function WebhookSecretReveal({ secret, onClose }: WebhookSecretRevealProp
 				<DialogHeader>
 					<DialogTitle>Webhook signing secret</DialogTitle>
 					<DialogDescription>
-						Copy this now — it is shown once and cannot be retrieved later. Use it to verify the X-Wherabouts-Signature HMAC.
+						Copy this now — it is shown once and cannot be retrieved later. Use
+						it to verify the X-Wherabouts-Signature HMAC.
 					</DialogDescription>
 				</DialogHeader>
 				<div className="flex items-center gap-2 rounded-md border bg-muted p-2 font-mono text-sm">
 					<span className="flex-1 truncate">{secret}</span>
-					<Button aria-label="Copy secret" onClick={copy} size="icon" variant="ghost">
-						{copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
+					<Button
+						aria-label="Copy secret"
+						onClick={copy}
+						size="icon"
+						variant="ghost"
+					>
+						{copied ? (
+							<CheckIcon className="size-4" />
+						) : (
+							<CopyIcon className="size-4" />
+						)}
 					</Button>
 				</div>
 				<DialogFooter>

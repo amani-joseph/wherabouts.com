@@ -56,3 +56,4 @@ apps/web/data-resources/
 
 # Wrangler dev state outside apps/web (which has its own .gitignore)
 .wrangler/
+.gstack/

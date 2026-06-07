@@ -21,9 +21,9 @@ function fakeDb(rows: Array<{ id: string }>) {
 describe("requireProjectOwnership", () => {
 	it("resolves with the projectId when the user owns the project", async () => {
 		const db = fakeDb([{ id: "proj-1" }]);
-		await expect(
-			requireProjectOwnership(db, "proj-1", "user-1")
-		).resolves.toBe("proj-1");
+		await expect(requireProjectOwnership(db, "proj-1", "user-1")).resolves.toBe(
+			"proj-1"
+		);
 	});
 
 	it("throws NOT_FOUND when no matching project row exists", async () => {

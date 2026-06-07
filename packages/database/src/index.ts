@@ -8,7 +8,13 @@ export type {
 	NewApiKey,
 	NewApiUsageDaily,
 	NewProject,
+	NewTeam,
+	NewTeamInvitation,
+	NewTeamMember,
 	Project,
+	Team,
+	TeamInvitation,
+	TeamMember,
 } from "./schema/index.ts";
 export {
 	accounts,
@@ -18,6 +24,9 @@ export {
 	authSchema,
 	projects,
 	sessions,
+	teamInvitations,
+	teamMembers,
+	teams,
 	users,
 	verifications,
 } from "./schema/index.ts";

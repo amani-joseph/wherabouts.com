@@ -12,9 +12,9 @@ export interface ProjectOption {
 }
 
 export interface ActiveProjectSelectorProps {
-	projects: ProjectOption[];
 	activeId: string | null;
 	onSelect: (projectId: string) => void;
+	projects: ProjectOption[];
 }
 
 export function ActiveProjectSelector({
@@ -26,9 +26,17 @@ export function ActiveProjectSelector({
 		return <p className="text-muted-foreground text-sm">No projects yet.</p>;
 	}
 	return (
-		<Select onValueChange={(value) => onSelect(value as string)} value={activeId ?? undefined}>
+		<Select
+			onValueChange={(value) => onSelect(value ?? "")}
+			value={activeId ?? ""}
+		>
 			<SelectTrigger className="w-56">
-				<SelectValue placeholder="Select a project" />
+				<SelectValue placeholder="Select a project">
+					{(value: string | null) =>
+						projects.find((project) => project.id === value)?.name ??
+						"Select a project"
+					}
+				</SelectValue>
 			</SelectTrigger>
 			<SelectContent>
 				{projects.map((project) => (

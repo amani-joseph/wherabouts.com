@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Wherabouts — Features, Personas &amp; Pain Points</title>
+		<style>
+		:root {
+			--bg: #0c0c0d;
+			--surface: #131315;
+			--surface-2: #1a1a1d;
+			--border: #2c2c2c;
+			--fg: #f4f4f5;
+			--muted: #a1a1aa;
+			--faint: #71717a;
+			--accent: #6ee7ff;
+			--accent-2: #a78bfa;
+			--good: #4ade80;
+			--warn: #fbbf24;
+			--radius: 14px;
+			--maxw: 1140px;
+			--font:
+				ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
+				Arial, sans-serif;
+			--mono:
+				ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+		}
+		* {
+			box-sizing: border-box;
+		}
+		html {
+			scroll-behavior: smooth;
+		}
+		body {
+			margin: 0;
+			font-family: var(--font);
+			-webkit-font-smoothing: antialiased;
+			line-height: 1.55;
+			color: var(--fg);
+			background:
+				radial-gradient(
+					1200px 600px at 80% -10%,
+					rgba(110, 231, 255, 0.1),
+					transparent 60%
+				),
+				radial-gradient(
+					900px 500px at 0% 10%,
+					rgba(167, 139, 250, 0.1),
+					transparent 55%
+				),
+				var(--bg);
+		}
+		a {
+			color: inherit;
+		}
+		.wrap {
+			max-width: var(--maxw);
+			padding: 0 24px;
+			margin: 0 auto;
+		}
+		.eyebrow {
+			display: inline-flex;
+			gap: 8px;
+			align-items: center;
+			padding: 6px 14px;
+			font-size: 12px;
+			font-weight: 600;
+			color: var(--accent);
+			text-transform: uppercase;
+			letter-spacing: 0.14em;
+			background: rgba(110, 231, 255, 0.05);
+			border: 1px solid var(--border);
+			border-radius: 999px;
+		}
+		.dot {
+			width: 7px;
+			height: 7px;
+			background: var(--accent);
+			border-radius: 50%;
+			box-shadow: 0 0 10px var(--accent);
+		}
+
+		/* NAV */
+		nav {
+			position: sticky;
+			top: 0;
+			z-index: 50;
+			background: rgba(12, 12, 13, 0.72);
+			border-bottom: 1px solid var(--border);
+			backdrop-filter: blur(12px);
+		}
+		nav .wrap {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			height: 62px;
+		}
+		.brand {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			font-weight: 700;
+			letter-spacing: -0.01em;
+		}
+		.brand .mark {
+			display: grid;
+			place-items: center;
+			width: 26px;
+			height: 26px;
+			font-size: 15px;
+			font-weight: 800;
+			color: #06060a;
+			background: linear-gradient(135deg, var(--accent), var(--accent-2));
+			border-radius: 8px;
+		}
+		.navlinks {
+			display: flex;
+			gap: 26px;
+			font-size: 14px;
+			color: var(--muted);
+		}
+		.navlinks a {
+			text-decoration: none;
+			transition: color 0.15s;
+		}
+		.navlinks a:hover {
+			color: var(--fg);
+		}
+		@media (max-width: 760px) {
+			.navlinks {
+				display: none;
+			}
+		}
+
+		/* HERO */
+		header.hero {
+			padding: 86px 0 60px;
+		}
+		.hero h1 {
+			margin: 22px 0 18px;
+			font-size: clamp(34px, 6vw, 60px);
+			font-weight: 800;
+			line-height: 1.04;
+			color: transparent;
+			letter-spacing: -0.03em;
+			background: linear-gradient(180deg, #ffffff, #b9c0c7);
+			-webkit-background-clip: text;
+			background-clip: text;
+		}
+		.hero p.lead {
+			max-width: 660px;
+			font-size: clamp(16px, 2.2vw, 20px);
+			color: var(--muted);
+		}
+		.hero .pillrow {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 28px;
+		}
+		.pill {
+			padding: 7px 14px;
+			font-size: 13px;
+			color: var(--fg);
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 999px;
+		}
+		.pill b {
+			font-weight: 600;
+			color: var(--accent);
+		}
+
+		/* SECTION SCAFFOLD */
+		section {
+			padding: 64px 0;
+			border-top: 1px solid var(--border);
+		}
+		.sec-head {
+			max-width: 720px;
+			margin-bottom: 38px;
+		}
+		.sec-head h2 {
+			margin: 14px 0 12px;
+			font-size: clamp(26px, 3.4vw, 36px);
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+		.sec-head p {
+			margin: 0;
+			font-size: 17px;
+			color: var(--muted);
+		}
+
+		/* CARD GRID */
+		.grid {
+			display: grid;
+			gap: 18px;
+		}
+		.grid.cols-3 {
+			grid-template-columns: repeat(3, 1fr);
+		}
+		.grid.cols-2 {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		@media (max-width: 900px) {
+			.grid.cols-3,
+			.grid.cols-2 {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		.card {
+			position: relative;
+			padding: 22px;
+			overflow: hidden;
+			background: linear-gradient(180deg, var(--surface), var(--surface-2));
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+			transition:
+				transform 0.18s ease,
+				border-color 0.18s ease;
+		}
+		.card:hover {
+			border-color: #3d3d42;
+			transform: translateY(-3px);
+		}
+		.card .ico {
+			display: grid;
+			place-items: center;
+			width: 40px;
+			height: 40px;
+			margin-bottom: 14px;
+			font-size: 20px;
+			background: rgba(110, 231, 255, 0.08);
+			border: 1px solid var(--border);
+			border-radius: 10px;
+		}
+		.card h3 {
+			margin: 0 0 8px;
+			font-size: 17px;
+			letter-spacing: -0.01em;
+		}
+		.card p {
+			margin: 0;
+			font-size: 14.5px;
+			color: var(--muted);
+		}
+		.card code {
+			padding: 2px 6px;
+			font-family: var(--mono);
+			font-size: 12px;
+			color: var(--accent);
+			background: rgba(110, 231, 255, 0.06);
+			border: 1px solid var(--border);
+			border-radius: 5px;
+		}
+		.endpoint-list {
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+			padding: 0;
+			margin: 12px 0 0;
+			list-style: none;
+		}
+		.endpoint-list li {
+			font-family: var(--mono);
+			font-size: 11.5px;
+			color: var(--faint);
+		}
+		.endpoint-list .m {
+			font-weight: 600;
+			color: var(--accent-2);
+		}
+
+		/* PERSONAS */
+		.persona {
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+			padding: 24px;
+			background: linear-gradient(180deg, var(--surface), var(--surface-2));
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+		}
+		.persona .top {
+			display: flex;
+			gap: 14px;
+			align-items: center;
+		}
+		.persona .avatar {
+			display: grid;
+			flex: 0 0 auto;
+			place-items: center;
+			width: 46px;
+			height: 46px;
+			font-size: 22px;
+			background: linear-gradient(
+				135deg,
+				rgba(110, 231, 255, 0.16),
+				rgba(167, 139, 250, 0.16)
+			);
+			border: 1px solid var(--border);
+			border-radius: 12px;
+		}
+		.persona .role {
+			font-size: 16px;
+			font-weight: 700;
+		}
+		.persona .who {
+			font-size: 13px;
+			color: var(--faint);
+		}
+		.pp {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+		}
+		.pp .label {
+			font-size: 11px;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+		}
+		.pp.pain .label {
+			color: var(--warn);
+		}
+		.pp.gain .label {
+			color: var(--good);
+		}
+		.pp p {
+			margin: 0;
+			font-size: 14px;
+			color: var(--muted);
+		}
+		.uses {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 6px;
+			margin-top: 2px;
+		}
+		.uses span {
+			padding: 3px 7px;
+			font-family: var(--mono);
+			font-size: 11.5px;
+			color: var(--faint);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+		}
+
+		/* PAIN TABLE */
+		.ptable {
+			width: 100%;
+			font-size: 14.5px;
+			border-collapse: collapse;
+		}
+		.ptable th,
+		.ptable td {
+			padding: 16px;
+			vertical-align: top;
+			text-align: left;
+			border-bottom: 1px solid var(--border);
+		}
+		.ptable th {
+			font-size: 12px;
+			font-weight: 600;
+			color: var(--faint);
+			text-transform: uppercase;
+			letter-spacing: 0.1em;
+		}
+		.ptable td.pain {
+			width: 42%;
+			color: var(--fg);
+		}
+		.ptable td.pain b {
+			font-weight: 600;
+			color: var(--warn);
+		}
+		.ptable td.fix {
+			color: var(--muted);
+		}
+		.ptable td.fix b {
+			font-weight: 600;
+			color: var(--good);
+		}
+		.ptable tr:hover td {
+			background: rgba(255, 255, 255, 0.015);
+		}
+		.tablecard {
+			overflow: hidden;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+		}
+		@media (max-width: 720px) {
+			.ptable,
+			.ptable thead,
+			.ptable tbody,
+			.ptable tr,
+			.ptable td,
+			.ptable th {
+				display: block;
+			}
+			.ptable th {
+				display: none;
+			}
+			.ptable td {
+				border: none;
+			}
+			.ptable tr {
+				padding: 8px 0;
+				border-bottom: 1px solid var(--border);
+			}
+		}
+
+		/* PRICING */
+		.tiers {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 18px;
+		}
+		@media (max-width: 900px) {
+			.tiers {
+				grid-template-columns: 1fr;
+			}
+		}
+		.tier {
+			display: flex;
+			flex-direction: column;
+			gap: 14px;
+			padding: 24px;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+		}
+		.tier.featured {
+			border-color: var(--accent);
+			box-shadow:
+				0 0 0 1px var(--accent),
+				0 20px 60px -30px rgba(110, 231, 255, 0.5);
+		}
+		.tier .name {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.tier .name b {
+			font-size: 18px;
+		}
+		.tier .badge {
+			padding: 3px 10px;
+			font-size: 11px;
+			font-weight: 700;
+			color: #06060a;
+			background: var(--accent);
+			border-radius: 999px;
+		}
+		.tier .price {
+			font-size: 34px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+		.tier .price span {
+			font-size: 14px;
+			font-weight: 500;
+			color: var(--faint);
+		}
+		.tier .tagline {
+			margin-top: -6px;
+			font-size: 13.5px;
+			color: var(--muted);
+		}
+		.tier ul {
+			display: flex;
+			flex-direction: column;
+			gap: 9px;
+			padding: 0;
+			margin: 0;
+			list-style: none;
+		}
+		.tier li {
+			display: flex;
+			gap: 9px;
+			align-items: flex-start;
+			font-size: 14px;
+			color: var(--muted);
+		}
+		.tier li::before {
+			font-weight: 700;
+			color: var(--good);
+			content: "✓";
+		}
+
+		footer {
+			padding: 50px 0 70px;
+			font-size: 13px;
+			color: var(--faint);
+			border-top: 1px solid var(--border);
+		}
+		footer .wrap {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 14px;
+			justify-content: space-between;
+		}
+		.note {
+			margin-top: 30px;
+			font-size: 12px;
+			font-style: italic;
+			color: var(--faint);
+		}
+		</style>
+	</head>
+	<body>
+		<nav>
+			<div class="wrap">
+				<div class="brand"><span class="mark">W</span> Wherabouts</div>
+				<div class="navlinks">
+					<a href="#capabilities">Capabilities</a>
+					<a href="#personas">Who it's for</a>
+					<a href="#pains">Pain points</a>
+					<a href="#pricing">Pricing</a>
+					<a href="#endpoints">API</a>
+				</div>
+			</div>
+		</nav>
+
+		<header class="hero">
+			<div class="wrap">
+				<span class="eyebrow"
+					><span class="dot"></span>
+					Australian Location Intelligence API</span
+				>
+				<h1>
+					Geocoding, geofencing &amp; real‑time location events — built on
+					G‑NAF.
+				</h1>
+				<p class="lead">
+					Wherabouts turns Australia's authoritative national address dataset
+					into a clean REST API. Resolve addresses, draw zones, track devices,
+					and get a webhook the instant something crosses a boundary — without
+					standing up your own PostGIS, address‑matching, or event pipeline.
+				</p>
+				<div class="pillrow">
+					<span class="pill"><b>14M+</b> G‑NAF addresses</span>
+					<span class="pill"><b>Forward</b> &amp; reverse geocoding</span>
+					<span class="pill"><b>Geofencing</b> zones &amp; containment</span>
+					<span class="pill"><b>Entry / exit</b> webhooks</span>
+					<span class="pill"><b>Batch</b> jobs at scale</span>
+				</div>
+			</div>
+		</header>
+
+		<!-- CAPABILITIES -->
+		<section id="capabilities">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="eyebrow">Core capabilities</span>
+					<h2>One API for everything spatial in Australia</h2>
+					<p>
+						Every feature is exposed as a documented, key‑authenticated REST
+						endpoint (<code>Authorization: Bearer wh_live_…</code>) with usage
+						metering baked in.
+					</p>
+				</div>
+				<div class="grid cols-3">
+					<div class="card">
+						<div class="ico">📍</div>
+						<h3>Forward &amp; Reverse Geocoding</h3>
+						<p>
+							Turn a free‑form address into precise coordinates, or resolve a
+							lat/lng back to the nearest real address. Country and state
+							filters keep results tight.
+						</p>
+						<ul class="endpoint-list">
+							<li><span class="m">GET</span> /api/v1/addresses/geocode</li>
+						</ul>
+					</div>
+
+					<div class="card">
+						<div class="ico">⌨️</div>
+						<h3>Address Autocomplete</h3>
+						<p>
+							Type‑ahead suggestions as a user types — minimum 2 characters,
+							capped result sets — ideal for checkout and onboarding forms.
+						</p>
+					</div>
+
+					<div class="card">
+						<div class="ico">📦</div>
+						<h3>Batch Geocoding</h3>
+						<p>
+							Submit thousands of addresses as an async job, poll for progress,
+							then download results. No rate‑limit gymnastics for big datasets.
+						</p>
+						<ul class="endpoint-list">
+							<li><span class="m">POST</span> /api/v1/geocode/batch</li>
+							<li>
+								<span class="m">GET</span>
+								/api/v1/geocode/batch/ { jobId}
+							</li>
+							<li>
+								<span class="m">GET</span>
+								/api/v1/geocode/batch/ { jobId}/results
+							</li>
+						</ul>
+					</div>
+
+					<div class="card">
+						<div class="ico">🗺️</div>
+						<h3>Zones &amp; Geofencing</h3>
+						<p>
+							Create, update and delete polygon zones via API or the visual map
+							editor. Group them per project, fit‑to‑view, and draw catchments
+							in seconds.
+						</p>
+						<ul class="endpoint-list">
+							<li><span class="m">POST/PUT/DELETE</span> /api/v1/zones</li>
+						</ul>
+					</div>
+
+					<div class="card">
+						<div class="ico">🎯</div>
+						<h3>Point‑in‑Zone &amp; Addresses</h3>
+						<p>
+							Ask which zones contain a coordinate, or list every G‑NAF address
+							that falls inside a zone — catchments, delivery areas, risk
+							overlays.
+						</p>
+						<ul class="endpoint-list">
+							<li><span class="m">GET</span> /api/v1/zones/contains</li>
+							<li><span class="m">GET</span> /api/v1/zones/ { id}/addresses</li>
+						</ul>
+					</div>
+
+					<div class="card">
+						<div class="ico">🛰️</div>
+						<h3>Device Location Tracking</h3>
+						<p>
+							Push a device's position and query its current zone membership.
+							The platform maintains state so you don't have to diff coordinates
+							yourself.
+						</p>
+						<ul class="endpoint-list">
+							<li>
+								<span class="m">POST</span>
+								/api/v1/devices/ { id}/location
+							</li>
+							<li><span class="m">GET</span> /api/v1/devices/ { id}/zones</li>
+						</ul>
+					</div>
+
+					<div class="card">
+						<div class="ico">🔔</div>
+						<h3>Boundary‑Crossing Events</h3>
+						<p>
+							Every location update is diffed against prior membership to emit
+							clean <code>entry</code> and <code>exit</code> events — the hard
+							part of geofencing, solved.
+						</p>
+					</div>
+
+					<div class="card">
+						<div class="ico">🪝</div>
+						<h3>Signed Webhooks</h3>
+						<p>
+							Subscribe to zone events and receive HMAC‑signed deliveries.
+							Failing endpoints auto‑deactivate and can be reactivated — no
+							polling required.
+						</p>
+						<ul class="endpoint-list">
+							<li><span class="m">POST</span> /api/v1/webhooks</li>
+							<li>
+								<span class="m">POST</span>
+								/api/v1/webhooks/ { id}/reactivate
+							</li>
+						</ul>
+					</div>
+
+					<div class="card">
+						<div class="ico">🔑</div>
+						<h3>Keys, Projects &amp; Usage</h3>
+						<p>
+							Multiple API keys, multi‑project workspaces, team members, a live
+							API Explorer, and per‑key usage analytics with
+							<code>Server‑Timing</code>
+							headers.
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- PERSONAS -->
+		<section id="personas">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="eyebrow">Who it's for</span>
+					<h2>Built for the people fighting bad location data</h2>
+					<p>
+						The same building blocks serve very different teams. Here's how each
+						one uses Wherabouts — and the pain it kills.
+					</p>
+				</div>
+				<div class="grid cols-2">
+					<div class="persona">
+						<div class="top">
+							<div class="avatar">🚚</div>
+							<div>
+								<div class="role">Logistics / Delivery Ops Manager</div>
+								<div class="who">Last‑mile &amp; courier operations</div>
+							</div>
+						</div>
+						<div class="pp pain">
+							<span class="label">Pain</span>
+							<p>
+								Messy customer addresses cause
+								<b>failed deliveries and redelivery costs</b>, and there's no
+								signal when a driver actually reaches a delivery area.
+							</p>
+						</div>
+						<div class="pp gain">
+							<span class="label">With Wherabouts</span>
+							<p>
+								Geocode &amp; validate every address against G‑NAF, draw
+								depot/delivery zones, and fire <b>entry events</b> the moment a
+								driver's device arrives.
+							</p>
+						</div>
+						<div class="uses">
+							<span>geocode</span><span>zones</span><span>device location</span
+							><span>entry/exit webhooks</span>
+						</div>
+					</div>
+
+					<div class="persona">
+						<div class="top">
+							<div class="avatar">🛒</div>
+							<div>
+								<div class="role">E‑commerce / Checkout Engineer</div>
+								<div class="who">Conversion &amp; fulfilment accuracy</div>
+							</div>
+						</div>
+						<div class="pp pain">
+							<span class="label">Pain</span>
+							<p>
+								Manual address fields cause
+								<b>typos, cart abandonment and undeliverable orders</b>
+								that surface only after the parcel ships.
+							</p>
+						</div>
+						<div class="pp gain">
+							<span class="label">With Wherabouts</span>
+							<p>
+								Drop in autocomplete and validate at checkout so only real,
+								deliverable AU addresses get through — fewer support tickets,
+								fewer returns.
+							</p>
+						</div>
+						<div class="uses">
+							<span>autocomplete</span><span>forward geocode</span>
+						</div>
+					</div>
+
+					<div class="persona">
+						<div class="top">
+							<div class="avatar">🏠</div>
+							<div>
+								<div class="role">Proptech / Real‑Estate Data Lead</div>
+								<div class="who">Listings, catchments &amp; valuations</div>
+							</div>
+						</div>
+						<div class="pp pain">
+							<span class="label">Pain</span>
+							<p>
+								G‑NAF is authoritative but ships as
+								<b>raw flat files that are painful to load, match and query</b>
+								— months of data engineering before any value.
+							</p>
+						</div>
+						<div class="pp gain">
+							<span class="label">With Wherabouts</span>
+							<p>
+								Batch‑geocode entire listing portfolios, then list every address
+								inside a suburb or catchment zone with a single call.
+							</p>
+						</div>
+						<div class="uses">
+							<span>batch geocode</span><span>zones/ { id}/addresses</span>
+						</div>
+					</div>
+
+					<div class="persona">
+						<div class="top">
+							<div class="avatar">🧰</div>
+							<div>
+								<div class="role">Field Service / Fleet Dispatcher</div>
+								<div class="who">Technicians, inspections, mobile crews</div>
+							</div>
+						</div>
+						<div class="pp pain">
+							<span class="label">Pain</span>
+							<p>
+								No reliable way to know
+								<b>when a tech actually arrived on‑site</b>
+								or left — so SLAs, timesheets and customer ETAs are guesswork.
+							</p>
+						</div>
+						<div class="pp gain">
+							<span class="label">With Wherabouts</span>
+							<p>
+								Geofence job sites and push device locations; arrival/departure
+								become automatic, timestamped <b>boundary‑crossing</b> events.
+							</p>
+						</div>
+						<div class="uses">
+							<span>device location</span><span>zones/contains</span
+							><span>webhooks</span>
+						</div>
+					</div>
+
+					<div class="persona">
+						<div class="top">
+							<div class="avatar">🛡️</div>
+							<div>
+								<div class="role">Insurance / Risk Analyst</div>
+								<div class="who">Underwriting &amp; portfolio exposure</div>
+							</div>
+						</div>
+						<div class="pp pain">
+							<span class="label">Pain</span>
+							<p>
+								Working out which policies sit inside
+								<b>flood, bushfire or hazard zones</b>
+								means slow, manual address‑to‑map matching.
+							</p>
+						</div>
+						<div class="pp gain">
+							<span class="label">With Wherabouts</span>
+							<p>
+								Batch‑geocode the book, then run point‑in‑zone containment to
+								flag exposed addresses across any custom risk polygon.
+							</p>
+						</div>
+						<div class="uses">
+							<span>batch geocode</span><span>zones/contains</span>
+						</div>
+					</div>
+
+					<div class="persona">
+						<div class="top">
+							<div class="avatar">🧑‍💻</div>
+							<div>
+								<div class="role">Indie Dev / Early‑Stage Startup</div>
+								<div class="who">Shipping fast on a budget</div>
+							</div>
+						</div>
+						<div class="pp pain">
+							<span class="label">Pain</span>
+							<p>
+								Building geocoding and geofencing in‑house means
+								<b>data licensing, spatial DBs and an events pipeline</b>
+								— weeks of undifferentiated work.
+							</p>
+						</div>
+						<div class="pp gain">
+							<span class="label">With Wherabouts</span>
+							<p>
+								Start on the free tier with one key and a live API Explorer;
+								ship a location feature this afternoon, upgrade only when you
+								scale.
+							</p>
+						</div>
+						<div class="uses">
+							<span>free tier</span><span>API explorer</span><span>REST</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- PAIN POINTS -->
+		<section id="pains">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="eyebrow">Pain points solved</span>
+					<h2>What you stop having to deal with</h2>
+					<p>
+						The recurring headaches of Australian location work — and how the
+						platform removes each one.
+					</p>
+				</div>
+				<div class="tablecard">
+					<table class="ptable">
+						<thead>
+							<tr>
+								<th>The pain</th>
+								<th>How Wherabouts solves it</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td class="pain">
+									<b>Raw G‑NAF is hard to use.</b>
+									Authoritative but ships as bulk files needing ETL,
+									normalisation and a spatial database.
+								</td>
+								<td class="fix">
+									A <b>managed REST API</b> over G‑NAF — query addresses,
+									coordinates and containment with a Bearer key, no data
+									pipeline.
+								</td>
+							</tr>
+							<tr>
+								<td class="pain">
+									<b>Bad addresses cost money.</b>
+									Typos drive failed deliveries, returns and checkout
+									abandonment.
+								</td>
+								<td class="fix">
+									<b>Autocomplete + validation + geocoding</b>
+									ensure only real, resolvable addresses enter your system.
+								</td>
+							</tr>
+							<tr>
+								<td class="pain">
+									<b>Geofencing logic is genuinely hard.</b>
+									Diffing positions to detect crossings without flapping is
+									error‑prone.
+								</td>
+								<td class="fix">
+									The platform tracks membership and emits clean, de‑duplicated
+									<b>entry / exit events</b>
+									for you.
+								</td>
+							</tr>
+							<tr>
+								<td class="pain">
+									<b>Polling for location changes doesn't scale.</b>
+									Constant queries are wasteful and laggy.
+								</td>
+								<td class="fix">
+									<b>Signed webhooks</b>
+									push events as they happen; failing endpoints auto‑deactivate
+									and reactivate.
+								</td>
+							</tr>
+							<tr>
+								<td class="pain">
+									<b>Big datasets hit rate limits.</b>
+									Geocoding millions of rows synchronously is slow and brittle.
+								</td>
+								<td class="fix">
+									<b>Async batch jobs</b>
+									— submit, poll, download — handle scale without throttling
+									errors.
+								</td>
+							</tr>
+							<tr>
+								<td class="pain">
+									<b>Running spatial infra is overhead.</b>
+									PostGIS, tiling and address matching are a team's worth of
+									work.
+								</td>
+								<td class="fix">
+									Serverless API on Cloudflare Workers —
+									<b>zero infrastructure</b>
+									to operate or scale.
+								</td>
+							</tr>
+							<tr>
+								<td class="pain">
+									<b>No visibility into spend or usage.</b>
+									Surprise bills and opaque consumption.
+								</td>
+								<td class="fix">
+									Per‑key <b>usage metering, analytics and clear tiers</b>, with
+									multi‑project and team separation.
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</section>
+
+		<!-- PRICING -->
+		<section id="pricing">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="eyebrow">Pricing</span>
+					<h2>Start free, scale when you do</h2>
+					<p>Usage is metered per API key on every successful request.</p>
+				</div>
+				<div class="tiers">
+					<div class="tier">
+						<div class="name"><b>Free</b></div>
+						<div class="price">$0 <span>/mo</span></div>
+						<div class="tagline">For side projects and trying out the API.</div>
+						<ul>
+							<li>1,000 requests / month</li>
+							<li>1 API key</li>
+							<li>Community support</li>
+						</ul>
+					</div>
+					<div class="tier featured">
+						<div class="name">
+							<b>Pro</b> <span class="badge">Most popular</span>
+						</div>
+						<div class="price">$49 <span>/mo</span></div>
+						<div class="tagline">
+							For production apps that need room to grow.
+						</div>
+						<ul>
+							<li>100,000 requests / month</li>
+							<li>10 API keys</li>
+							<li>Priority support</li>
+							<li>Webhooks</li>
+						</ul>
+					</div>
+					<div class="tier">
+						<div class="name"><b>Enterprise</b></div>
+						<div class="price">Custom</div>
+						<div class="tagline">
+							For teams with scale, compliance and SLA needs.
+						</div>
+						<ul>
+							<li>Unlimited requests</li>
+							<li>Unlimited API keys</li>
+							<li>Dedicated support</li>
+							<li>Custom SLA</li>
+							<li>Unlimited team members</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- ENDPOINTS -->
+		<section id="endpoints">
+			<div class="wrap">
+				<div class="sec-head">
+					<span class="eyebrow">API surface</span>
+					<h2>The full endpoint map</h2>
+					<p>
+						All routes are versioned under <code>/api/v1</code> and
+						authenticated with a Bearer key.
+					</p>
+				</div>
+				<div class="grid cols-2">
+					<div class="card">
+						<h3>Geocoding</h3>
+						<ul class="endpoint-list">
+							<li>
+								<span class="m">GET</span>
+								/api/v1/addresses/geocode
+								<span style="color:var(--faint)">— forward geocode</span>
+							</li>
+							<li>
+								<span class="m">POST</span>
+								/api/v1/geocode/batch
+								<span style="color:var(--faint)">— submit batch job</span>
+							</li>
+							<li>
+								<span class="m">GET</span>
+								/api/v1/geocode/batch/ { jobId}
+								<span style="color:var(--faint)">— poll</span>
+							</li>
+							<li>
+								<span class="m">GET</span>
+								/api/v1/geocode/batch/ { jobId}/results
+								<span style="color:var(--faint)">— download</span>
+							</li>
+						</ul>
+					</div>
+					<div class="card">
+						<h3>Zones &amp; Geofencing</h3>
+						<ul class="endpoint-list">
+							<li>
+								<span class="m">POST</span>
+								/api/v1/zones <span style="color:var(--faint)">— create</span>
+							</li>
+							<li>
+								<span class="m">GET</span>
+								/api/v1/zones <span style="color:var(--faint)">— list</span>
+							</li>
+							<li>
+								<span class="m">GET</span>
+								/api/v1/zones/ { id}
+								<span style="color:var(--faint)">— get</span>
+							</li>
+							<li>
+								<span class="m">PUT</span>
+								/api/v1/zones/ { id}
+								<span style="color:var(--faint)">— update</span>
+							</li>
+							<li>
+								<span class="m">DELETE</span>
+								/api/v1/zones/ { id}
+								<span style="color:var(--faint)">— delete</span>
+							</li>
+							<li>
+								<span class="m">GET</span>
+								/api/v1/zones/contains
+								<span style="color:var(--faint)">— point‑in‑zone</span>
+							</li>
+							<li>
+								<span class="m">GET</span>
+								/api/v1/zones/ { id}/addresses
+								<span style="color:var(--faint)">— addresses in zone</span>
+							</li>
+						</ul>
+					</div>
+					<div class="card">
+						<h3>Devices</h3>
+						<ul class="endpoint-list">
+							<li>
+								<span class="m">POST</span>
+								/api/v1/devices/ { deviceId}/location
+								<span style="color:var(--faint)">— push location</span>
+							</li>
+							<li>
+								<span class="m">GET</span>
+								/api/v1/devices/ { deviceId}/zones
+								<span style="color:var(--faint)">— current membership</span>
+							</li>
+						</ul>
+					</div>
+					<div class="card">
+						<h3>Webhooks</h3>
+						<ul class="endpoint-list">
+							<li>
+								<span class="m">POST</span>
+								/api/v1/webhooks
+								<span style="color:var(--faint)"
+									>— subscribe to zone events</span
+								>
+							</li>
+							<li>
+								<span class="m">GET</span>
+								/api/v1/webhooks
+								<span style="color:var(--faint)">— list subscriptions</span>
+							</li>
+							<li>
+								<span class="m">DELETE</span>
+								/api/v1/webhooks/ { id}
+								<span style="color:var(--faint)">— delete</span>
+							</li>
+							<li>
+								<span class="m">POST</span>
+								/api/v1/webhooks/ { id}/reactivate
+								<span style="color:var(--faint)">— reactivate</span>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<p class="note">
+					Endpoints, tiers and feature names in this document are drawn directly
+					from the codebase (public API routers, the pricing route, and the docs
+					page) as of this build.
+				</p>
+			</div>
+		</section>
+
+		<footer>
+			<div class="wrap">
+				<div>
+					<strong style="color:var(--fg)">Wherabouts</strong>
+					— Australian location intelligence, as an API.
+				</div>
+				<div>Geocoding · Geofencing · Device tracking · Webhooks</div>
+			</div>
+		</footer>
+	</body>
+</html>
