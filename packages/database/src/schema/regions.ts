@@ -23,9 +23,10 @@ export const regions = pgTable(
 		layer: varchar({ length: 8 }).notNull(),
 		code: varchar({ length: 32 }).notNull(),
 		name: text().notNull(),
+		// Full ASGS state name (e.g. "New South Wales"), so text() not varchar.
 		// Nullable on purpose: the `state` layer is itself a state, and POA
 		// (postcode) boundaries have no single parent state in ASGS.
-		state: varchar({ length: 10 }),
+		state: text(),
 		attrs: jsonb(),
 		geom: multiPolygon("geom").notNull(),
 	},

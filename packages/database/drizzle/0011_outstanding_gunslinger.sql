@@ -3,7 +3,7 @@ CREATE TABLE "regions" (
 	"layer" varchar(8) NOT NULL,
 	"code" varchar(32) NOT NULL,
 	"name" text NOT NULL,
-	"state" varchar(10),
+	"state" text,
 	"attrs" jsonb,
 	"geom" geometry(MultiPolygon, 4326) NOT NULL
 );

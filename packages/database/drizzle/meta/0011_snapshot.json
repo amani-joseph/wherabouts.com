@@ -1208,7 +1208,7 @@
         },
         "state": {
           "name": "state",
-          "type": "varchar(10)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
