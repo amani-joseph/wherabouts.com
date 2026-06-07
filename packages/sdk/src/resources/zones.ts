@@ -1,6 +1,6 @@
 import type { Requester } from "../shared-types.ts";
 
-// --- Types (mirrored from types.ts) ---
+// --- Types ---
 
 export interface ZoneRecord {
 	createdAt: string;
