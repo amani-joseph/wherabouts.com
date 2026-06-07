@@ -10,7 +10,15 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@wherabouts.com/ui/components/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@wherabouts.com/ui/components/dialog";
 import { Input } from "@wherabouts.com/ui/components/input";
+import { Textarea } from "@wherabouts.com/ui/components/textarea";
 import {
 	ChevronDownIcon,
 	ChevronRightIcon,
@@ -24,7 +32,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
 	type ApiEndpoint,
 	apiExplorerEndpoints,
-	buildApiExplorerCurl,
 	buildApiExplorerUrl,
 } from "@/lib/api-explorer-endpoints";
 import { orpcClient } from "@/lib/orpc";
@@ -56,57 +63,6 @@ const buildAuthNotReadyError = (mode: ExplorerAuthMode): string =>
 
 const getApiKeyLoadErrorMessage = (error: unknown): string =>
 	error instanceof Error ? error.message : "Failed to load managed API keys.";
-
-/** Docs-only curl block for non-GET endpoints (the proxy can't send a body). */
-function CurlExampleBlock({
-	baseUrl,
-	endpoint,
-	paramValues,
-}: {
-	baseUrl: string;
-	endpoint: ApiEndpoint;
-	paramValues: Record<string, string>;
-}) {
-	const [copied, setCopied] = useState(false);
-	const curl = buildApiExplorerCurl(endpoint, baseUrl, paramValues);
-
-	const handleCopy = async () => {
-		await navigator.clipboard.writeText(curl);
-		setCopied(true);
-		setTimeout(() => setCopied(false), 2000);
-	};
-
-	return (
-		<div className="rounded-md border">
-			<div className="flex items-center justify-between gap-2 border-b px-3 py-2">
-				<div className="flex items-center gap-2">
-					<span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
-						curl example
-					</span>
-					<Badge variant="outline">Docs only</Badge>
-				</div>
-				<Button
-					className="h-7 text-xs"
-					onClick={handleCopy}
-					size="sm"
-					variant="ghost"
-				>
-					<CopyIcon className="size-3" />
-					{copied ? "Copied" : "Copy"}
-				</Button>
-			</div>
-			<pre className="max-h-96 overflow-auto p-3 font-mono text-xs leading-relaxed">
-				{curl}
-			</pre>
-			<p className="border-t px-3 py-2 text-muted-foreground text-xs">
-				This endpoint sends a request body, so it isn't run through the live
-				tester. Copy the command, replace the API key
-				{endpoint.exampleBody ? " and adjust the JSON body" : ""}, then run it
-				from your terminal.
-			</p>
-		</div>
-	);
-}
 
 function methodColor(method: string): string {
 	switch (method) {
@@ -193,9 +149,9 @@ function useExplorerApiKeys() {
 	};
 }
 
-function EndpointCard({
+export function ApiEndpointCard({
 	authState,
-	baseUrl,
+	baseUrl: _baseUrl,
 	endpoint,
 }: {
 	authState: ExplorerAuthState;
@@ -209,13 +165,67 @@ function EndpointCard({
 	const [durationMs, setDurationMs] = useState<number | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [copied, setCopied] = useState(false);
-	// Only GET endpoints are executable through the server-side proxy; everything
-	// else is documented with a copy-paste curl command (the proxy can't send a body).
-	const isExecutable = endpoint.method === "GET";
+	// Every allowlisted endpoint is executable. Non-GET endpoints carry a JSON
+	// body (seeded from exampleBody) the user can edit before sending.
+	const isExecutable = true;
+	const [bodyText, setBodyText] = useState<string>(
+		endpoint.exampleBody ? JSON.stringify(endpoint.exampleBody, null, 2) : ""
+	);
+	const [bodyError, setBodyError] = useState<string | null>(null);
+	const [confirmOpen, setConfirmOpen] = useState(false);
 	const requestUrl = buildApiExplorerUrl(endpoint, paramValues);
 	const missingRequiredParams = endpoint.params.filter(
 		(param) => param.required && !paramValues[param.name]?.trim()
 	);
+
+	const parseBody = (): Record<string, unknown> | undefined => {
+		if (endpoint.method === "GET" || bodyText.trim() === "") {
+			return undefined;
+		}
+		return JSON.parse(bodyText) as Record<string, unknown>;
+	};
+
+	const runRequest = async () => {
+		setLoading(true);
+		setResponse(null);
+		setStatusCode(null);
+		setDurationMs(null);
+		setBodyError(null);
+		try {
+			let parsedBody: Record<string, unknown> | undefined;
+			try {
+				parsedBody = parseBody();
+			} catch {
+				setBodyError("Request body is not valid JSON.");
+				setLoading(false);
+				return;
+			}
+			const result = await orpcClient.apiExplorer.sendRequest({
+				authMode: authState.mode,
+				endpointId: endpoint.id,
+				managedKeyId:
+					authState.mode === "managed" ? authState.managedKeyId : undefined,
+				paramValues,
+				rawApiKey: authState.mode === "raw" ? authState.rawApiKey : undefined,
+				body: parsedBody,
+			});
+			setStatusCode(result.statusCode);
+			setDurationMs(result.durationMs);
+			setResponse(JSON.stringify(result.body, null, 2));
+		} catch (err) {
+			setStatusCode(0);
+			setDurationMs(null);
+			setResponse(
+				JSON.stringify(
+					{ error: err instanceof Error ? err.message : "Request failed" },
+					null,
+					2
+				)
+			);
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	const handleSend = async () => {
 		if (!authState.isReady) {
@@ -244,36 +254,11 @@ function EndpointCard({
 			return;
 		}
 
-		setLoading(true);
-		setResponse(null);
-		setStatusCode(null);
-		setDurationMs(null);
-
-		try {
-			const result = await orpcClient.apiExplorer.sendRequest({
-				authMode: authState.mode,
-				endpointId: endpoint.id,
-				managedKeyId:
-					authState.mode === "managed" ? authState.managedKeyId : undefined,
-				paramValues,
-				rawApiKey: authState.mode === "raw" ? authState.rawApiKey : undefined,
-			});
-			setStatusCode(result.statusCode);
-			setDurationMs(result.durationMs);
-			setResponse(JSON.stringify(result.body, null, 2));
-		} catch (err) {
-			setStatusCode(0);
-			setDurationMs(null);
-			setResponse(
-				JSON.stringify(
-					{ error: err instanceof Error ? err.message : "Request failed" },
-					null,
-					2
-				)
-			);
-		} finally {
-			setLoading(false);
+		if (endpoint.method === "DELETE") {
+			setConfirmOpen(true);
+			return;
 		}
+		await runRequest();
 	};
 
 	const handleCopy = async () => {
@@ -385,7 +370,29 @@ function EndpointCard({
 						</div>
 					</div>
 
-					{isExecutable ? (
+					{/* JSON body editor for non-GET endpoints */}
+					{endpoint.method !== "GET" && (
+						<div className="mb-4 flex flex-col gap-1">
+							<label
+								className="font-medium text-sm"
+								htmlFor={`body-${endpoint.id}`}
+							>
+								Request body (JSON)
+							</label>
+							<Textarea
+								className="font-mono text-xs"
+								id={`body-${endpoint.id}`}
+								onChange={(e) => setBodyText(e.target.value)}
+								rows={8}
+								value={bodyText}
+							/>
+							{bodyError ? (
+								<p className="text-destructive text-xs">{bodyError}</p>
+							) : null}
+						</div>
+					)}
+
+					{isExecutable && (
 						<>
 							{/* Request URL Preview */}
 							<div className="mb-4 rounded-md bg-muted/50 p-3">
@@ -437,12 +444,6 @@ function EndpointCard({
 								) : null}
 							</div>
 						</>
-					) : (
-						<CurlExampleBlock
-							baseUrl={baseUrl}
-							endpoint={endpoint}
-							paramValues={paramValues}
-						/>
 					)}
 
 					{/* Response */}
@@ -488,6 +489,34 @@ function EndpointCard({
 					)}
 				</CardContent>
 			)}
+
+			<Dialog onOpenChange={setConfirmOpen} open={confirmOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							Run {endpoint.method} {endpoint.path}?
+						</DialogTitle>
+					</DialogHeader>
+					<p className="text-muted-foreground text-sm">
+						This sends a real {endpoint.method} request with your API key and
+						may permanently change data. This cannot be undone.
+					</p>
+					<DialogFooter>
+						<Button onClick={() => setConfirmOpen(false)} variant="outline">
+							Cancel
+						</Button>
+						<Button
+							onClick={async () => {
+								setConfirmOpen(false);
+								await runRequest();
+							}}
+							variant="destructive"
+						>
+							Run {endpoint.method}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</Card>
 	);
 }
@@ -662,7 +691,7 @@ export function ApiExplorer() {
 			{/* Endpoints */}
 			<div className="flex flex-col gap-2">
 				{apiExplorerEndpoints.map((endpoint) => (
-					<EndpointCard
+					<ApiEndpointCard
 						authState={authState}
 						baseUrl={baseUrl}
 						endpoint={endpoint}
