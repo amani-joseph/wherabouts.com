@@ -92,3 +92,21 @@ Every step is reversible:
 ## Out of scope
 - No changes to application code, schema definitions, or table data.
 - No staging/preview reconciliation (none exists).
+
+---
+
+## As-built (2026-06-07)
+
+Execution revealed the spec's premise ("prod == baseline, just mark applied") was false. Production had **material drift** beyond the tracking-table issue:
+- `teams`/`team_members`/`team_invitations` tables were missing despite `0009_cooing_eternals` being recorded as applied (the tracking table was inaccurate — the migration was edited to add teams after prod recorded it).
+- Stale `clerk`-named indexes lingered; the renamed `user_id` indexes and several composite indexes were absent.
+- `api_usage_daily_key_date_endpoint` (the usage-accounting upsert unique index) was missing entirely (usage table was empty as a result).
+
+The chosen introspect (`drizzle-kit pull`) baseline was **rejected at execution**: `pull` pollutes the baseline with PostGIS system views (`geometry_columns`, `geography_columns`). Instead we used the **clean schema-generated baseline** and reconciled production *to it*:
+1. Generated + hand-completed the schema baseline (extensions + opclass indexes).
+2. Applied the missing objects to prod (3 empty teams tables + 6 FKs + 2 team unique indexes via an atomic batch; 6 secondary indexes via `CREATE INDEX CONCURRENTLY`; 2 missing unique indexes; dropped 3 legacy `clerk` indexes via `DROP INDEX CONCURRENTLY`). All non-destructive — verified no legacy columns, empty teams tables, no duplicate rows blocking unique indexes.
+3. Verified prod == baseline (bidirectional object diff clean).
+4. Reset `drizzle.__drizzle_migrations` to one baseline row (`hash = sha256(raw 0000 file)`, `created_at = journal when`).
+5. Confirmed `db:migrate` is a no-op; tracking table unchanged at 1 row; `addresses` intact (16.8M rows).
+
+Net result matches the goal: single clean lineage, prod truthfully reconciled to the schema, plus three latent prod bugs fixed.
