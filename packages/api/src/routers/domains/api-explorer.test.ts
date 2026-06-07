@@ -4,6 +4,7 @@ import {
 	EXPLORER_ENDPOINT_IDS,
 	getExplorerEndpoint,
 } from "./api-explorer.ts";
+import { EXPLORER_ENDPOINT_ID_LIST } from "./api-explorer-ids.ts";
 
 describe("buildProxyRequest", () => {
 	it("builds a GET url with query params, dropping empties", () => {
@@ -89,6 +90,15 @@ describe("EXPLORER_ENDPOINT_IDS drift guard", () => {
 				"zones.list",
 				"zones.update",
 			].sort()
+		);
+	});
+
+	it("keeps the dependency-free id list in sync with the proxy allowlist", () => {
+		// EXPLORER_ENDPOINT_IDS is derived from the live endpointMap; the leaf
+		// EXPLORER_ENDPOINT_ID_LIST is what the web drift-guard imports. They must
+		// match so the web guard checks the real proxy surface.
+		expect([...EXPLORER_ENDPOINT_ID_LIST].sort()).toEqual(
+			[...EXPLORER_ENDPOINT_IDS].sort()
 		);
 	});
 });

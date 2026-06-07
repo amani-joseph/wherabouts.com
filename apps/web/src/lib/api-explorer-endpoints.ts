@@ -33,6 +33,7 @@ export type ApiEndpointId =
 	| "webhooks.create"
 	| "webhooks.list"
 	| "webhooks.delete"
+	| "webhooks.reactivate"
 	// Regions
 	| "regions.classify";
 
@@ -514,6 +515,23 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		summary: "Delete a webhook subscription",
 		description:
 			"Permanently remove a webhook subscription. DELETE request — use the curl example in the docs page to test.",
+		params: [
+			{
+				name: "id",
+				type: "number",
+				required: true,
+				description: "Numeric webhook subscription ID",
+				example: "1",
+			},
+		],
+	},
+	{
+		id: "webhooks.reactivate",
+		method: "POST",
+		path: "/api/v1/webhooks/{id}/reactivate",
+		summary: "Reactivate a disabled webhook subscription",
+		description:
+			"Re-enable a webhook subscription that was automatically disabled after repeated delivery failures. POST request with no body.",
 		params: [
 			{
 				name: "id",
