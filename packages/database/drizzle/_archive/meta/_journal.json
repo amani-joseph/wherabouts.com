@@ -1,0 +1,90 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1775977613936,
+      "tag": "0000_zippy_bloodscream",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775989331988,
+      "tag": "0001_remarkable_ted_forrester",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775991899414,
+      "tag": "0002_rich_mimic",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776120000000,
+      "tag": "0003_neon_cost_baseline",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776120000001,
+      "tag": "0004_autocomplete_search",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1776119772730,
+      "tag": "0005_busy_felicia_hardy",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776139200000,
+      "tag": "0006_safe_user_column_rename",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1776128172974,
+      "tag": "0007_burly_bullseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1776211200000,
+      "tag": "0008_free_api_key_assignments",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1776474284577,
+      "tag": "0009_cooing_eternals",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1780537255818,
+      "tag": "0010_gorgeous_cardiac",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1780788237824,
+      "tag": "0011_outstanding_gunslinger",
+      "breakpoints": true
+    }
+  ]
+}
