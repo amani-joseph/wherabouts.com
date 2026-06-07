@@ -11,6 +11,7 @@ import {
 	batchGeocodeSubmit,
 	forwardGeocode,
 } from "./public/geocode.ts";
+import { regionsClassify } from "./public/regions.ts";
 import {
 	createWebhook,
 	deleteWebhook,
@@ -290,6 +291,9 @@ export const publicHttpRouter = {
 		zoneDelete,
 		zoneContains,
 		zoneAddresses,
+	},
+	regions: {
+		classify: regionsClassify,
 	},
 	devices: {
 		deviceLocation: pushDeviceLocation,

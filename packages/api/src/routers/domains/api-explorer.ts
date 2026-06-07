@@ -20,6 +20,7 @@ type ApiEndpointId =
 	| "addresses.byId"
 	| "addresses.nearby"
 	| "addresses.reverse"
+	| "regions.classify";
 	| "addresses.geocode"
 	| "geocode.batch.poll"
 	| "geocode.batch.results"
@@ -86,6 +87,12 @@ const endpointMap = new Map<ApiEndpointId, ApiEndpoint>([
 		},
 	],
 	[
+		"regions.classify",
+		{
+			id: "regions.classify",
+			method: "GET",
+			path: "/api/v1/regions",
+			params: [{ name: "lat" }, { name: "lng" }, { name: "layers" }],
 		"addresses.geocode",
 		{
 			id: "addresses.geocode",

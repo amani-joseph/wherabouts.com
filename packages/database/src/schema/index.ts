@@ -28,6 +28,8 @@ export type { BatchGeocodeJob, NewBatchGeocodeJob } from "./jobs.ts";
 export { batchGeocodeJobs } from "./jobs.ts";
 export type { NewProject, Project } from "./projects.ts";
 export { projects } from "./projects.ts";
+export type { NewRegion, Region } from "./regions.ts";
+export { regions } from "./regions.ts";
 export type {
 	NewTeam,
 	NewTeamInvitation,
