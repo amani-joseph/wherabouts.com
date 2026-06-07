@@ -550,6 +550,7 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		summary: "Classify a coordinate into administrative regions",
 		description:
 			"Returns the ABS/ASGS administrative regions that contain a coordinate (state, SA1–SA4, LGA, postcode, electoral divisions, mesh block), keyed by layer.",
+			"Returns the official ABS/ASGS administrative regions that contain a coordinate — state, SA1–SA4, LGA, postcode (POA), electoral divisions, and mesh block. Results are keyed by layer. Optionally filter with the `layers` parameter.",
 		params: [
 			{
 				name: "lat",
@@ -570,6 +571,8 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 				type: "string",
 				required: false,
 				description: "Comma-separated layer filter (e.g. sa2,lga,poa)",
+				description:
+					"Comma-separated layer filter (state,sa1,sa2,sa3,sa4,lga,poa,ced,sed,mb). Omit to return all layers.",
 				example: "sa2,lga,poa",
 			},
 		],
