@@ -4,32 +4,30 @@ import { addresses } from "@wherabouts.com/database/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { o as baseBuilder } from "../builder.ts";
-import { apiKeyAuth, usageMiddleware } from "./public-middleware.ts";
+import { getDeviceZones, pushDeviceLocation } from "./public/devices.ts";
 import {
-	batchGeocodeResults,
 	batchGeocodePoll,
+	batchGeocodeResults,
 	batchGeocodeSubmit,
 	forwardGeocode,
 } from "./public/geocode.ts";
-import {
-	zoneCreate,
-	zoneList,
-	zoneGet,
-	zoneUpdate,
-	zoneDelete,
-	zoneContains,
-	zoneAddresses,
-} from "./public/zones.ts";
-import {
-	pushDeviceLocation,
-	getDeviceZones,
-} from "./public/devices.ts";
+import { regionsClassify } from "./public/regions.ts";
 import {
 	createWebhook,
-	listWebhooks,
 	deleteWebhook,
+	listWebhooks,
 	reactivateWebhookEndpoint,
 } from "./public/webhooks.ts";
+import {
+	zoneAddresses,
+	zoneContains,
+	zoneCreate,
+	zoneDelete,
+	zoneGet,
+	zoneList,
+	zoneUpdate,
+} from "./public/zones.ts";
+import { apiKeyAuth, usageMiddleware } from "./public-middleware.ts";
 
 // ---------------------------------------------------------------------------
 // Procedures
@@ -293,6 +291,9 @@ export const publicHttpRouter = {
 		zoneDelete,
 		zoneContains,
 		zoneAddresses,
+	},
+	regions: {
+		classify: regionsClassify,
 	},
 	devices: {
 		deviceLocation: pushDeviceLocation,

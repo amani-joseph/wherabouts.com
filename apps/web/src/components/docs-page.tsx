@@ -135,6 +135,10 @@ const docsNavGroups: DocsSectionGroup[] = [
 		],
 	},
 	{
+		label: "Regions",
+		items: [{ title: "Classify Coordinate", href: "#regions-classify" }],
+	},
+	{
 		label: "Implementation Notes",
 		items: [
 			{ title: "Errors and Constraints", href: "#errors-and-constraints" },
@@ -418,13 +422,15 @@ const endpointDocs: EndpointDoc[] = [
 				name: "q",
 				type: "string",
 				required: false,
-				description: "Unstructured address text (minimum 5 characters). Omit when using structured mode.",
+				description:
+					"Unstructured address text (minimum 5 characters). Omit when using structured mode.",
 			},
 			{
 				name: "structured",
 				type: "string",
 				required: false,
-				description: "Set to `true` to use structured field inputs instead of `q`.",
+				description:
+					"Set to `true` to use structured field inputs instead of `q`.",
 			},
 			{
 				name: "street",
@@ -594,7 +600,8 @@ const endpointDocs: EndpointDoc[] = [
 				name: "geometry",
 				type: "object",
 				required: true,
-				description: "GeoJSON Polygon geometry — coordinates must form a closed ring.",
+				description:
+					"GeoJSON Polygon geometry — coordinates must form a closed ring.",
 			},
 		],
 		notes: [
@@ -735,7 +742,7 @@ const endpointDocs: EndpointDoc[] = [
 			"Returns `204 No Content` on success.",
 			"Returns `404` for unknown zone IDs.",
 		],
-		exampleResponse: `204 No Content`,
+		exampleResponse: "204 No Content",
 	},
 	{
 		title: "Zone Contains",
@@ -797,7 +804,8 @@ const endpointDocs: EndpointDoc[] = [
 				name: "limit",
 				type: "number",
 				required: false,
-				description: "Maximum addresses to return. Defaults to 100, capped at 10 000.",
+				description:
+					"Maximum addresses to return. Defaults to 100, capped at 10 000.",
 			},
 			{
 				name: "offset",
@@ -938,7 +946,8 @@ const endpointDocs: EndpointDoc[] = [
 				name: "events",
 				type: "string[]",
 				required: true,
-				description: "Event types to subscribe to: `zone.enter`, `zone.exit`, or both.",
+				description:
+					"Event types to subscribe to: `zone.enter`, `zone.exit`, or both.",
 			},
 		],
 		notes: [
@@ -1008,7 +1017,52 @@ const endpointDocs: EndpointDoc[] = [
 			"Returns `204 No Content` on success.",
 			"Returns `404` for unknown webhook IDs.",
 		],
-		exampleResponse: `204 No Content`,
+		exampleResponse: "204 No Content",
+	},
+	// --- Regions ---
+	{
+		title: "Classify Coordinate",
+		href: "#regions-classify",
+		method: "GET",
+		path: "/api/v1/regions",
+		summary: "Return the administrative regions that contain a coordinate.",
+		description:
+			"Classifies a latitude/longitude into the official ABS/ASGS regions that contain it — state, SA1–SA4, LGA, postcode, electoral divisions, and mesh block — keyed by layer. Outside Australia the regions object is empty.",
+		params: [
+			{
+				name: "lat",
+				type: "number",
+				required: true,
+				description: "Latitude of the coordinate to classify (e.g. -37.8136).",
+			},
+			{
+				name: "lng",
+				type: "number",
+				required: true,
+				description: "Longitude of the coordinate to classify (e.g. 144.9631).",
+			},
+			{
+				name: "layers",
+				type: "string",
+				required: false,
+				description:
+					"Comma-separated list of region layers to return (e.g. `sa2,lga,poa`). Omit to return all available layers.",
+			},
+		],
+		notes: [
+			"Outside Australia the `regions` object is empty — not a `404`.",
+			"Use the `layers` parameter to limit the response to only the layers you need.",
+			'curl example: curl "https://api.wherabouts.com/api/v1/regions?lat=-37.8136&lng=144.9631" -H "Authorization: Bearer YOUR_API_KEY"',
+		],
+		exampleResponse: `{
+  "query": { "lat": -37.8136, "lng": 144.9631 },
+  "regions": {
+    "state": { "code": "2", "name": "Victoria" },
+    "sa2": { "code": "206041122", "name": "Melbourne" },
+    "lga": { "code": "24600", "name": "Melbourne (C)" },
+    "poa": { "code": "3000", "name": "3000" }
+  }
+}`,
 	},
 ];
 
@@ -1677,54 +1731,79 @@ export function DocsPage() {
 										<Card>
 											<CardHeader>
 												<CardTitle className="flex items-center gap-2 text-base">
-													<span className="flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">1</span>
+													<span className="flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
+														1
+													</span>
 													Submit
 												</CardTitle>
 											</CardHeader>
 											<CardContent>
 												<p className="text-muted-foreground text-sm leading-6">
 													POST your array of addresses to{" "}
-													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">POST /api/v1/geocode/batch</code>.
-													The server enqueues the job and returns a <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">jobId</code> immediately.
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+														POST /api/v1/geocode/batch
+													</code>
+													. The server enqueues the job and returns a{" "}
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+														jobId
+													</code>{" "}
+													immediately.
 												</p>
 											</CardContent>
 										</Card>
 										<Card>
 											<CardHeader>
 												<CardTitle className="flex items-center gap-2 text-base">
-													<span className="flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">2</span>
+													<span className="flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
+														2
+													</span>
 													Poll
 												</CardTitle>
 											</CardHeader>
 											<CardContent>
 												<p className="text-muted-foreground text-sm leading-6">
 													Call{" "}
-													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">GET /api/v1/geocode/batch/{"{jobId}"}</code>{" "}
-													every few seconds until <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">status</code> is{" "}
-													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">completed</code> or{" "}
-													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">failed</code>.
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+														GET /api/v1/geocode/batch/{"{jobId}"}
+													</code>{" "}
+													every few seconds until{" "}
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+														status
+													</code>{" "}
+													is{" "}
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+														completed
+													</code>{" "}
+													or{" "}
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+														failed
+													</code>
+													.
 												</p>
 											</CardContent>
 										</Card>
 										<Card>
 											<CardHeader>
 												<CardTitle className="flex items-center gap-2 text-base">
-													<span className="flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">3</span>
+													<span className="flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
+														3
+													</span>
 													Fetch results
 												</CardTitle>
 											</CardHeader>
 											<CardContent>
 												<p className="text-muted-foreground text-sm leading-6">
 													Once completed, retrieve the full result array from{" "}
-													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">GET /api/v1/geocode/batch/{"{jobId}"}/results</code>.
-													Each entry maps to the original input in order.
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+														GET /api/v1/geocode/batch/{"{jobId}"}/results
+													</code>
+													. Each entry maps to the original input in order.
 												</p>
 											</CardContent>
 										</Card>
 									</div>
 
 									<CodeBlock
-										label="Batch lifecycle (JavaScript)"
 										code={`// Step 1 — submit
 const { jobId } = await fetch("https://api.wherabouts.com/api/v1/geocode/batch", {
   method: "POST",
@@ -1750,6 +1829,7 @@ const { results } = await fetch(
   \`https://api.wherabouts.com/api/v1/geocode/batch/\${jobId}/results\`,
   { headers: { "X-API-Key": "wh_live_your_api_key" } }
 ).then((r) => r.json());`}
+										label="Batch lifecycle (JavaScript)"
 									/>
 								</div>
 							</section>
@@ -1766,33 +1846,50 @@ const { results } = await fetch(
 									<div className="grid gap-4 md:grid-cols-2">
 										<Card>
 											<CardHeader>
-												<CardTitle className="text-base">Delivery format</CardTitle>
+												<CardTitle className="text-base">
+													Delivery format
+												</CardTitle>
 											</CardHeader>
 											<CardContent className="space-y-3">
 												<p className="text-muted-foreground text-sm leading-6">
-													On a zone boundary crossing, Wherabouts sends a signed POST to your subscription URL with a JSON body:
+													On a zone boundary crossing, Wherabouts sends a signed
+													POST to your subscription URL with a JSON body:
 												</p>
 												<CodeBlock
-													label="Webhook payload"
 													code={`{
   "event": "zone.enter",
   "zone": { "id": "zone_01HX3K9R", "name": "Melbourne CBD" },
   "device": { "id": "truck-42" },
   "timestamp": "2026-06-05T10:30:00.000Z"
 }`}
+													label="Webhook payload"
 												/>
 											</CardContent>
 										</Card>
 										<Card>
 											<CardHeader>
-												<CardTitle className="text-base">Retries and failure</CardTitle>
+												<CardTitle className="text-base">
+													Retries and failure
+												</CardTitle>
 											</CardHeader>
 											<CardContent className="space-y-3">
 												<p className="text-muted-foreground text-sm leading-6">
-													Wherabouts retries failed deliveries up to 3 times with exponential backoff. After 3 consecutive failures the subscription is marked <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">failing</code> and no further deliveries are attempted until the subscription is deleted and recreated.
+													Wherabouts retries failed deliveries up to 3 times
+													with exponential backoff. After 3 consecutive failures
+													the subscription is marked{" "}
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+														failing
+													</code>{" "}
+													and no further deliveries are attempted until the
+													subscription is deleted and recreated.
 												</p>
 												<p className="text-muted-foreground text-sm leading-6">
-													Return a <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">2xx</code> response within 5 seconds to acknowledge delivery. Non-2xx or timeouts count as failures.
+													Return a{" "}
+													<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+														2xx
+													</code>{" "}
+													response within 5 seconds to acknowledge delivery.
+													Non-2xx or timeouts count as failures.
 												</p>
 											</CardContent>
 										</Card>
@@ -1800,16 +1897,20 @@ const { results } = await fetch(
 
 									<Card>
 										<CardHeader>
-											<CardTitle className="text-base">HMAC-SHA256 signature verification</CardTitle>
+											<CardTitle className="text-base">
+												HMAC-SHA256 signature verification
+											</CardTitle>
 											<CardDescription>
 												Every delivery includes an{" "}
-												<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">X-Wherabouts-Signature: hmac-sha256={"<hex>"}</code>{" "}
-												header. Verify it using the <code>signingSecret</code> shown once at webhook creation time.
+												<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+													X-Wherabouts-Signature: hmac-sha256={"<hex>"}
+												</code>{" "}
+												header. Verify it using the <code>signingSecret</code>{" "}
+												shown once at webhook creation time.
 											</CardDescription>
 										</CardHeader>
 										<CardContent>
 											<CodeBlock
-												label="Verify HMAC (Node.js)"
 												code={`import { createHmac, timingSafeEqual } from "node:crypto";
 
 function verifyWebhookSignature(
@@ -1831,6 +1932,7 @@ if (!verifyWebhookSignature(rawBody, sig, process.env.WEBHOOK_SECRET!)) {
   return new Response("Unauthorized", { status: 401 });
 }
 const payload = JSON.parse(rawBody);`}
+												label="Verify HMAC (Node.js)"
 											/>
 										</CardContent>
 									</Card>
