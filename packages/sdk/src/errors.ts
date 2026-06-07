@@ -1,4 +1,4 @@
-import type { WheraboutsApiErrorPayload } from "./types.ts";
+import type { WheraboutsApiErrorPayload } from "./shared-types.ts";
 
 export class WheraboutsApiError extends Error {
 	readonly code: WheraboutsApiErrorPayload["error"]["code"] | "unknown_error";
