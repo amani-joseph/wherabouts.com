@@ -1,16 +1,16 @@
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { Map as MapLibreMap } from "maplibre-gl";
-import { useEffect, useRef } from "react";
 import { env } from "@wherabouts.com/env/web";
-import { buildMapStyleUrl } from "./map-style.ts";
+import type { Map as MapLibreMap } from "maplibre-gl";
+import { useEffect, useRef, useState } from "react";
+import { buildMapStyle } from "./map-style.ts";
 
 export interface MapCanvasProps {
 	/** [lng, lat] */
 	center?: [number, number];
-	zoom?: number;
+	className?: string;
 	/** Called once the map has loaded; attach layers/markers/draw here. */
 	onMapReady?: (map: MapLibreMap) => void;
-	className?: string;
+	zoom?: number;
 }
 
 // Sydney CBD default
@@ -25,6 +25,7 @@ export function MapCanvas({
 }: MapCanvasProps) {
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const mapRef = useRef<MapLibreMap | null>(null);
+	const [ready, setReady] = useState(false);
 
 	useEffect(() => {
 		if (typeof window === "undefined" || !containerRef.current) {
@@ -39,7 +40,7 @@ export function MapCanvas({
 			}
 			map = new MapCtor({
 				container: containerRef.current,
-				style: buildMapStyleUrl(env.VITE_MAPTILER_KEY) as never,
+				style: buildMapStyle(env.VITE_TILES_BASE_URL) as never,
 				center,
 				zoom,
 			});
@@ -47,6 +48,7 @@ export function MapCanvas({
 			map.on("load", () => {
 				if (!cancelled && map) {
 					onMapReady?.(map);
+					setReady(true);
 				}
 			});
 		});
@@ -61,10 +63,18 @@ export function MapCanvas({
 	}, []);
 
 	return (
-		<div
-			className={className}
-			ref={containerRef}
-			style={{ width: "100%", height: "100%", minHeight: 360 }}
-		/>
+		<div className="relative h-full w-full" style={{ minHeight: 360 }}>
+			{!ready && (
+				<div
+					aria-hidden
+					className="absolute inset-0 z-10 animate-pulse bg-muted/40"
+				/>
+			)}
+			<div
+				className={className}
+				ref={containerRef}
+				style={{ width: "100%", height: "100%", minHeight: 360 }}
+			/>
+		</div>
 	);
 }

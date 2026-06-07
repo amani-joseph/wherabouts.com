@@ -28,6 +28,8 @@ export interface CloudflareEnv {
 	BATCH_GEOCODE_QUEUE?: any;
 	// biome-ignore lint/suspicious/noExplicitAny: CF binding types not in this package
 	GEOCODE_RESULTS?: any;
+	// biome-ignore lint/suspicious/noExplicitAny: CF binding types not in this package
+	WEBHOOK_DELIVERY_QUEUE?: any;
 }
 
 export interface CreateContextOptions {

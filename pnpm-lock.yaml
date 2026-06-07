@@ -96,6 +96,9 @@ importers:
       hono:
         specifier: ^4.10.4
         version: 4.12.12
+      pmtiles:
+        specifier: ^4.4.1
+        version: 4.4.1
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260416.2
@@ -186,7 +189,7 @@ importers:
         version: link:../../packages/ui
       better-auth:
         specifier: ^1.5.6
-        version: 1.5.6(@cloudflare/workers-types@4.20260416.2)(@opentelemetry/api@1.9.1)(@tanstack/react-start@1.167.16(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))(drizzle-kit@0.31.10)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20260416.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16))(next@16.1.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(jsdom@26.1.0)(msw@2.13.2(@types/node@20.19.39)(typescript@5.9.3))(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))
+        version: 1.5.6(@cloudflare/workers-types@4.20260416.2)(@opentelemetry/api@1.9.1)(@tanstack/react-start@1.167.16(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))(drizzle-kit@0.31.10)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20260416.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16))(next@16.1.1(@opentelemetry/api@1.9.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(jsdom@26.1.0)(msw@2.13.2(@types/node@20.19.39)(typescript@5.9.3))(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -217,6 +220,9 @@ importers:
       next-themes:
         specifier: 'catalog:'
         version: 0.4.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      protomaps-themes-base:
+        specifier: ^4.5.0
+        version: 4.5.0
       react:
         specifier: 'catalog:'
         version: 19.2.5
@@ -356,7 +362,7 @@ importers:
         version: link:../env
       better-auth:
         specifier: ^1.5.6
-        version: 1.5.6(@cloudflare/workers-types@4.20260416.2)(@opentelemetry/api@1.9.1)(@tanstack/react-start@1.167.16(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))(drizzle-kit@0.31.10)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20260416.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16))(next@16.1.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(jsdom@26.1.0)(msw@2.13.2(@types/node@20.19.39)(typescript@5.9.3))(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))
+        version: 1.5.6(@cloudflare/workers-types@4.20260416.2)(@opentelemetry/api@1.9.1)(@tanstack/react-start@1.167.16(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))(drizzle-kit@0.31.10)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20260416.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16))(next@16.1.1(@opentelemetry/api@1.9.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(jsdom@26.1.0)(msw@2.13.2(@types/node@20.19.39)(typescript@5.9.3))(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))
       resend:
         specifier: ^6.12.0
         version: 6.12.0
@@ -4554,6 +4560,9 @@ packages:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
 
+  pmtiles@4.4.1:
+    resolution: {integrity: sha512-5oTeQc/yX/ft1evbpIlnoCZugQuug/iYIAj/ZTqIqzdGek4uZEho99En890EE6NOSI3JTI3IG8R7r8+SltphxA==}
+
   point-in-polygon-hao@1.2.4:
     resolution: {integrity: sha512-x2pcvXeqhRHlNRdhLs/tgFapAbSSe86wa/eqmj1G6pWftbEs5aVRJhRGM6FYSUERKu0PjekJzMq0gsI2XyiclQ==}
 
@@ -4624,6 +4633,10 @@ packages:
 
   protocol-buffers-schema@3.6.1:
     resolution: {integrity: sha512-VG2K63Igkiv9p76tk1lilczEK1cT+kCjKtkdhw1dQZV3k3IXJbd3o6Ho8b9zJZaHSnT2hKe4I+ObmX9w6m5SmQ==}
+
+  protomaps-themes-base@4.5.0:
+    resolution: {integrity: sha512-z5A6oXAXNi/CHEIbCfzZ/6uVDgnv3pO4C3LFvomxjUFXwyqWZ7HJdfPoNJSIlsvaQubqsaxCbamEzqBr/W7vkg==}
+    deprecated: This package has been migrated to @protomaps/basemaps with a new major version. See the CHANGELOG at https://github.com/protomaps/basemaps/blob/main/CHANGELOG.md for how to migrate.
 
   proxy-addr@2.0.7:
     resolution: {integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==}
@@ -7687,7 +7700,7 @@ snapshots:
 
   baseline-browser-mapping@2.10.17: {}
 
-  better-auth@1.5.6(@cloudflare/workers-types@4.20260416.2)(@opentelemetry/api@1.9.1)(@tanstack/react-start@1.167.16(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))(drizzle-kit@0.31.10)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20260416.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16))(next@16.1.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(jsdom@26.1.0)(msw@2.13.2(@types/node@20.19.39)(typescript@5.9.3))(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0))):
+  better-auth@1.5.6(@cloudflare/workers-types@4.20260416.2)(@opentelemetry/api@1.9.1)(@tanstack/react-start@1.167.16(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))(drizzle-kit@0.31.10)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20260416.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16))(next@16.1.1(@opentelemetry/api@1.9.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(jsdom@26.1.0)(msw@2.13.2(@types/node@20.19.39)(typescript@5.9.3))(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0))):
     dependencies:
       '@better-auth/core': 1.5.6(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260416.2)(@opentelemetry/api@1.9.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.2.0)
       '@better-auth/drizzle-adapter': 1.5.6(@better-auth/core@1.5.6(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260416.2)(@opentelemetry/api@1.9.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.2.0))(@better-auth/utils@0.3.1)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20260416.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16))
@@ -9319,6 +9332,10 @@ snapshots:
 
   pkce-challenge@5.0.1: {}
 
+  pmtiles@4.4.1:
+    dependencies:
+      fflate: 0.8.2
+
   point-in-polygon-hao@1.2.4:
     dependencies:
       robust-predicates: 3.0.3
@@ -9384,6 +9401,8 @@ snapshots:
       sisteransi: 1.0.5
 
   protocol-buffers-schema@3.6.1: {}
+
+  protomaps-themes-base@4.5.0: {}
 
   proxy-addr@2.0.7:
     dependencies:

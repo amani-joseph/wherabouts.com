@@ -6,7 +6,8 @@ export { appRouter } from "./routers/index.ts";
 export type { PublicHttpRouter } from "./routers/public-http.ts";
 export { publicHttpRouter } from "./routers/public-http.ts";
 export {
-	encryptSecret,
 	decryptSecret,
+	encryptSecret,
 	generateWebhookSecret,
 } from "./secret-crypto.ts";
+export { validateWebhookUrl } from "./shared/webhook-url.ts";

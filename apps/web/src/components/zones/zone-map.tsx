@@ -1,20 +1,22 @@
+import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import { MapCanvas } from "@/components/map/map-canvas";
-import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
-import { useZoneDraw, type UseZoneDraw } from "./use-zone-draw.ts";
+import { useAddressOverlay } from "./use-address-overlay.ts";
+import { type UseZoneDraw, useZoneDraw } from "./use-zone-draw.ts";
 
 const EXISTING_SRC = "existing-zones";
 const MAP_HEIGHT_PX = 480;
 
 export interface ZoneMapProps {
-	zones: ZoneWithGeometryRow[];
 	onReady?: (controls: UseZoneDraw) => void;
+	zones: ZoneWithGeometryRow[];
 }
 
 export function ZoneMap({ zones, onReady }: ZoneMapProps) {
 	const [map, setMap] = useState<MapLibreMap | null>(null);
 	const draw = useZoneDraw(map);
+	useAddressOverlay(map);
 
 	const onReadyRef = useRef(onReady);
 	onReadyRef.current = onReady;
@@ -60,6 +62,39 @@ export function ZoneMap({ zones, onReady }: ZoneMapProps) {
 			source: EXISTING_SRC,
 			paint: { "line-color": "#6366f1", "line-width": 2 },
 		});
+	}, [map, zones]);
+
+	const fittedRef = useRef(false);
+	useEffect(() => {
+		if (!map || fittedRef.current) {
+			return;
+		}
+		fittedRef.current = true;
+		if (zones.length === 0) {
+			map.jumpTo({ center: [151.2093, -33.8688], zoom: 12 });
+			return;
+		}
+		let minLng = 180;
+		let minLat = 90;
+		let maxLng = -180;
+		let maxLat = -90;
+		for (const z of zones) {
+			for (const ring of z.geometry.coordinates) {
+				for (const [lng, lat] of ring) {
+					minLng = Math.min(minLng, lng);
+					minLat = Math.min(minLat, lat);
+					maxLng = Math.max(maxLng, lng);
+					maxLat = Math.max(maxLat, lat);
+				}
+			}
+		}
+		map.fitBounds(
+			[
+				[minLng, minLat],
+				[maxLng, maxLat],
+			],
+			{ padding: 48, maxZoom: 16, duration: 0 }
+		);
 	}, [map, zones]);
 
 	return (

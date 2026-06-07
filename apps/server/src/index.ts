@@ -1,12 +1,4 @@
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
-import {
-	processBatchGeocodeMessage,
-	type BatchGeocodeMessage,
-} from "./queues/batch-geocode.ts";
-import {
-	processWebhookDeliveryMessage,
-	type WebhookDeliveryMessage,
-} from "./queues/webhook-delivery.ts";
 import { ORPCError, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import {
@@ -19,6 +11,15 @@ import { serverEnv } from "@wherabouts.com/env/server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import {
+	type BatchGeocodeMessage,
+	processBatchGeocodeMessage,
+} from "./queues/batch-geocode.ts";
+import {
+	processWebhookDeliveryMessage,
+	type WebhookDeliveryMessage,
+} from "./queues/webhook-delivery.ts";
+import { handleTileRequest } from "./tiles.ts";
 
 const app = new Hono();
 
@@ -201,7 +202,17 @@ function endpointKeyFromPath(pathname: string): string {
 
 app.use("/api/v1/*", async (context) => {
 	const startedAt = performance.now();
-	const rpcContext = await createContext({ req: context.req });
+	// Thread CF bindings (queues, R2) into the public context — without this the
+	// device-location webhook enqueue and batch submit/results bindings are
+	// undefined and silently no-op.
+	const cfEnv = context.env as
+		| {
+				BATCH_GEOCODE_QUEUE?: unknown;
+				WEBHOOK_DELIVERY_QUEUE?: unknown;
+				GEOCODE_RESULTS?: unknown;
+		  }
+		| undefined;
+	const rpcContext = await createContext({ env: cfEnv, req: context.req });
 	const result = await openApiHandler.handle(context.req.raw, {
 		prefix: "/" as `/${string}`,
 		context: rpcContext,
@@ -245,6 +256,16 @@ const rpcHandler = new RPCHandler(appRouter, {
 	],
 });
 
+app.get("/tiles/v1/*", async (context) => {
+	const bucket = (context.env as { MAP_TILES?: R2Bucket }).MAP_TILES;
+	if (!bucket) {
+		return context.text("Tiles not configured", 503);
+	}
+	const url = new URL(context.req.url);
+	const res = await handleTileRequest(url.pathname, bucket);
+	return res ?? context.notFound();
+});
+
 app.use("/*", async (context, next) => {
 	// localFetch routes requests through the Hono app in-process, avoiding
 	// Cloudflare's self-subrequest restriction (error 1042).
@@ -259,6 +280,7 @@ app.use("/*", async (context, next) => {
 	const cfEnv = context.env as
 		| {
 				BATCH_GEOCODE_QUEUE?: unknown;
+				WEBHOOK_DELIVERY_QUEUE?: unknown;
 				GEOCODE_RESULTS?: unknown;
 		  }
 		| undefined;
@@ -294,15 +316,10 @@ export default {
 	): Promise<void> {
 		for (const msg of batch.messages) {
 			if (msg.body.type === "batch-geocode") {
-				await processBatchGeocodeMessage(
-					msg.body as BatchGeocodeMessage,
-					env
-				);
+				await processBatchGeocodeMessage(msg.body as BatchGeocodeMessage, env);
 				msg.ack();
 			} else if (msg.body.type === "webhook-delivery") {
-				await processWebhookDeliveryMessage(
-					msg.body as WebhookDeliveryMessage
-				);
+				await processWebhookDeliveryMessage(msg.body as WebhookDeliveryMessage);
 				msg.ack();
 			} else {
 				msg.ack();

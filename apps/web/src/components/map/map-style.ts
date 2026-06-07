@@ -1,20 +1,53 @@
+import { layers, namedTheme } from "protomaps-themes-base";
+
 /**
- * MapLibre basemap resolution for the (dark) dashboard. We use a dark vector
- * style everywhere for visual consistency. Without a MapTiler key we use the
- * free, no-key, CORS-open OpenFreeMap dark style (also used by the batch
- * results map); with a key we use MapTiler's dark style.
+ * MapLibre basemap resolution for the (dark) dashboard. In production we serve a
+ * self-hosted Protomaps vector basemap from our own tile Worker (R2-backed,
+ * edge-cached). Without a tiles base URL configured (local dev fallback) we use
+ * the free, no-key OpenFreeMap dark style.
  */
 
-export type MapStyle = string;
+export type MapStyleSpec = {
+	version: 8;
+	glyphs: string;
+	sprite: string;
+	sources: Record<string, unknown> & {
+		protomaps: { type: "vector"; tiles: string[]; maxzoom: number };
+	};
+	// biome-ignore lint/suspicious/noExplicitAny: maplibre LayerSpecification array
+	layers: any[];
+};
 
-/** Free, no-key, CORS-open dark vector basemap (ships glyphs/labels). */
+export type MapStyle = string | MapStyleSpec;
+
+/** Free, no-key, CORS-open dark vector basemap (dev fallback only). */
 export const OPENFREEMAP_DARK = "https://tiles.openfreemap.org/styles/dark";
 /** Light counterpart (for any future light-themed surface). */
-export const OPENFREEMAP_LIGHT = "https://tiles.openfreemap.org/styles/positron";
+export const OPENFREEMAP_LIGHT =
+	"https://tiles.openfreemap.org/styles/positron";
 
-export function buildMapStyleUrl(maptilerKey?: string): MapStyle {
-	if (maptilerKey) {
-		return `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${maptilerKey}`;
+const SOURCE_NAME = "protomaps";
+const MAX_ZOOM = 15;
+
+export function buildMapStyle(tilesBaseUrl?: string): MapStyle {
+	if (!tilesBaseUrl) {
+		return OPENFREEMAP_DARK;
 	}
-	return OPENFREEMAP_DARK;
+	const base = tilesBaseUrl.replace(/\/$/, "");
+	return {
+		version: 8,
+		glyphs: `${base}/tiles/v1/fonts/{fontstack}/{range}.pbf`,
+		sprite: `${base}/tiles/v1/sprite/dark`,
+		sources: {
+			[SOURCE_NAME]: {
+				type: "vector",
+				tiles: [`${base}/tiles/v1/{z}/{x}/{y}.mvt`],
+				maxzoom: MAX_ZOOM,
+			},
+		},
+		// `lang` is required for protomaps-themes-base v4 to emit the label
+		// layers (place/road/water names). Without it, `layers()` returns only
+		// geometry layers and the map renders with no text. See map-style.test.ts.
+		layers: layers(SOURCE_NAME, namedTheme("dark"), { lang: "en" }),
+	};
 }
