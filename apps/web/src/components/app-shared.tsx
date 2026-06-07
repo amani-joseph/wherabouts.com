@@ -12,6 +12,7 @@ import {
 	NavigationIcon,
 	PlugIcon,
 	SettingsIcon,
+	TerminalIcon,
 	UsersIcon,
 	WebhookIcon,
 } from "lucide-react";
@@ -73,6 +74,11 @@ export const navGroups: SidebarNavGroup[] = [
 				title: "API Docs",
 				path: "/api-docs",
 				icon: <CodeIcon />,
+			},
+			{
+				title: "SDK Playground",
+				path: "/sdk-playground",
+				icon: <TerminalIcon />,
 			},
 		],
 	},
