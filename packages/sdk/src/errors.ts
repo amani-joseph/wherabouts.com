@@ -5,7 +5,7 @@ export class WheraboutsApiError extends Error {
 	readonly payload: WheraboutsApiErrorPayload | null;
 	readonly status: number;
 
-	public constructor(options: {
+	constructor(options: {
 		code?: WheraboutsApiError["code"];
 		message: string;
 		payload?: WheraboutsApiErrorPayload | null;

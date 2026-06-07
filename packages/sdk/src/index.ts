@@ -1,3 +1,4 @@
+// biome-ignore lint/performance/noBarrelFile: this is the SDK package's public entry point — a single barrel is the intended module surface.
 export { createWheraboutsClient, type WheraboutsClient } from "./client.ts";
 export { WheraboutsApiError } from "./errors.ts";
 export * from "./resources/addresses.ts";
