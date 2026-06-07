@@ -1,10 +1,12 @@
-export type ApiParam = {
+const TRAILING_CONTINUATION_RE = / \\$/;
+
+export interface ApiParam {
 	description: string;
 	example?: string;
 	name: string;
 	required: boolean;
 	type: string;
-};
+}
 
 export type ApiEndpointId =
 	| "addresses.autocomplete"
@@ -31,10 +33,11 @@ export type ApiEndpointId =
 	| "webhooks.create"
 	| "webhooks.list"
 	| "webhooks.delete"
+	| "webhooks.reactivate"
 	// Regions
 	| "regions.classify";
 
-export type ApiEndpoint = {
+export interface ApiEndpoint {
 	description: string;
 	/** Example JSON request body for non-GET (docs-only) endpoints' curl example. */
 	exampleBody?: Record<string, unknown>;
@@ -43,7 +46,7 @@ export type ApiEndpoint = {
 	params: ApiParam[];
 	path: string;
 	summary: string;
-};
+}
 
 export const apiExplorerEndpoints: ApiEndpoint[] = [
 	{
@@ -522,6 +525,23 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 			},
 		],
 	},
+	{
+		id: "webhooks.reactivate",
+		method: "POST",
+		path: "/api/v1/webhooks/{id}/reactivate",
+		summary: "Reactivate a disabled webhook subscription",
+		description:
+			"Re-enable a webhook subscription that was automatically disabled after repeated delivery failures. POST request with no body.",
+		params: [
+			{
+				name: "id",
+				type: "number",
+				required: true,
+				description: "Numeric webhook subscription ID",
+				example: "1",
+			},
+		],
+	},
 	// --- Regions ---
 	{
 		id: "regions.classify",
@@ -529,6 +549,7 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		path: "/api/v1/regions",
 		summary: "Classify a coordinate into administrative regions",
 		description:
+			"Returns the ABS/ASGS administrative regions that contain a coordinate (state, SA1–SA4, LGA, postcode, electoral divisions, mesh block), keyed by layer.",
 			"Returns the official ABS/ASGS administrative regions that contain a coordinate — state, SA1–SA4, LGA, postcode (POA), electoral divisions, and mesh block. Results are keyed by layer. Optionally filter with the `layers` parameter.",
 		params: [
 			{
@@ -549,6 +570,7 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 				name: "layers",
 				type: "string",
 				required: false,
+				description: "Comma-separated layer filter (e.g. sa2,lga,poa)",
 				description:
 					"Comma-separated layer filter (state,sa1,sa2,sa3,sa4,lga,poa,ced,sed,mb). Omit to return all layers.",
 				example: "sa2,lga,poa",
@@ -625,7 +647,8 @@ export const buildApiExplorerCurl = (
 		lines.push(`  -d '${JSON.stringify(endpoint.exampleBody, null, 2)}'`);
 	} else {
 		// Drop the trailing line-continuation on the final line.
-		lines[lines.length - 1] = lines[lines.length - 1].replace(/ \\$/, "");
+		lines[lines.length - 1] =
+			lines.at(-1)?.replace(TRAILING_CONTINUATION_RE, "") ?? "";
 	}
 
 	return lines.join("\n");

@@ -20,6 +20,7 @@ import { Route as ProtectedZonesRouteImport } from './routes/_protected/zones'
 import { Route as ProtectedWebhooksRouteImport } from './routes/_protected/webhooks'
 import { Route as ProtectedTeamRouteImport } from './routes/_protected/team'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
+import { Route as ProtectedSdkPlaygroundRouteImport } from './routes/_protected/sdk-playground'
 import { Route as ProtectedProjectsRouteImport } from './routes/_protected/projects'
 import { Route as ProtectedIntegrationsRouteImport } from './routes/_protected/integrations'
 import { Route as ProtectedHelpRouteImport } from './routes/_protected/help'
@@ -96,6 +97,11 @@ const ProtectedTeamRoute = ProtectedTeamRouteImport.update({
 const ProtectedSettingsRoute = ProtectedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedSdkPlaygroundRoute = ProtectedSdkPlaygroundRouteImport.update({
+  id: '/sdk-playground',
+  path: '/sdk-playground',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedProjectsRoute = ProtectedProjectsRouteImport.update({
@@ -233,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/help': typeof ProtectedHelpRoute
   '/integrations': typeof ProtectedIntegrationsRoute
   '/projects': typeof ProtectedProjectsRoute
+  '/sdk-playground': typeof ProtectedSdkPlaygroundRoute
   '/settings': typeof ProtectedSettingsRoute
   '/team': typeof ProtectedTeamRoute
   '/webhooks': typeof ProtectedWebhooksRoute
@@ -268,6 +275,7 @@ export interface FileRoutesByTo {
   '/help': typeof ProtectedHelpRoute
   '/integrations': typeof ProtectedIntegrationsRoute
   '/projects': typeof ProtectedProjectsRoute
+  '/sdk-playground': typeof ProtectedSdkPlaygroundRoute
   '/settings': typeof ProtectedSettingsRoute
   '/team': typeof ProtectedTeamRoute
   '/webhooks': typeof ProtectedWebhooksRoute
@@ -305,6 +313,7 @@ export interface FileRoutesById {
   '/_protected/help': typeof ProtectedHelpRoute
   '/_protected/integrations': typeof ProtectedIntegrationsRoute
   '/_protected/projects': typeof ProtectedProjectsRoute
+  '/_protected/sdk-playground': typeof ProtectedSdkPlaygroundRoute
   '/_protected/settings': typeof ProtectedSettingsRoute
   '/_protected/team': typeof ProtectedTeamRoute
   '/_protected/webhooks': typeof ProtectedWebhooksRoute
@@ -342,6 +351,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/integrations'
     | '/projects'
+    | '/sdk-playground'
     | '/settings'
     | '/team'
     | '/webhooks'
@@ -377,6 +387,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/integrations'
     | '/projects'
+    | '/sdk-playground'
     | '/settings'
     | '/team'
     | '/webhooks'
@@ -413,6 +424,7 @@ export interface FileRouteTypes {
     | '/_protected/help'
     | '/_protected/integrations'
     | '/_protected/projects'
+    | '/_protected/sdk-playground'
     | '/_protected/settings'
     | '/_protected/team'
     | '/_protected/webhooks'
@@ -530,6 +542,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof ProtectedSettingsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/sdk-playground': {
+      id: '/_protected/sdk-playground'
+      path: '/sdk-playground'
+      fullPath: '/sdk-playground'
+      preLoaderRoute: typeof ProtectedSdkPlaygroundRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/projects': {
@@ -707,6 +726,7 @@ interface ProtectedRouteChildren {
   ProtectedHelpRoute: typeof ProtectedHelpRoute
   ProtectedIntegrationsRoute: typeof ProtectedIntegrationsRoute
   ProtectedProjectsRoute: typeof ProtectedProjectsRoute
+  ProtectedSdkPlaygroundRoute: typeof ProtectedSdkPlaygroundRoute
   ProtectedSettingsRoute: typeof ProtectedSettingsRoute
   ProtectedTeamRoute: typeof ProtectedTeamRoute
   ProtectedWebhooksRoute: typeof ProtectedWebhooksRoute
@@ -724,6 +744,7 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedHelpRoute: ProtectedHelpRoute,
   ProtectedIntegrationsRoute: ProtectedIntegrationsRoute,
   ProtectedProjectsRoute: ProtectedProjectsRoute,
+  ProtectedSdkPlaygroundRoute: ProtectedSdkPlaygroundRoute,
   ProtectedSettingsRoute: ProtectedSettingsRoute,
   ProtectedTeamRoute: ProtectedTeamRoute,
   ProtectedWebhooksRoute: ProtectedWebhooksRoute,
