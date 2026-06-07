@@ -17,12 +17,12 @@ export const REGION_LAYERS = [
 
 export type RegionLayer = (typeof REGION_LAYERS)[number];
 
-export type RegionRow = {
-	layer: string;
+export interface RegionRow {
 	code: string;
+	layer: string;
 	name: string;
 	state: string | null;
-};
+}
 
 const REGION_LAYER_SET = new Set<string>(REGION_LAYERS);
 
@@ -74,8 +74,9 @@ export async function regionsContainingPoint(
 			state: regions.state,
 		})
 		.from(regions);
-	if (layers && layers.length > 0) {
-		return query.where(and(inArray(regions.layer, layers), covers));
-	}
-	return query.where(covers);
+	const rows =
+		layers && layers.length > 0
+			? await query.where(and(inArray(regions.layer, layers), covers))
+			: await query.where(covers);
+	return rows;
 }
