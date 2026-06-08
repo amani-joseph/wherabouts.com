@@ -14,6 +14,8 @@ export default defineConfig({
 			RESEND_API_KEY: "re_test_key",
 			EMAIL_FROM: "test@example.com",
 			KEY_ENC_KEY: "0".repeat(64),
+			OSRM_BASE_URL: "http://localhost:5000",
+			OSRM_AUTH_TOKEN: "test-token",
 		},
 	},
 });
