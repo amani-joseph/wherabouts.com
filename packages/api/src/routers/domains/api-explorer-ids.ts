@@ -16,6 +16,7 @@ export const EXPLORER_ENDPOINT_ID_LIST = [
 	"geocode.batch.results",
 	"geocode.batch.submit",
 	"regions.classify",
+	"routing.directions",
 	"webhooks.create",
 	"webhooks.delete",
 	"webhooks.list",

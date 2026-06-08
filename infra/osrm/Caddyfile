@@ -1,0 +1,6 @@
+:5000 {
+	@noauth not header Authorization "Bearer {$OSRM_AUTH_TOKEN}"
+	respond @noauth "Forbidden" 403
+
+	reverse_proxy localhost:5001
+}

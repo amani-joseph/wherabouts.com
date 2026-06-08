@@ -22,6 +22,8 @@ export const serverEnv = createEnv({
 				/^[0-9a-fA-F]{64}$/,
 				"KEY_ENC_KEY must be 64 hex chars (32 bytes)"
 			),
+		OSRM_BASE_URL: z.string().url(),
+		OSRM_AUTH_TOKEN: z.string().min(1),
 	},
 	runtimeEnv: {
 		...process.env,
@@ -29,6 +31,8 @@ export const serverEnv = createEnv({
 		RESEND_API_KEY: process.env.RESEND_API_KEY,
 		EMAIL_FROM: process.env.EMAIL_FROM,
 		KEY_ENC_KEY: process.env.KEY_ENC_KEY,
+		OSRM_BASE_URL: process.env.OSRM_BASE_URL,
+		OSRM_AUTH_TOKEN: process.env.OSRM_AUTH_TOKEN,
 	},
 	emptyStringAsUndefined: true,
 });

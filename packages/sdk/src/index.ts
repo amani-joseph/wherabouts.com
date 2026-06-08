@@ -5,6 +5,7 @@ export * from "./resources/addresses.ts";
 export * from "./resources/devices.ts";
 export * from "./resources/geocode.ts";
 export * from "./resources/regions.ts";
+export * from "./resources/routing.ts";
 export * from "./resources/webhooks.ts";
 export * from "./resources/zones.ts";
 export {

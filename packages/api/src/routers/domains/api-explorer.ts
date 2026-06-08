@@ -18,6 +18,7 @@ type ApiEndpointId =
 	| "addresses.nearby"
 	| "addresses.reverse"
 	| "regions.classify"
+	| "routing.directions"
 	| "addresses.geocode"
 	| "geocode.batch.submit"
 	| "geocode.batch.poll"
@@ -98,6 +99,20 @@ const endpointMap = new Map<ApiEndpointId, ApiEndpoint>([
 			method: "GET",
 			path: "/api/v1/regions",
 			params: [{ name: "lat" }, { name: "lng" }, { name: "layers" }],
+		},
+	],
+	[
+		"routing.directions",
+		{
+			id: "routing.directions",
+			method: "GET",
+			path: "/api/v1/routing/directions",
+			params: [
+				{ name: "from" },
+				{ name: "to" },
+				{ name: "fromAddressId" },
+				{ name: "toAddressId" },
+			],
 		},
 	],
 	[
