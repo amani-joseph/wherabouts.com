@@ -78,6 +78,7 @@ describe("EXPLORER_ENDPOINT_IDS drift guard", () => {
 				"geocode.batch.results",
 				"geocode.batch.submit",
 				"regions.classify",
+				"routing.directions",
 				"webhooks.create",
 				"webhooks.delete",
 				"webhooks.list",

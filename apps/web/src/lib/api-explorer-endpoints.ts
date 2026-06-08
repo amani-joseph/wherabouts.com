@@ -35,7 +35,9 @@ export type ApiEndpointId =
 	| "webhooks.delete"
 	| "webhooks.reactivate"
 	// Regions
-	| "regions.classify";
+	| "regions.classify"
+	// Routing
+	| "routing.directions";
 
 export interface ApiEndpoint {
 	description: string;
@@ -569,10 +571,48 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 				name: "layers",
 				type: "string",
 				required: false,
-				description: "Comma-separated layer filter (e.g. sa2,lga,poa)",
 				description:
 					"Comma-separated layer filter (state,sa1,sa2,sa3,sa4,lga,poa,ced,sed,mb). Omit to return all layers.",
 				example: "sa2,lga,poa",
+			},
+		],
+	},
+	// --- Routing ---
+	{
+		id: "routing.directions",
+		method: "GET",
+		path: "/api/v1/routing/directions",
+		summary: "Driving directions between two points",
+		description:
+			"Returns driving distance (m), duration (s), and route geometry (GeoJSON LineString) between two points. Accept coordinates (from/to as lat,lng) or G-NAF address IDs (fromAddressId/toAddressId).",
+		params: [
+			{
+				name: "from",
+				type: "string",
+				required: false,
+				description: 'Origin as "lat,lng" (or use fromAddressId)',
+				example: "-37.8136,144.9631",
+			},
+			{
+				name: "to",
+				type: "string",
+				required: false,
+				description: 'Destination as "lat,lng" (or use toAddressId)',
+				example: "-33.8688,151.2093",
+			},
+			{
+				name: "fromAddressId",
+				type: "number",
+				required: false,
+				description: "Origin G-NAF address id (alternative to from)",
+				example: "12345",
+			},
+			{
+				name: "toAddressId",
+				type: "number",
+				required: false,
+				description: "Destination G-NAF address id (alternative to to)",
+				example: "67890",
 			},
 		],
 	},
