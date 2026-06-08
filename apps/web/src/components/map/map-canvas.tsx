@@ -40,14 +40,7 @@ export function MapCanvas({
 			}
 			map = new MapCtor({
 				container: containerRef.current,
-				// Tiles are served by the same Worker as the API, so fall back to
-				// VITE_SERVER_URL when VITE_TILES_BASE_URL is unset. VITE_SERVER_URL is
-				// required + committed in .env.production, so production always has a
-				// real origin even though .env.production is gitignored. Without this
-				// the basemap renders blank in any build missing VITE_TILES_BASE_URL.
-				style: buildMapStyle(
-					env.VITE_TILES_BASE_URL ?? env.VITE_SERVER_URL
-				) as never,
+				style: buildMapStyle(env.VITE_TILES_BASE_URL) as never,
 				center,
 				zoom,
 			});

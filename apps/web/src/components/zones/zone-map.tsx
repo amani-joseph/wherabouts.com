@@ -1,5 +1,3 @@
-import type { GeoJsonPolygon } from "@wherabouts.com/api/routers/public/zones-schema";
-import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import { MapCanvas } from "@/components/map/map-canvas";
@@ -17,24 +15,8 @@ const EMPTY_FC = {
 };
 
 export interface ZoneMapProps {
-	/** Saved-zone ids to highlight as containing the test point. */
-	highlightZoneIds?: number[];
-	/**
-	 * Fires whenever the in-progress drawn/edited polygon changes (or clears).
-	 * This is the reactive channel for the drawn geometry — `onReady` only
-	 * delivers the stable control methods once and must not be relied on for
-	 * the polygon value.
-	 */
-	onDrawnPolygonChange?: (polygon: GeoJsonPolygon | null) => void;
-	onPick?: (lat: number, lng: number) => void;
-	/** Fires once when a brand-new polygon is fully drawn (not on vertex edits). */
-	onPolygonDrawn?: () => void;
-	onReady?: (controls: UseZoneDraw) => void;
-	/** When true, the next map click reports its coordinates via onPick. */
-	picking?: boolean;
-	/** Marker location for the point test ([lng,lat] rendered as a dot). */
-	testPoint?: { lat: number; lng: number } | null;
 	zones: ZoneWithGeometryRow[];
+	onReady?: (controls: UseZoneDraw) => void;
 }
 
 export function ZoneMap({
@@ -48,8 +30,7 @@ export function ZoneMap({
 	highlightZoneIds = [],
 }: ZoneMapProps) {
 	const [map, setMap] = useState<MapLibreMap | null>(null);
-	const draw = useZoneDraw(map, { onPolygonDrawn });
-	useAddressOverlay(map);
+	const draw = useZoneDraw(map);
 
 	const onReadyRef = useRef(onReady);
 	onReadyRef.current = onReady;
@@ -200,6 +181,39 @@ export function ZoneMap({
 			canvas.style.cursor = "";
 		};
 	}, [map, picking]);
+
+	const fittedRef = useRef(false);
+	useEffect(() => {
+		if (!map || fittedRef.current) {
+			return;
+		}
+		fittedRef.current = true;
+		if (zones.length === 0) {
+			map.jumpTo({ center: [151.2093, -33.8688], zoom: 12 });
+			return;
+		}
+		let minLng = 180;
+		let minLat = 90;
+		let maxLng = -180;
+		let maxLat = -90;
+		for (const z of zones) {
+			for (const ring of z.geometry.coordinates) {
+				for (const [lng, lat] of ring) {
+					minLng = Math.min(minLng, lng);
+					minLat = Math.min(minLat, lat);
+					maxLng = Math.max(maxLng, lng);
+					maxLat = Math.max(maxLat, lat);
+				}
+			}
+		}
+		map.fitBounds(
+			[
+				[minLng, minLat],
+				[maxLng, maxLat],
+			],
+			{ padding: 48, maxZoom: 16, duration: 0 }
+		);
+	}, [map, zones]);
 
 	const fittedRef = useRef(false);
 	useEffect(() => {

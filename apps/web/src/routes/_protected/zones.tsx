@@ -14,6 +14,15 @@ import {
 	ZoneAddressesDrawer,
 	type ZoneAddressItem,
 } from "@/components/zones/zone-addresses-drawer";
+import {
+	type PointTestResult,
+	PointTestTool,
+} from "@/components/zones/point-test-tool";
+import type { UseZoneDraw } from "@/components/zones/use-zone-draw";
+import {
+	ZoneAddressesDrawer,
+	type ZoneAddressItem,
+} from "@/components/zones/zone-addresses-drawer";
 import { ZoneCreateDialog } from "@/components/zones/zone-create-dialog";
 import { ZoneList } from "@/components/zones/zone-list";
 import { ZoneMap } from "@/components/zones/zone-map";
@@ -138,42 +147,20 @@ function RouteComponent() {
 		}
 	};
 
-	const runTest = useCallback(
-		async (lat: number, lng: number) => {
-			if (!activeId) {
-				toast.error("Select a project first.");
-				return;
-			}
-			if (Number.isNaN(lat) || Number.isNaN(lng)) {
-				toast.error("Enter valid coordinates.");
-				return;
-			}
-			setTesting(true);
-			setTestPoint({ lat, lng });
-			try {
-				const res = await orpcClient.zones.contains({
-					projectId: activeId,
-					lat,
-					lng,
-				});
-				const savedZones = res.zones.map((z) => ({ id: z.id, name: z.name }));
-				setMatchedZoneIds(savedZones.map((z) => z.id));
-				// Also test against the unsaved drawn zone, if any (client-side preview).
-				const drawnMatch = drawn
-					? pointInPolygon([lng, lat], drawn)
-					: undefined;
-				setTestResult({ zones: savedZones, drawnMatch });
-			} catch (err) {
-				toast.error(err instanceof Error ? err.message : "Point test failed.");
-			} finally {
-				setTesting(false);
-			}
-		},
-		[activeId, drawn]
-	);
-
-	const handleTest = () => {
-		runTest(Number(testLat), Number(testLng));
+	const handleTest = async (lat: number, lng: number) => {
+		if (!activeId || Number.isNaN(lat) || Number.isNaN(lng)) {
+			toast.error("Enter valid coordinates.");
+			return;
+		}
+		setTesting(true);
+		try {
+			const res = await orpcClient.zones.contains({ projectId: activeId, lat, lng });
+			setTestResult({ zones: res.zones.map((z) => ({ id: z.id, name: z.name })) });
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Point test failed.");
+		} finally {
+			setTesting(false);
+		}
 	};
 
 	const handlePick = useCallback(
@@ -312,6 +299,19 @@ function RouteComponent() {
 					zones={zones}
 				/>
 				<div className="space-y-4">
+					<ZoneList
+						onDelete={handleDelete}
+						onEdit={handleEdit}
+						onSelect={setSelectedId}
+						onViewAddresses={handleViewAddresses}
+						selectedId={selectedId}
+						zones={zones}
+					/>
+					<PointTestTool
+						onTest={handleTest}
+						result={testResult}
+						testing={testing}
+					/>
 					<ZoneList
 						onDelete={handleDelete}
 						onEdit={handleEdit}
