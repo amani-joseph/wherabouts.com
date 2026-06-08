@@ -1,4 +1,4 @@
-import type { Requester } from "../shared-types.ts";
+import type { CallOptions, Requester } from "../shared-types.ts";
 
 export type WebhookEvent = "entry" | "exit";
 
@@ -41,32 +41,42 @@ export interface ReactivateWebhookResponse {
 }
 
 export interface WebhooksResource {
-	create(body: CreateWebhookBody): Promise<CreateWebhookResponse>;
-	delete(id: number): Promise<DeleteWebhookResponse>;
-	list(): Promise<ListWebhooksResponse>;
-	reactivate(id: number): Promise<ReactivateWebhookResponse>;
+	create(
+		body: CreateWebhookBody,
+		options?: CallOptions
+	): Promise<CreateWebhookResponse>;
+	delete(id: number, options?: CallOptions): Promise<DeleteWebhookResponse>;
+	list(options?: CallOptions): Promise<ListWebhooksResponse>;
+	reactivate(
+		id: number,
+		options?: CallOptions
+	): Promise<ReactivateWebhookResponse>;
 }
 
 export const createWebhooks = (request: Requester): WebhooksResource => ({
-	create: (body) =>
+	create: (body, options) =>
 		request<CreateWebhookResponse>({
 			method: "POST",
 			path: "/api/v1/webhooks",
 			body,
+			...options,
 		}),
-	list: () =>
+	list: (options) =>
 		request<ListWebhooksResponse>({
 			method: "GET",
 			path: "/api/v1/webhooks",
+			...options,
 		}),
-	delete: (id) =>
+	delete: (id, options) =>
 		request<DeleteWebhookResponse>({
 			method: "DELETE",
 			path: `/api/v1/webhooks/${id}`,
+			...options,
 		}),
-	reactivate: (id) =>
+	reactivate: (id, options) =>
 		request<ReactivateWebhookResponse>({
 			method: "POST",
 			path: `/api/v1/webhooks/${id}/reactivate`,
+			...options,
 		}),
 });

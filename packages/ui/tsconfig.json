@@ -7,7 +7,8 @@
     "paths": {
       "@wherabouts.com/ui/*": ["./src/*"]
     },
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "types": ["node", "geojson"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules"]

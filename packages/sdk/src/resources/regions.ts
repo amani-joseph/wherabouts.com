@@ -1,4 +1,4 @@
-import type { Requester } from "../shared-types.ts";
+import type { CallOptions, Requester } from "../shared-types.ts";
 
 export interface RegionsClassifyParams {
 	lat: number;
@@ -17,14 +17,18 @@ export interface RegionsClassifyResponse {
 }
 
 export interface RegionsResource {
-	classify(params: RegionsClassifyParams): Promise<RegionsClassifyResponse>;
+	classify(
+		params: RegionsClassifyParams,
+		options?: CallOptions
+	): Promise<RegionsClassifyResponse>;
 }
 
 export const createRegions = (request: Requester): RegionsResource => ({
-	classify: (params) =>
+	classify: (params, options) =>
 		request<RegionsClassifyResponse>({
 			method: "GET",
 			path: "/api/v1/regions",
 			query: { lat: params.lat, lng: params.lng, layers: params.layers },
+			...options,
 		}),
 });

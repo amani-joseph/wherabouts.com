@@ -549,7 +549,6 @@ export const apiExplorerEndpoints: ApiEndpoint[] = [
 		path: "/api/v1/regions",
 		summary: "Classify a coordinate into administrative regions",
 		description:
-			"Returns the ABS/ASGS administrative regions that contain a coordinate (state, SA1–SA4, LGA, postcode, electoral divisions, mesh block), keyed by layer.",
 			"Returns the official ABS/ASGS administrative regions that contain a coordinate — state, SA1–SA4, LGA, postcode (POA), electoral divisions, and mesh block. Results are keyed by layer. Optionally filter with the `layers` parameter.",
 		params: [
 			{

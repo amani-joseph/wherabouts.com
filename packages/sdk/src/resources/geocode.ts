@@ -1,4 +1,4 @@
-import type { Requester } from "../shared-types.ts";
+import type { CallOptions, Requester } from "../shared-types.ts";
 
 // ---------------------------------------------------------------------------
 // Forward geocode types
@@ -78,15 +78,24 @@ export interface BatchResultsResponse {
 
 export interface GeocodeResource {
 	batch: {
-		submit(body: BatchSubmitBody): Promise<BatchSubmitResponse>;
-		poll(jobId: string): Promise<BatchJobStatus>;
-		results(jobId: string): Promise<BatchResultsResponse>;
+		submit(
+			body: BatchSubmitBody,
+			options?: CallOptions
+		): Promise<BatchSubmitResponse>;
+		poll(jobId: string, options?: CallOptions): Promise<BatchJobStatus>;
+		results(
+			jobId: string,
+			options?: CallOptions
+		): Promise<BatchResultsResponse>;
 	};
-	forward(params: ForwardGeocodeParams): Promise<ForwardGeocodeResponse>;
+	forward(
+		params: ForwardGeocodeParams,
+		options?: CallOptions
+	): Promise<ForwardGeocodeResponse>;
 }
 
 export const createGeocode = (request: Requester): GeocodeResource => ({
-	forward: (params) =>
+	forward: (params, options) =>
 		request<ForwardGeocodeResponse>({
 			method: "GET",
 			path: "/api/v1/addresses/geocode",
@@ -99,23 +108,27 @@ export const createGeocode = (request: Requester): GeocodeResource => ({
 				postcode: params.postcode,
 				country: params.country,
 			},
+			...options,
 		}),
 	batch: {
-		submit: (body) =>
+		submit: (body, options) =>
 			request<BatchSubmitResponse>({
 				method: "POST",
 				path: "/api/v1/geocode/batch",
 				body,
+				...options,
 			}),
-		poll: (jobId) =>
+		poll: (jobId, options) =>
 			request<BatchJobStatus>({
 				method: "GET",
 				path: `/api/v1/geocode/batch/${jobId}`,
+				...options,
 			}),
-		results: (jobId) =>
+		results: (jobId, options) =>
 			request<BatchResultsResponse>({
 				method: "GET",
 				path: `/api/v1/geocode/batch/${jobId}/results`,
+				...options,
 			}),
 	},
 });
