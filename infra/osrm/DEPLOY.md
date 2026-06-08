@@ -35,6 +35,14 @@ that prefix). Takes 10–30 min. **Do not commit `data/`** (it's large; see `.gi
 # from infra/osrm/
 fly apps create wherabouts-osrm                       # matches `app` in fly.toml
 fly volumes create osrm_data --region syd --size 10   # matches [[mounts]] source
+
+# IMPORTANT: `fly apps create` + `fly deploy` does NOT auto-allocate public IPs
+# (only `fly launch` does). Without an IP, wherabouts-osrm.fly.dev resolves
+# nowhere and the Worker fails with "Routing service unavailable". Allocate now:
+fly ips allocate-v4 --shared --app wherabouts-osrm    # free shared v4 is enough
+# (Skip a dedicated v6 unless you need it — a freshly-allocated v6 ingress can
+#  lag and cause Workers fetch to fail until it propagates.)
+fly ips list --app wherabouts-osrm                    # confirm a v4 is listed
 ```
 
 ---
@@ -181,5 +189,7 @@ OSM data drifts. Monthly: re-run Part A, then re-populate the volume (Part C) an
 | App crash-loops, logs show "Cannot open file /data/australia-latest.osrm" | Volume not populated (Part C failed or wrong filename prefix). `fly logs`; re-check `/data`. |
 | 403 from the API even with a valid key | `OSRM_AUTH_TOKEN` mismatch between Fly (Part D) and the Worker (Part E). |
 | API returns `internal_error` | Worker can't reach OSRM. Check `OSRM_BASE_URL` (no trailing slash) and that the Fly app is up. |
+| `internal_error` but the Fly app responds to direct `curl` | App likely has **no public IP** — `fly ips list`; if empty, `fly ips allocate-v4 --shared` (Part B). `wherabouts-osrm.fly.dev` won't resolve until then. |
+| `internal_error`, Worker logs `Illegal invocation: ... incorrect 'this' reference` | Workers' native `fetch` was called with a non-global `this`. Pass `globalThis.fetch.bind(globalThis)` (see `routing.ts`), not a bare `globalThis.fetch` reference. |
 | API returns `unprocessable` ("No drivable route") | Coords didn't snap to a road — expected for off-network points, not a deploy problem. |
 | Build OOM-killed | Raise Docker's RAM allocation to 8 GB+. |
