@@ -96,7 +96,9 @@ export const routingDirections = baseBuilder
 			const route = await fetchOsrmRoute(from, to, {
 				baseUrl: serverEnv.OSRM_BASE_URL,
 				authToken: serverEnv.OSRM_AUTH_TOKEN,
-				fetchImpl: globalThis.fetch,
+				// Bind to globalThis — Workers' native fetch throws "Illegal invocation"
+				// if called with a non-global `this` (it's invoked as options.fetchImpl).
+				fetchImpl: globalThis.fetch.bind(globalThis),
 			});
 			return {
 				query: { from, to, profile: input.profile },
