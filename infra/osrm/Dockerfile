@@ -5,7 +5,7 @@ FROM ghcr.io/project-osrm/osrm-backend:v5.27.1
 
 # Install Caddy (auth-enforcing public entrypoint).
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends curl ca-certificates debian-keyring debian-archive-keyring apt-transport-https \
+	&& apt-get install -y --no-install-recommends curl gnupg ca-certificates debian-keyring debian-archive-keyring apt-transport-https \
 	&& curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
 	&& curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list \
 	&& apt-get update \

@@ -127,6 +127,46 @@ Then update `docs/superpowers/specs/2026-06-08-routing-mvp-design.md` status fro
 
 ---
 
+## Local development
+
+For everyday local work you don't need a local engine — point the dev Worker at the
+**live Fly app**. The API Worker reads `OSRM_BASE_URL` + `OSRM_AUTH_TOKEN` from `serverEnv`,
+and both are **required** (`packages/env/src/server.ts`), so `wrangler dev` will fail schema
+validation if they're absent.
+
+**Option 1 — local Worker → remote Fly OSRM (recommended).** In `apps/server/.dev.vars`:
+
+```bash
+OSRM_BASE_URL=https://wherabouts-osrm.fly.dev
+OSRM_AUTH_TOKEN=<same token as `fly secrets`>      # must match Part D
+```
+
+`.dev.vars` is gitignored, so the token is safe there. `OSRM_BASE_URL` must have **no
+trailing slash**.
+
+**Option 2 — fully local OSRM (offline, no Fly).** Run the engine in Docker against the
+graph you built in Part A, then point at it:
+
+```bash
+# Use the SAME pinned image the graph was built with (build-graph.sh / Dockerfile).
+# OSRM graph files are version-specific — `osrm/osrm-backend:latest` will reject a v5.27.1 graph.
+docker run --rm -p 5001:5000 -v "$PWD/infra/osrm/data:/data" \
+  ghcr.io/project-osrm/osrm-backend:v5.27.1 \
+  osrm-routed --algorithm mld /data/australia-latest.osrm
+```
+
+```bash
+# apps/server/.dev.vars
+OSRM_BASE_URL=http://localhost:5001
+OSRM_AUTH_TOKEN=anything        # raw container has no Caddy, so it's not checked —
+                                # but the var must still be set to pass validation
+```
+
+The raw `osrm/osrm-backend` container has **no Caddy gate**, so the bearer token isn't
+enforced locally; that gate only exists on the Fly deployment.
+
+---
+
 ## Refresh cadence
 
 OSM data drifts. Monthly: re-run Part A, then re-populate the volume (Part C) and
