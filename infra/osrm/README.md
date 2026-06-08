@@ -17,10 +17,19 @@ Produces `data/australia-latest.osrm*`.
 
 ## Auth
 
-`osrm-routed` has no native auth. The Worker authenticates via a shared
-`OSRM_AUTH_TOKEN` checked by a tiny reverse-proxy (or Fly private networking so
-only the Worker's egress reaches it). The Worker reads `OSRM_BASE_URL` +
-`OSRM_AUTH_TOKEN` from env (see packages/env/src/server.ts).
+Caddy listens on `:5000` (the public port Fly routes to) and enforces a bearer
+token on every request. `osrm-routed` binds exclusively to `localhost:5001` and
+is never reachable directly from outside the container.
+
+Set the token once as a Fly secret:
+
+    fly secrets set OSRM_AUTH_TOKEN=<your-token>
+
+Caddy reads it via `{$OSRM_AUTH_TOKEN}` at runtime and returns HTTP 403 for any
+request whose `Authorization` header does not match `Bearer <token>`.
+
+The Worker reads `OSRM_BASE_URL` + `OSRM_AUTH_TOKEN` from env
+(see `packages/env/src/server.ts`).
 
 ## Refresh cadence
 

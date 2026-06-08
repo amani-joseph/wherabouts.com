@@ -1,12 +1,24 @@
-# Serves a prebuilt OSRM car graph. The graph is built separately by
-# build-graph.sh and mounted/copied into /data at deploy time.
+# Serves a prebuilt OSRM car graph behind a Caddy reverse proxy that enforces
+# a bearer token (OSRM_AUTH_TOKEN). osrm-routed itself binds to localhost only.
+# The graph is built separately by build-graph.sh and mounted into /data.
 FROM ghcr.io/project-osrm/osrm-backend:v5.27.1
 
-# Auth is enforced by a lightweight proxy in front (see README); osrm-routed
-# itself is bound only to the internal network.
+# Install Caddy (auth-enforcing public entrypoint).
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends curl ca-certificates debian-keyring debian-archive-keyring apt-transport-https \
+	&& curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
+	&& curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list \
+	&& apt-get update \
+	&& apt-get install -y --no-install-recommends caddy \
+	&& rm -rf /var/lib/apt/lists/*
+
+COPY Caddyfile /etc/caddy/Caddyfile
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Public port served by Caddy; osrm-routed listens only on localhost:5001.
 EXPOSE 5000
 
-# /data holds australia-latest.osrm* artifacts (Fly volume or COPY).
 WORKDIR /data
 
-CMD ["osrm-routed", "--algorithm", "mld", "/data/australia-latest.osrm", "--max-table-size", "10000"]
+CMD ["/usr/local/bin/entrypoint.sh"]

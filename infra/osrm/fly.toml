@@ -16,3 +16,6 @@ primary_region = "syd"
 
 [[vm]]
   size = "performance-2x"  # AU car MLD graph needs several GB RAM
+
+# Required secret (set once): fly secrets set OSRM_AUTH_TOKEN=<token>
+# Caddy (the :5000 entrypoint) rejects requests without a matching Bearer token.
