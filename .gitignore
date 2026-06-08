@@ -57,3 +57,6 @@ apps/web/data-resources/
 # Wrangler dev state outside apps/web (which has its own .gitignore)
 .wrangler/
 .gstack/
+
+# OSRM prebuilt routing graph (multi-GB; built locally via infra/osrm/build-graph.sh)
+infra/osrm/data/
