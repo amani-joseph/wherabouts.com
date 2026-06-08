@@ -1,14 +1,54 @@
 {
-  "name": "@wherabouts.com/sdk",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@wherabouts/sdk",
+  "version": "0.2.0",
+  "description": "Official TypeScript SDK for the Wherabouts location API — Australian geocoding, geofencing zones, device tracking, and webhooks over authoritative G-NAF/ABS data.",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
+  "license": "UNLICENSED",
+  "homepage": "https://wherabouts.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amani-joseph/wherabouts.com.git",
+    "directory": "packages/sdk"
   },
+  "keywords": [
+    "geocoding",
+    "reverse-geocoding",
+    "geofencing",
+    "australia",
+    "g-naf",
+    "abs",
+    "location",
+    "webhooks",
+    "wherabouts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
+    "build": "tsup",
     "check-types": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint:pkg": "publint && attw --pack",
+    "prepublishOnly": "pnpm build && pnpm lint:pkg"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -43,7 +43,7 @@ export function buildSdkSnippet(
 	const call = sdkCallForEndpoint(endpointId);
 	const arg = renderArg(paramValues, body);
 	return [
-		'import { createWheraboutsClient } from "@wherabouts.com/sdk";',
+		'import { createWheraboutsClient } from "@wherabouts/sdk";',
 		"",
 		"const client = createWheraboutsClient({",
 		"  apiKey: process.env.WHERABOUTS_API_KEY!,",

@@ -166,7 +166,7 @@ if (!response.ok) {
 }
 
 const payload = await response.json();`,
-	sdk: `import { createWheraboutsClient } from "@wherabouts.com/sdk";
+	sdk: `import { createWheraboutsClient } from "@wherabouts/sdk";
 
 const client = createWheraboutsClient({
   apiKey: process.env.WHERABOUTS_API_KEY!,
@@ -1584,7 +1584,7 @@ export function DocsPage() {
 										</CardHeader>
 										<CardContent className="space-y-3">
 											<code className="block rounded bg-muted px-3 py-2 font-mono text-sm">
-												@wherabouts.com/sdk
+												@wherabouts/sdk
 											</code>
 											<p className="text-muted-foreground text-sm leading-6">
 												It exposes a single `createWheraboutsClient()`

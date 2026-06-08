@@ -1,5 +1,5 @@
 export const WHERABOUTS_API_VERSION = "v1" as const;
-export const WHERABOUTS_SDK_VERSION = "0.2.0-preview" as const;
+export const WHERABOUTS_SDK_VERSION = "0.2.0" as const;
 
 export interface WheraboutsApiErrorPayload {
 	error: {
