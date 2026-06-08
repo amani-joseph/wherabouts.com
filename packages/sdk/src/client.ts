@@ -6,6 +6,7 @@ import {
 import { createDevices, type DevicesResource } from "./resources/devices.ts";
 import { createGeocode, type GeocodeResource } from "./resources/geocode.ts";
 import { createRegions, type RegionsResource } from "./resources/regions.ts";
+import { createRouting, type RoutingResource } from "./resources/routing.ts";
 import { createWebhooks, type WebhooksResource } from "./resources/webhooks.ts";
 import { createZones, type ZonesResource } from "./resources/zones.ts";
 import type { WheraboutsClientConfig } from "./shared-types.ts";
@@ -15,6 +16,7 @@ export interface WheraboutsClient {
 	devices: DevicesResource;
 	geocode: GeocodeResource;
 	regions: RegionsResource;
+	routing: RoutingResource;
 	webhooks: WebhooksResource;
 	zones: ZonesResource;
 }
@@ -30,5 +32,6 @@ export const createWheraboutsClient = (
 		devices: createDevices(request),
 		webhooks: createWebhooks(request),
 		regions: createRegions(request),
+		routing: createRouting(request),
 	};
 };

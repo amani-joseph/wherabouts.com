@@ -24,6 +24,7 @@ const EXPECTED_PATHS = [
 	["DELETE", "/api/v1/webhooks/1"],
 	["POST", "/api/v1/webhooks/1/reactivate"],
 	["GET", "/api/v1/regions"],
+	["GET", "/api/v1/routing/directions"],
 ] as const;
 
 describe("client coverage", () => {
@@ -63,6 +64,7 @@ describe("client coverage", () => {
 		await c.webhooks.delete(1);
 		await c.webhooks.reactivate(1);
 		await c.regions.classify({ lat: 0, lng: 0 });
+		await c.routing.directions({ from: "0,0", to: "1,1" });
 
 		for (const [method, path] of EXPECTED_PATHS) {
 			expect(seen).toContain(`${method} ${path}`);
