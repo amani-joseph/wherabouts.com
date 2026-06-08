@@ -26,8 +26,8 @@ import { createPortal } from "react-dom";
 // endpoint (tiles.basemaps.cartocdn.com/fonts/...) that 404s with no CORS
 // header, which drops every text label including cluster counts.
 const defaultStyles = {
-	dark: "https://tiles.openfreemap.org/styles/dark",
-	light: "https://tiles.openfreemap.org/styles/positron",
+	dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+	light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
 };
 
 type Theme = "light" | "dark";
@@ -1715,9 +1715,6 @@ function MapClusterLayer<
 			filter: ["has", "point_count"],
 			layout: {
 				"text-field": "{point_count_abbreviated}",
-				// Must match a fontstack the basemap's glyphs endpoint serves.
-				// OpenFreeMap ships "Noto Sans Regular"; "Open Sans" 404s.
-				"text-font": ["Noto Sans Regular"],
 				"text-size": 12,
 			},
 			paint: {
