@@ -1,4 +1,4 @@
-import type { Requester } from "../shared-types.ts";
+import type { CallOptions, Requester } from "../shared-types.ts";
 
 export interface AddressSuggestion {
 	country: string;
@@ -110,14 +110,20 @@ export interface ReverseResponse {
 }
 
 export interface AddressesResource {
-	autocomplete(params: AutocompleteParams): Promise<AutocompleteResponse>;
-	getById(id: number): Promise<AddressRecord>;
-	nearby(params: NearbyParams): Promise<NearbyResponse>;
-	reverse(params: ReverseParams): Promise<ReverseResponse>;
+	autocomplete(
+		params: AutocompleteParams,
+		options?: CallOptions
+	): Promise<AutocompleteResponse>;
+	getById(id: number, options?: CallOptions): Promise<AddressRecord>;
+	nearby(params: NearbyParams, options?: CallOptions): Promise<NearbyResponse>;
+	reverse(
+		params: ReverseParams,
+		options?: CallOptions
+	): Promise<ReverseResponse>;
 }
 
 export const createAddresses = (request: Requester): AddressesResource => ({
-	autocomplete: (params) =>
+	autocomplete: (params, options) =>
 		request<AutocompleteResponse>({
 			method: "GET",
 			path: "/api/v1/addresses/autocomplete",
@@ -127,13 +133,15 @@ export const createAddresses = (request: Requester): AddressesResource => ({
 				state: params.state,
 				limit: params.limit,
 			},
+			...options,
 		}),
-	getById: (id) =>
+	getById: (id, options) =>
 		request<AddressRecord>({
 			method: "GET",
 			path: `/api/v1/addresses/${id}`,
+			...options,
 		}),
-	nearby: (params) =>
+	nearby: (params, options) =>
 		request<NearbyResponse>({
 			method: "GET",
 			path: "/api/v1/addresses/nearby",
@@ -144,11 +152,13 @@ export const createAddresses = (request: Requester): AddressesResource => ({
 				limit: params.limit,
 				country: params.country,
 			},
+			...options,
 		}),
-	reverse: (params) =>
+	reverse: (params, options) =>
 		request<ReverseResponse>({
 			method: "GET",
 			path: "/api/v1/addresses/reverse",
 			query: { lat: params.lat, lng: params.lng },
+			...options,
 		}),
 });

@@ -8,8 +8,11 @@ export * from "./resources/regions.ts";
 export * from "./resources/webhooks.ts";
 export * from "./resources/zones.ts";
 export {
+	type CallOptions,
 	WHERABOUTS_API_VERSION,
 	WHERABOUTS_SDK_VERSION,
 	type WheraboutsApiErrorPayload,
 	type WheraboutsClientConfig,
+	type WheraboutsErrorCode,
+	type WheraboutsFieldError,
 } from "./shared-types.ts";

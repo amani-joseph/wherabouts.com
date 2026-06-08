@@ -1,4 +1,4 @@
-import type { Requester } from "../shared-types.ts";
+import type { CallOptions, Requester } from "../shared-types.ts";
 
 // --- Types ---
 
@@ -102,63 +102,81 @@ export interface ZoneAddressesResponse {
 export interface ZonesResource {
 	addresses(
 		id: number,
-		params?: ZoneAddressesParams
+		params?: ZoneAddressesParams,
+		options?: CallOptions
 	): Promise<ZoneAddressesResponse>;
-	contains(params: ZoneContainsParams): Promise<ZoneContainsResponse>;
-	create(body: ZoneCreateBody): Promise<ZoneRecord>;
-	delete(id: number): Promise<ZoneDeleteResponse>;
-	get(id: number): Promise<ZoneWithGeometry>;
-	list(params?: ZoneListParams): Promise<ZoneListResponse>;
-	update(id: number, body: ZoneUpdateBody): Promise<ZoneRecord>;
+	contains(
+		params: ZoneContainsParams,
+		options?: CallOptions
+	): Promise<ZoneContainsResponse>;
+	create(body: ZoneCreateBody, options?: CallOptions): Promise<ZoneRecord>;
+	delete(id: number, options?: CallOptions): Promise<ZoneDeleteResponse>;
+	get(id: number, options?: CallOptions): Promise<ZoneWithGeometry>;
+	list(
+		params?: ZoneListParams,
+		options?: CallOptions
+	): Promise<ZoneListResponse>;
+	update(
+		id: number,
+		body: ZoneUpdateBody,
+		options?: CallOptions
+	): Promise<ZoneRecord>;
 }
 
 // --- Factory ---
 
 export const createZones = (request: Requester): ZonesResource => ({
-	create: (body) =>
+	create: (body, options) =>
 		request<ZoneRecord>({
 			method: "POST",
 			path: "/api/v1/zones",
 			body,
+			...options,
 		}),
 
-	list: (params?) =>
+	list: (params, options) =>
 		request<ZoneListResponse>({
 			method: "GET",
 			path: "/api/v1/zones",
 			query: { page: params?.page, limit: params?.limit },
+			...options,
 		}),
 
-	get: (id) =>
+	get: (id, options) =>
 		request<ZoneWithGeometry>({
 			method: "GET",
 			path: `/api/v1/zones/${id}`,
+			...options,
 		}),
 
-	update: (id, body) =>
+	update: (id, body, options) =>
 		request<ZoneRecord>({
 			method: "PUT",
 			path: `/api/v1/zones/${id}`,
 			body,
+			...options,
 		}),
 
-	delete: (id) =>
+	delete: (id, options) =>
 		request<ZoneDeleteResponse>({
 			method: "DELETE",
 			path: `/api/v1/zones/${id}`,
+			...options,
 		}),
 
-	contains: (params) =>
+	contains: (params, options) =>
 		request<ZoneContainsResponse>({
 			method: "GET",
 			path: "/api/v1/zones/contains",
 			query: { lat: params.lat, lng: params.lng },
+			...options,
 		}),
 
-	addresses: (id, params?) =>
+	addresses: (id, params, options) =>
 		request<ZoneAddressesResponse>({
 			method: "GET",
 			path: `/api/v1/zones/${id}/addresses`,
 			query: { page: params?.page, limit: params?.limit },
+			...options,
 		}),
 });
