@@ -53,6 +53,7 @@
     "check-types": "tsc --noEmit",
     "test": "vitest run",
     "lint:pkg": "publint && attw --pack",
+    "smoke": "node scripts/smoke-dist.mjs",
     "prepublishOnly": "pnpm build && pnpm lint:pkg"
   },
   "devDependencies": {
