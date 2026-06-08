@@ -172,7 +172,7 @@ const client = createWheraboutsClient({
   apiKey: process.env.WHERABOUTS_API_KEY!,
 });
 
-const payload = await client.autocomplete({
+const payload = await client.addresses.autocomplete({
   q: "123 Main St",
   country: "AU",
   limit: 5,

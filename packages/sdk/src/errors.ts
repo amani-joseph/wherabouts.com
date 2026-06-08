@@ -1,11 +1,11 @@
-import type { WheraboutsApiErrorPayload } from "./types.ts";
+import type { WheraboutsApiErrorPayload } from "./shared-types.ts";
 
 export class WheraboutsApiError extends Error {
 	readonly code: WheraboutsApiErrorPayload["error"]["code"] | "unknown_error";
 	readonly payload: WheraboutsApiErrorPayload | null;
 	readonly status: number;
 
-	public constructor(options: {
+	constructor(options: {
 		code?: WheraboutsApiError["code"];
 		message: string;
 		payload?: WheraboutsApiErrorPayload | null;

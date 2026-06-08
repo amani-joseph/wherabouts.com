@@ -1,0 +1,119 @@
+import { describe, expect, it } from "vitest";
+import { WheraboutsApiError } from "./errors.ts";
+import { createRequester } from "./http.ts";
+
+interface Captured {
+	body: string | null;
+	headers: Record<string, string>;
+	method: string;
+	url: string;
+}
+
+function mockFetch(
+	status: number,
+	jsonBody: unknown
+): { fetch: typeof fetch; captured: Captured[] } {
+	const captured: Captured[] = [];
+	const fetchImpl = ((input: URL | Request | string, init?: RequestInit) => {
+		const headers: Record<string, string> = {};
+		new Headers(init?.headers).forEach((v, k) => {
+			headers[k] = v;
+		});
+		captured.push({
+			url: String(input),
+			method: init?.method ?? "GET",
+			headers,
+			body: (init?.body as string | undefined) ?? null,
+		});
+		return Promise.resolve(
+			new Response(JSON.stringify(jsonBody), {
+				status,
+				headers: { "content-type": "application/json" },
+			})
+		);
+	}) as typeof fetch;
+	return { fetch: fetchImpl, captured };
+}
+
+describe("createRequester", () => {
+	it("builds a GET with query params and auth + sdk headers", async () => {
+		const { fetch, captured } = mockFetch(200, { ok: true });
+		const request = createRequester({ apiKey: "wh_test", fetch });
+		await request({
+			method: "GET",
+			path: "/api/v1/addresses/autocomplete",
+			query: { q: "123 Main", limit: 5, country: undefined },
+		});
+		expect(captured).toHaveLength(1);
+		const c = captured[0];
+		if (!c) {
+			throw new Error("No captured request");
+		}
+		expect(c.method).toBe("GET");
+		expect(c.url).toBe(
+			"https://api.wherabouts.com/api/v1/addresses/autocomplete?q=123+Main&limit=5"
+		);
+		expect(c.headers.authorization).toBe("Bearer wh_test");
+		expect(c.headers["x-wherabouts-sdk"]).toContain("js-ts/");
+		expect(c.body).toBeNull();
+	});
+
+	it("keeps a zero-valued query param but drops undefined", async () => {
+		const { fetch, captured } = mockFetch(200, { ok: true });
+		const request = createRequester({ apiKey: "wh_test", fetch });
+		await request({
+			method: "GET",
+			path: "/api/v1/addresses/nearby",
+			query: { limit: 0, radius: undefined },
+		});
+		const c = captured[0];
+		if (!c) {
+			throw new Error("No captured request");
+		}
+		expect(c.url).toBe(
+			"https://api.wherabouts.com/api/v1/addresses/nearby?limit=0"
+		);
+	});
+
+	it("serializes a JSON body for POST with content-type", async () => {
+		const { fetch, captured } = mockFetch(200, { id: 1 });
+		const request = createRequester({ apiKey: "wh_test", fetch });
+		await request({
+			method: "POST",
+			path: "/api/v1/zones",
+			body: { name: "depot" },
+		});
+		const c = captured[0];
+		if (!c) {
+			throw new Error("No captured request");
+		}
+		expect(c.method).toBe("POST");
+		expect(c.headers["content-type"]).toBe("application/json");
+		expect(c.body).toBe('{"name":"depot"}');
+	});
+
+	it("resolves undefined for a 204 empty response", async () => {
+		const fetchImpl = (async () =>
+			new Response(null, { status: 204 })) as typeof fetch;
+		const request = createRequester({ apiKey: "wh_test", fetch: fetchImpl });
+		const result = await request({ method: "DELETE", path: "/api/v1/zones/1" });
+		expect(result).toBeUndefined();
+	});
+
+	it("throws WheraboutsApiError on a non-2xx body", async () => {
+		const { fetch } = mockFetch(404, {
+			error: { code: "not_found", message: "Zone not found." },
+		});
+		const request = createRequester({ apiKey: "wh_test", fetch });
+		await expect(
+			request({ method: "GET", path: "/api/v1/zones/999" })
+		).rejects.toMatchObject({
+			name: "WheraboutsApiError",
+			status: 404,
+			code: "not_found",
+		});
+		await expect(
+			request({ method: "GET", path: "/api/v1/zones/999" })
+		).rejects.toBeInstanceOf(WheraboutsApiError);
+	});
+});
