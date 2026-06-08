@@ -34,8 +34,7 @@ type ApiEndpointId =
 	| "webhooks.create"
 	| "webhooks.list"
 	| "webhooks.delete"
-	| "webhooks.reactivate"
-	| "regions.classify";
+	| "webhooks.reactivate";
 
 interface ApiEndpoint {
 	id: ApiEndpointId;
@@ -259,15 +258,6 @@ const endpointMap = new Map<ApiEndpointId, ApiEndpoint>([
 			method: "POST",
 			path: "/api/v1/geocode/batch",
 			params: [],
-		},
-	],
-	[
-		"regions.classify",
-		{
-			id: "regions.classify",
-			method: "GET",
-			path: "/api/v1/regions",
-			params: [{ name: "lat" }, { name: "lng" }, { name: "layers" }],
 		},
 	],
 ]);
