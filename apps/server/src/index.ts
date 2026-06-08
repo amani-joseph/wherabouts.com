@@ -194,6 +194,9 @@ function endpointKeyFromPath(pathname: string): string {
 	if (pathname.includes("/webhooks")) {
 		return "webhooks";
 	}
+	if (pathname.includes("/routing/directions")) {
+		return "routing_directions";
+	}
 	if (pathname.includes("/addresses")) {
 		return "addresses_byId";
 	}
