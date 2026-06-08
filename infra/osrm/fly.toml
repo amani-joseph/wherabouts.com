@@ -1,0 +1,18 @@
+app = "wherabouts-osrm"
+primary_region = "syd"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[[mounts]]
+  source = "osrm_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 5000
+  force_https = true
+  auto_stop_machines = false
+  min_machines_running = 1
+
+[[vm]]
+  size = "performance-2x"  # AU car MLD graph needs several GB RAM
