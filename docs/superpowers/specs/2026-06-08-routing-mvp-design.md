@@ -1,7 +1,7 @@
 # Routing MVP — Design Spec
 
 **Date:** 2026-06-08
-**Status:** Implemented (MVP) — code complete; live OSRM deploy + end-to-end smoke pending infra
+**Status:** Done — deployed to Fly (`wherabouts-osrm.fly.dev`) and verified end-to-end in production and via `wrangler dev` (2026-06-09).
 **Source:** `docs/competitive-analysis-update-2026-06-08.md` §6 P2 (routing — Mappify parity).
 
 **Goal:** Add a point-A→B routing endpoint to the public API: **road distance, travel
