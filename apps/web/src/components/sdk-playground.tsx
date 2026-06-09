@@ -87,7 +87,14 @@ export function SdkPlayground() {
 					<CardTitle>Method</CardTitle>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-3">
-					<Select onValueChange={setEndpointId} value={endpointId}>
+					<Select
+						onValueChange={(value) => {
+							if (value) {
+								setEndpointId(value);
+							}
+						}}
+						value={endpointId}
+					>
 						<SelectTrigger>
 							<SelectValue placeholder="Pick an SDK method" />
 						</SelectTrigger>
