@@ -1,5 +1,8 @@
+import {
+	type AutocompleteResult,
+	autocompleteAddresses,
+} from "@wherabouts.com/database/queries";
 import { z } from "zod";
-import { autocompleteAddresses, type AutocompleteResult } from "@wherabouts.com/database/queries";
 import { protectedProcedure } from "../../procedures.ts";
 import {
 	createBatchGeocodeJob,
@@ -13,13 +16,13 @@ import { requireProjectOwnership } from "../../shared/project-ownership.ts";
 const projectIdInput = z.object({ projectId: z.string().uuid() });
 
 export interface GeocodeCandidate {
-	id: number;
 	formattedAddress: string;
-	locality: string;
-	state: string;
-	postcode: string;
+	id: number;
 	latitude: number;
+	locality: string;
 	longitude: number;
+	postcode: string;
+	state: string;
 }
 
 export function mapAutocompleteCandidates(
