@@ -134,11 +134,11 @@ export function SdkPlayground() {
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="grid gap-4 lg:grid-cols-2">
-				<Card>
+				<Card className="lg:h-[600px]">
 					<CardHeader>
 						<CardTitle>Method</CardTitle>
 					</CardHeader>
-					<CardContent className="flex flex-col gap-3">
+					<CardContent className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
 						<Select
 							onValueChange={(value) => {
 								if (value) {
@@ -227,16 +227,16 @@ export function SdkPlayground() {
 						</Button>
 					</CardContent>
 				</Card>
-				<Card>
+				<Card className="lg:h-[600px]">
 					<CardHeader>
 						<CardTitle>SDK code</CardTitle>
 					</CardHeader>
-					<CardContent className="flex flex-col gap-3">
-						<pre className="overflow-auto rounded bg-muted p-3 text-xs">
+					<CardContent className="flex min-h-0 flex-1 flex-col gap-3">
+						<pre className="max-h-48 shrink-0 overflow-auto rounded bg-muted p-3 text-xs">
 							<code>{snippet}</code>
 						</pre>
 						{result === null ? null : (
-							<pre className="overflow-auto rounded bg-muted p-3 text-xs">
+							<pre className="min-h-0 flex-1 overflow-auto rounded bg-muted p-3 text-xs">
 								<code>{result}</code>
 							</pre>
 						)}
