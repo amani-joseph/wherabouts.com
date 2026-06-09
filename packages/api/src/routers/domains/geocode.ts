@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { autocompleteAddresses, type AutocompleteResult } from "@wherabouts.com/database/queries";
 import { protectedProcedure } from "../../procedures.ts";
 import {
 	createBatchGeocodeJob,
@@ -10,6 +11,30 @@ import {
 import { requireProjectOwnership } from "../../shared/project-ownership.ts";
 
 const projectIdInput = z.object({ projectId: z.string().uuid() });
+
+export interface GeocodeCandidate {
+	id: number;
+	formattedAddress: string;
+	locality: string;
+	state: string;
+	postcode: string;
+	latitude: number;
+	longitude: number;
+}
+
+export function mapAutocompleteCandidates(
+	results: AutocompleteResult[]
+): GeocodeCandidate[] {
+	return results.map((r) => ({
+		id: r.id,
+		formattedAddress: r.formattedAddress,
+		locality: r.locality,
+		state: r.state,
+		postcode: r.postcode,
+		latitude: r.latitude,
+		longitude: r.longitude,
+	}));
+}
 
 export const geocodeRouter = {
 	batchSubmit: protectedProcedure
@@ -91,5 +116,19 @@ export const geocodeRouter = {
 				context.session.user.id
 			);
 			return listBatchGeocodeJobs(context.db, projectId, input.limit);
+		}),
+
+	autocomplete: protectedProcedure
+		.input(
+			z.object({
+				q: z.string().min(3),
+				limit: z.number().int().min(1).max(10).default(5),
+			})
+		)
+		.handler(async ({ context, input }) => {
+			const { results } = await autocompleteAddresses(context.db, input.q, {
+				limit: input.limit,
+			});
+			return { results: mapAutocompleteCandidates(results) };
 		}),
 };
