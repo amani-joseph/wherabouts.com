@@ -85,6 +85,13 @@
       "when": 1780788237824,
       "tag": "0011_outstanding_gunslinger",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1781051186019,
+      "tag": "0012_high_black_queen",
+      "breakpoints": true
     }
   ]
 }
