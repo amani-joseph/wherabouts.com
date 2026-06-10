@@ -12,7 +12,10 @@ import {
 type DatabaseLike = Context["db"];
 
 const createProjectInputSchema = z.object({
-	name: z.string().min(1).max(128),
+	// Trim before validating so a whitespace-only name (which the UI button
+	// blocks, but a direct API/SDK call does not) is rejected with a clean
+	// 400 instead of silently creating a blank-named project.
+	name: z.string().trim().min(1).max(128),
 	selectedApiKeyId: z.string().uuid().optional(),
 });
 
