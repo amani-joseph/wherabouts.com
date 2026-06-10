@@ -4,16 +4,6 @@ import { Button } from "@wherabouts.com/ui/components/button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ActiveProjectSelector } from "@/components/active-project-selector";
-import { pointInPolygon } from "@/components/zones/geometry";
-import {
-	type PointTestResult,
-	PointTestTool,
-} from "@/components/zones/point-test-tool";
-import type { UseZoneDraw } from "@/components/zones/use-zone-draw";
-import {
-	ZoneAddressesDrawer,
-	type ZoneAddressItem,
-} from "@/components/zones/zone-addresses-drawer";
 import {
 	type PointTestResult,
 	PointTestTool,
@@ -154,8 +144,14 @@ function RouteComponent() {
 		}
 		setTesting(true);
 		try {
-			const res = await orpcClient.zones.contains({ projectId: activeId, lat, lng });
-			setTestResult({ zones: res.zones.map((z) => ({ id: z.id, name: z.name })) });
+			const res = await orpcClient.zones.contains({
+				projectId: activeId,
+				lat,
+				lng,
+			});
+			setTestResult({
+				zones: res.zones.map((z) => ({ id: z.id, name: z.name })),
+			});
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : "Point test failed.");
 		} finally {
@@ -170,9 +166,9 @@ function RouteComponent() {
 			const roundedLng = Number(lng.toFixed(6));
 			setTestLat(String(roundedLat));
 			setTestLng(String(roundedLng));
-			runTest(roundedLat, roundedLng);
+			handleTest(roundedLat, roundedLng);
 		},
-		[runTest]
+		[handleTest]
 	);
 
 	const handleViewAddresses = async (id: number) => {
@@ -308,25 +304,12 @@ function RouteComponent() {
 						zones={zones}
 					/>
 					<PointTestTool
-						onTest={handleTest}
-						result={testResult}
-						testing={testing}
-					/>
-					<ZoneList
-						onDelete={handleDelete}
-						onEdit={handleEdit}
-						onSelect={setSelectedId}
-						onViewAddresses={handleViewAddresses}
-						selectedId={selectedId}
-						zones={zones}
-					/>
-					<PointTestTool
 						lat={testLat}
 						lng={testLng}
 						onLatChange={setTestLat}
 						onLngChange={setTestLng}
 						onPick={() => setPicking((p) => !p)}
-						onTest={handleTest}
+						onTest={() => handleTest(Number(testLat), Number(testLng))}
 						picking={picking}
 						result={testResult}
 						testing={testing}

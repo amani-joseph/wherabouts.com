@@ -19,7 +19,8 @@ function literal(value: string): string {
 
 function renderArg(
 	paramValues: Record<string, string>,
-	body: Record<string, unknown> | undefined
+	body: Record<string, unknown> | undefined,
+	comments: Record<string, string> | undefined
 ): string {
 	if (body !== undefined) {
 		const inner = Object.entries(body)
@@ -31,17 +32,24 @@ function renderArg(
 	if (entries.length === 0) {
 		return "";
 	}
-	const inner = entries.map(([k, v]) => `  ${k}: ${literal(v)}`).join(",\n");
+	const inner = entries
+		.map(([k, v]) => {
+			const comment = comments?.[k];
+			const line = `  ${k}: ${literal(v)}`;
+			return comment ? `${line}, // ${comment}` : line;
+		})
+		.join(",\n");
 	return `{\n${inner}\n}`;
 }
 
 export function buildSdkSnippet(
 	endpointId: string,
 	paramValues: Record<string, string>,
-	body: Record<string, unknown> | undefined
+	body: Record<string, unknown> | undefined,
+	comments?: Record<string, string>
 ): string {
 	const call = sdkCallForEndpoint(endpointId);
-	const arg = renderArg(paramValues, body);
+	const arg = renderArg(paramValues, body, comments);
 	return [
 		'import { createWheraboutsClient } from "@wherabouts/sdk";',
 		"",
