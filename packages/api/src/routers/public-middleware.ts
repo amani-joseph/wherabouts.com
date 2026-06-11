@@ -14,6 +14,7 @@ import {
 	validateApiKeyById,
 } from "../api-key-auth.ts";
 import { o as baseBuilder } from "../builder.ts";
+import { billingOwnerFromKey, getOrCreateBillingAccount } from "../billing/account.ts";
 
 export type { ValidatedApiKey } from "../api-key-auth.ts";
 
@@ -76,10 +77,25 @@ export const apiKeyAuth = baseBuilder.middleware(async ({ context, next }) => {
 		throw new ORPCError("UNAUTHORIZED", { message });
 	}
 
+	const requestSource = trustedRequestSource ?? REQUEST_SOURCE_PRODUCTION;
+	if (requestSource === REQUEST_SOURCE_PRODUCTION) {
+		const owner = billingOwnerFromKey({
+			teamId: authResult.teamId,
+			userId: authResult.userId,
+		});
+		const account = await getOrCreateBillingAccount(context.db, owner);
+		if (account.blocked) {
+			throw new ORPCError("PAYMENT_REQUIRED", {
+				message:
+					"Free tier exhausted. Add a payment method in your billing settings to continue.",
+			});
+		}
+	}
+
 	return next({
 		context: {
 			validatedApiKey: authResult,
-			requestSource: trustedRequestSource ?? REQUEST_SOURCE_PRODUCTION,
+			requestSource,
 		},
 	});
 });
