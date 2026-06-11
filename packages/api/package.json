@@ -18,6 +18,7 @@
     "@wherabouts.com/env": "workspace:*",
     "drizzle-orm": "^0.44.7",
     "hono": "^4.10.4",
+    "stripe": "^22.2.0",
     "zod": "catalog:"
   },
   "devDependencies": {
