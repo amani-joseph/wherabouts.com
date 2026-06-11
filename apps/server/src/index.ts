@@ -2,10 +2,15 @@ import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { ORPCError, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import {
+	applyStripeEvent,
 	appRouter,
 	createContext,
+	db,
+	getStripeClient,
 	publicHttpRouter,
+	stripeCryptoProvider,
 } from "@wherabouts.com/api";
+import type Stripe from "stripe";
 import { auth } from "@wherabouts.com/auth";
 import { serverEnv } from "@wherabouts.com/env/server";
 import { Hono } from "hono";
@@ -67,6 +72,35 @@ app.on(["GET", "POST"], "/api/auth/*", async (context) => {
 		console.error("[auth] handler error:", error);
 		return context.json({ error: "Internal auth error" }, { status: 500 });
 	}
+});
+
+app.post("/api/stripe/webhook", async (context) => {
+	const signature = context.req.header("stripe-signature");
+	if (!signature) {
+		return context.json({ error: "missing signature" }, 400);
+	}
+	const payload = await context.req.text();
+	let event: Stripe.Event;
+	try {
+		event = await getStripeClient().webhooks.constructEventAsync(
+			payload,
+			signature,
+			serverEnv.STRIPE_WEBHOOK_SECRET,
+			undefined,
+			stripeCryptoProvider
+		);
+	} catch (err) {
+		console.error("[stripe] signature verification failed:", err);
+		return context.json({ error: "invalid signature" }, 400);
+	}
+
+	try {
+		await applyStripeEvent(db, event);
+	} catch (err) {
+		console.error("[stripe] event handling failed:", err);
+		return context.json({ error: "handler error" }, 500);
+	}
+	return context.json({ received: true });
 });
 
 // ---------------------------------------------------------------------------
