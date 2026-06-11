@@ -103,6 +103,7 @@ export function usageMiddleware(endpointKey: string) {
 				apiKeyId: ctx.validatedApiKey.apiKeyId,
 				projectId: ctx.validatedApiKey.projectId,
 				userId: ctx.validatedApiKey.userId,
+				teamId: ctx.validatedApiKey.teamId,
 				endpoint: endpointKey,
 				requestSource: ctx.requestSource,
 			}).catch((err: unknown) => {
