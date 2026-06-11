@@ -169,3 +169,72 @@ export async function fetchOsrmRoute(
 		geometry: route.geometry,
 	};
 }
+
+interface OsrmTableResponse {
+	code: string;
+	durations?: (number | null)[][];
+	distances?: (number | null)[][];
+}
+
+export interface MatrixResult {
+	/** Row-major durations in seconds (`sources` × `destinations`); unreachable cells are `null`. */
+	durations: (number | null)[][];
+	/** Row-major distances in metres (`sources` × `destinations`); unreachable cells are `null`. */
+	distances: (number | null)[][];
+	sources: LatLng[];
+	destinations: LatLng[];
+}
+
+interface TableOptions extends OsrmOptions {
+	profile: RoutingProfile;
+	/** Index sub-selections into `coords`; omit ⇒ OSRM `all`. */
+	sources?: number[];
+	destinations?: number[];
+}
+
+/**
+ * Call OSRM's `/table` service for an N×M duration/distance matrix. `coords` is
+ * the combined coordinate list; `sources`/`destinations` are index sub-selections
+ * into it (OSRM treats an omitted side as `all`). Unreachable cells come back as
+ * `null` — there is no `no_route` for a table, only individual null cells.
+ */
+export async function fetchOsrmTable(
+	coords: LatLng[],
+	options: TableOptions
+): Promise<MatrixResult> {
+	// OSRM coordinate order is lon,lat (not lat,lng).
+	const coordString = coords.map((c) => `${c.lng},${c.lat}`).join(";");
+
+	const query: Record<string, string> = { annotations: "duration,distance" };
+	if (options.sources) {
+		query.sources = options.sources.join(";");
+	}
+	if (options.destinations) {
+		query.destinations = options.destinations.join(";");
+	}
+
+	const body = (await osrmRequest(
+		"table",
+		options.profile,
+		coordString,
+		query,
+		options
+	)) as OsrmTableResponse;
+
+	if (body.code !== "Ok" || !(body.durations && body.distances)) {
+		throw new RoutingError(
+			"unavailable",
+			`OSRM table request failed (code ${body.code}).`
+		);
+	}
+
+	const pick = (idx: number[] | undefined): LatLng[] =>
+		idx ? idx.map((i) => coords[i] as LatLng) : coords;
+
+	return {
+		durations: body.durations,
+		distances: body.distances,
+		sources: pick(options.sources),
+		destinations: pick(options.destinations),
+	};
+}
