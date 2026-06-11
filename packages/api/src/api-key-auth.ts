@@ -2,7 +2,11 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { Database } from "@wherabouts.com/database";
 import { apiKeys, apiUsageDaily } from "@wherabouts.com/database/schema";
 import { eq, sql } from "drizzle-orm";
-import { billingOwnerFromKey, getOrCreateBillingAccount } from "./billing/account.ts";
+import {
+	billingOwnerFromKey,
+	getOrCreateBillingAccount,
+	incrementBillingUsage,
+} from "./billing/account.ts";
 
 export const API_KEY_PREFIX = "wh_" as const;
 export const INTERNAL_API_AUTH_HEADER = "x-wherabouts-internal-auth";
@@ -242,6 +246,10 @@ export async function recordUsage(
 				requestCount: sql`${apiUsageDaily.requestCount} + 1`,
 			},
 		});
+	const source = input.requestSource ?? REQUEST_SOURCE_PRODUCTION;
+	if (source === REQUEST_SOURCE_PRODUCTION) {
+		await incrementBillingUsage(db, account);
+	}
 }
 
 export async function hashApiKeySecret(secretPart: string): Promise<{
