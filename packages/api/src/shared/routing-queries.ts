@@ -72,6 +72,19 @@ interface OsrmOptions {
 	fetchImpl: typeof fetch;
 }
 
+/**
+ * Public routing profile. The API speaks `driving|walking|cycling`; OSRM speaks
+ * `car|foot|bike`. The Caddy front routes on the OSRM `{profile}` path segment,
+ * so this mapping is what selects the car/foot/bike graph backend.
+ */
+export type RoutingProfile = "driving" | "walking" | "cycling";
+
+const OSRM_PROFILE: Record<RoutingProfile, string> = {
+	driving: "car",
+	walking: "foot",
+	cycling: "bike",
+};
+
 interface OsrmResponse {
 	code: string;
 	routes?: {
@@ -81,17 +94,27 @@ interface OsrmResponse {
 	}[];
 }
 
-/** Call OSRM's driving route service and map the result to our envelope. */
-export async function fetchOsrmRoute(
-	from: LatLng,
-	to: LatLng,
+/**
+ * Shared OSRM call plumbing. Builds `/{service}/v1/{osrmProfile}/{coords}`
+ * against `options.baseUrl`, attaches the bearer token, and returns parsed JSON
+ * — throwing `RoutingError("unavailable")` on transport failure or a non-200
+ * response. `fetchImpl` must already be bound to its global (Workers' native
+ * fetch throws "Illegal invocation" otherwise).
+ */
+async function osrmRequest(
+	service: "route" | "table",
+	profile: RoutingProfile,
+	coords: string,
+	query: Record<string, string>,
 	options: OsrmOptions
-): Promise<DirectionsResult> {
-	// OSRM coordinate order is lon,lat (not lat,lng).
-	const coords = `${from.lng},${from.lat};${to.lng},${to.lat}`;
-	const url = new URL(`/route/v1/driving/${coords}`, options.baseUrl);
-	url.searchParams.set("overview", "full");
-	url.searchParams.set("geometries", "geojson");
+): Promise<unknown> {
+	const url = new URL(
+		`/${service}/v1/${OSRM_PROFILE[profile]}/${coords}`,
+		options.baseUrl
+	);
+	for (const [key, value] of Object.entries(query)) {
+		url.searchParams.set(key, value);
+	}
 
 	let response: Response;
 	try {
@@ -112,12 +135,31 @@ export async function fetchOsrmRoute(
 		);
 	}
 
-	const body = (await response.json()) as OsrmResponse;
+	return await response.json();
+}
+
+/** Call OSRM's route service for the given profile and map the result to our envelope. */
+export async function fetchOsrmRoute(
+	from: LatLng,
+	to: LatLng,
+	options: OsrmOptions,
+	profile: RoutingProfile = "driving"
+): Promise<DirectionsResult> {
+	// OSRM coordinate order is lon,lat (not lat,lng).
+	const coords = `${from.lng},${from.lat};${to.lng},${to.lat}`;
+	const body = (await osrmRequest(
+		"route",
+		profile,
+		coords,
+		{ overview: "full", geometries: "geojson" },
+		options
+	)) as OsrmResponse;
+
 	const route = body.code === "Ok" ? body.routes?.[0] : undefined;
 	if (!route) {
 		throw new RoutingError(
 			"no_route",
-			"No drivable route between the given points."
+			"No route between the given points for this profile."
 		);
 	}
 
