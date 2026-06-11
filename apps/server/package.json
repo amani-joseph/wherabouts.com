@@ -18,7 +18,8 @@
     "@wherabouts.com/env": "workspace:*",
     "drizzle-orm": "^0.44.0",
     "hono": "^4.10.4",
-    "pmtiles": "^4.4.1"
+    "pmtiles": "^4.4.1",
+    "stripe": "^22.2.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260416.2",
