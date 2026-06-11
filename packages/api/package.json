@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "billing:bootstrap": "tsx src/billing/bootstrap-stripe.ts",
     "check-types": "tsc --noEmit",
     "test": "vitest run"
   },
