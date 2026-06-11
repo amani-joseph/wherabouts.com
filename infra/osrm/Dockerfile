@@ -1,6 +1,7 @@
-# Serves a prebuilt OSRM car graph behind a Caddy reverse proxy that enforces
-# a bearer token (OSRM_AUTH_TOKEN). osrm-routed itself binds to localhost only.
-# The graph is built separately by build-graph.sh and mounted into /data.
+# Serves prebuilt OSRM car/bike/foot graphs behind a Caddy reverse proxy that
+# enforces a bearer token (OSRM_AUTH_TOKEN) and routes by profile path segment.
+# The osrm-routed instances bind to localhost only. Graphs are built separately
+# by build-graph.sh and mounted into /data/{car,bike,foot}.
 FROM ghcr.io/project-osrm/osrm-backend:v5.27.1
 
 # Install Caddy (auth-enforcing public entrypoint).

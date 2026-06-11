@@ -15,7 +15,8 @@ primary_region = "syd"
   min_machines_running = 1
 
 [[vm]]
-  size = "performance-2x"  # AU car MLD graph needs several GB RAM
+  size = "performance-4x"
+  memory = "16gb"  # car+bike+foot MLD graphs mmap ~3-4GB each (~10-12GB) + headroom
 
 # Required secret (set once): fly secrets set OSRM_AUTH_TOKEN=<token>
 # Caddy (the :5000 entrypoint) rejects requests without a matching Bearer token.
