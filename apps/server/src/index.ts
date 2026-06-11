@@ -8,6 +8,7 @@ import {
 	db,
 	getStripeClient,
 	publicHttpRouter,
+	reportUsageToStripe,
 	stripeCryptoProvider,
 } from "@wherabouts.com/api";
 import type Stripe from "stripe";
@@ -363,5 +364,16 @@ export default {
 				msg.ack();
 			}
 		}
+	},
+	async scheduled(
+		_event: { cron: string; scheduledTime: number },
+		_env: unknown,
+		ctx: { waitUntil(p: Promise<unknown>): void }
+	): Promise<void> {
+		ctx.waitUntil(
+			reportUsageToStripe(db).catch((err: unknown) => {
+				console.error("[cron] reportUsageToStripe failed:", err);
+			})
+		);
 	},
 };
