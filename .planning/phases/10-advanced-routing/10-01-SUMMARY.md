@@ -1,7 +1,7 @@
 ---
 phase: 10-advanced-routing
 plan: 01
-status: tasks-1-4-complete, task-5-checkpoint-pending
+status: code-complete (tasks 1-5); deploy-verification deferred
 date: 2026-06-12
 ---
 
@@ -28,8 +28,18 @@ date: 2026-06-12
 3. **Test level.** The codebase has **no oRPC procedure harness** (every public router tests pure extracted helpers, e.g. `resolveDirectionsInput`). Followed that convention: exported and unit-tested `parseMatrixSides` (empty/oversize → BAD_REQUEST) and `resolveMatrixPoints` (coord parse, addressId→coords, not-found→404, bad token→400), plus a `fetchOsrmRoute` cycling→`/route/v1/bike/` test. The handler's `RoutingError → 500` mapping is identical to the already-deployed `directions` path. Full HTTP-level assertions (live 2×2, OSRM-down 500) deferred to the post-deploy smoke step.
 4. **Matrix method = GET** (D5 left "GET if modest, else POST"). Chose GET with delimited strings for parity with the existing public surface + API explorer; 25/side cap keeps the URL bounded and coords ≤ OSRM `--max-table-size` 100. No `z.number()` on any GET param (all strings/enum) — `z.coerce` pitfall avoided.
 
-## Not done — Task 5 (checkpoint)
-**Multi-profile OSRM build + serve is blocked on D1 + host-sizing sign-off.** Serving car+bike+foot mem-maps three graphs (~3–4 GB RAM each for AU) — roughly triples the serve-side footprint. Needs the user's decision before touching `infra/osrm/*`.
+## Task 5 — multi-profile OSRM (D1 resolved = (a))
+**User chose: all three profiles on one host.** Committed (`958b8a8`):
+- `build-graph.sh` builds car/bike/foot into `data/{car,bike,foot}/australia-latest.osrm*`.
+- `entrypoint.sh` runs three `osrm-routed` instances on `:5001/:5002/:5003`.
+- `Caddyfile` routes `/{service}/v1/{car|bike|foot}/` by path segment behind the bearer gate; default → car.
+- `fly.toml` bumped to `performance-4x` / `16gb` (three graphs mmap ~10–12 GB).
+- `osrm-check.sh` / `smoke-test.sh` extended to all three profiles; `SELF-HOSTING.md` / `DEPLOY.md` sizing + paths updated.
+
+**⚠️ Deploy-time, NOT yet done (requires a deploy window + the sized host):**
+1. Re-run `build-graph.sh` (now ~30–60 min, builds 3 graphs) and re-populate the Fly volume with the `{car,bike,foot}/` subdir layout (the old volume has a flat `australia-latest.osrm*` — the new entrypoint looks under `/data/car/`, so **the app will crash-loop until the volume is migrated**).
+2. Resize the Fly volume to ~30–45 GB and the machine to 16 GB before deploy.
+3. Run `osrm-check.sh <token>` → expect 200 + `code:Ok` for car/bike/foot; `smoke-test.sh <key>` → walking route returns.
 
 ## Follow-ups
 - SDK `routing.matrix` method + types → plan **10-05**.

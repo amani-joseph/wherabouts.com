@@ -215,7 +215,7 @@ Plans:
 **Plans:** 5 plans (wave 1: 01 → wave 2: 02/03/04 parallel → wave 3: 05)
 
 Plans:
-- [ ] 10-01-PLAN.md — Profile-aware OSRM client + `/matrix` (OSRM `/table`) + multi-profile `directions` + foot/bike OSRM infra
+- [x] 10-01-PLAN.md — Profile-aware OSRM client + `/matrix` (OSRM `/table`) + multi-profile `directions` + foot/bike OSRM infra (code-complete; OSRM rebuild+volume migration pending deploy window)
 - [ ] 10-02-PLAN.md — `/isochrone` reachability polygons (sample → `/table` → PostGIS hull → optional ABS overlap)
 - [ ] 10-03-PLAN.md — `/match` GPS map-matching (OSRM `/match`)
 - [ ] 10-04-PLAN.md — `/optimize` TSP ordering (OSRM `/trip`; VROOM deferred)
