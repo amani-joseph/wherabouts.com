@@ -110,6 +110,7 @@ app.post("/api/stripe/webhook", async (context) => {
 const ORPC_TO_API_ERROR: Record<string, { status: number; code: string }> = {
 	BAD_REQUEST: { status: 400, code: "bad_request" },
 	UNAUTHORIZED: { status: 401, code: "unauthorized" },
+	PAYMENT_REQUIRED: { status: 402, code: "payment_required" },
 	FORBIDDEN: { status: 403, code: "unauthorized" },
 	NOT_FOUND: { status: 404, code: "not_found" },
 	METHOD_NOT_SUPPORTED: { status: 405, code: "bad_request" },
