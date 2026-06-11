@@ -2,6 +2,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { Database } from "@wherabouts.com/database";
 import { apiKeys, apiUsageDaily } from "@wherabouts.com/database/schema";
 import { eq, sql } from "drizzle-orm";
+import { billingOwnerFromKey, getOrCreateBillingAccount } from "./billing/account.ts";
 
 export const API_KEY_PREFIX = "wh_" as const;
 export const INTERNAL_API_AUTH_HEADER = "x-wherabouts-internal-auth";
@@ -206,16 +207,24 @@ export async function recordUsage(
 		apiKeyId: string;
 		projectId?: string | null;
 		userId: string;
+		teamId?: string | null;
 		endpoint: string;
 		requestSource?: string;
 	}
 ): Promise<void> {
 	const usageDate = todayUtcDateString();
+	const owner = billingOwnerFromKey({
+		teamId: input.teamId ?? null,
+		userId: input.userId,
+	});
+	const account = await getOrCreateBillingAccount(db, owner);
+
 	await db
 		.insert(apiUsageDaily)
 		.values({
 			apiKeyId: input.apiKeyId,
 			projectId: input.projectId ?? null,
+			billingAccountId: account.id,
 			userId: input.userId,
 			usageDate,
 			endpoint: input.endpoint,
