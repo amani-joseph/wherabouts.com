@@ -1,0 +1,22 @@
+[
+  {
+    "country": "IS",
+    "adapter": "overture",
+    "release": "2026-05-20.0",
+    "extracted": 138586,
+    "staged": 138522,
+    "promoted": 138522,
+    "targetHost": "ep-little-fog-a75wrltt.ap-southeast-2.aws.neon.tech",
+    "finishedAt": "2026-06-11T21:49:28.272Z"
+  },
+  {
+    "country": "IS",
+    "adapter": "overture",
+    "release": "2026-05-20.0",
+    "extracted": 138586,
+    "staged": 138522,
+    "promoted": 138522,
+    "targetHost": "ep-little-fog-a75wrltt.ap-southeast-2.aws.neon.tech",
+    "finishedAt": "2026-06-11T21:53:12.135Z"
+  }
+]
