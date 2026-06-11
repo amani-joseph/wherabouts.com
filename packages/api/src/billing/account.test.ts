@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { billingOwnerFromKey, isInNewUtcMonth, nextCounterState } from "./account.ts";
+import { billingOwnerFromKey, isInNewUtcMonth, nextCounterState, periodResetPatch } from "./account.ts";
 
 describe("billingOwnerFromKey", () => {
 	it("uses team when the key has a teamId", () => {
@@ -61,5 +61,23 @@ describe("nextCounterState", () => {
 				now
 			).blocked
 		).toBe(false);
+	});
+});
+
+describe("periodResetPatch", () => {
+	const now = new Date("2026-06-02T00:00:00Z");
+
+	it("returns a reset patch when the stored period is a prior month", () => {
+		expect(periodResetPatch({ currentPeriodStart: "2026-05-01" }, now)).toEqual({
+			currentPeriodStart: "2026-06-01",
+			currentPeriodRequests: 0,
+			blocked: false,
+		});
+	});
+
+	it("returns null within the same month", () => {
+		expect(
+			periodResetPatch({ currentPeriodStart: "2026-06-01" }, now)
+		).toBeNull();
 	});
 });

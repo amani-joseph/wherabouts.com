@@ -78,7 +78,33 @@ export async function getOrCreateBillingAccount(
 	if (!row) {
 		throw new Error("Failed to resolve billing account after upsert");
 	}
+	const reset = periodResetPatch(row, new Date());
+	if (reset) {
+		await db
+			.update(billingAccounts)
+			.set({ ...reset, updatedAt: new Date() })
+			.where(eq(billingAccounts.id, row.id));
+		return { ...row, ...reset };
+	}
 	return row;
+}
+
+/**
+ * If the account's stored period is an earlier UTC month than `now`, returns the
+ * patch that resets the monthly counter (and clears the free-tier block); else null.
+ */
+export function periodResetPatch(
+	account: { currentPeriodStart: string | null },
+	now: Date
+): { currentPeriodStart: string; currentPeriodRequests: number; blocked: boolean } | null {
+	if (!isInNewUtcMonth(account.currentPeriodStart, now)) {
+		return null;
+	}
+	return {
+		currentPeriodStart: utcMonthStart(now),
+		currentPeriodRequests: 0,
+		blocked: false,
+	};
 }
 
 export interface CounterState {
