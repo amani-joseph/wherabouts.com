@@ -6,11 +6,17 @@ if [[ -z "${OSRM_AUTH_TOKEN:-}" ]]; then
 	exit 1
 fi
 
-# OSRM bound to localhost only; Caddy (public :5000) gates access by bearer token.
-osrm-routed --algorithm mld /data/australia-latest.osrm --max-table-size 10000 --ip 127.0.0.1 --port 5001 &
-OSRM_PID=$!
+# One osrm-routed per profile, each bound to localhost; Caddy (public :5000)
+# gates by bearer token and routes /{service}/v1/{car|bike|foot}/ to the right
+# instance by path segment.
+osrm-routed --algorithm mld /data/car/australia-latest.osrm --max-table-size 10000 --ip 127.0.0.1 --port 5001 &
+PID_CAR=$!
+osrm-routed --algorithm mld /data/bike/australia-latest.osrm --max-table-size 10000 --ip 127.0.0.1 --port 5002 &
+PID_BIKE=$!
+osrm-routed --algorithm mld /data/foot/australia-latest.osrm --max-table-size 10000 --ip 127.0.0.1 --port 5003 &
+PID_FOOT=$!
 
-# If OSRM dies, take the container down too.
-trap 'kill "$OSRM_PID" 2>/dev/null || true' EXIT
+# If the container exits, take all three OSRM instances down with it.
+trap 'kill "$PID_CAR" "$PID_BIKE" "$PID_FOOT" 2>/dev/null || true' EXIT
 
 exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile

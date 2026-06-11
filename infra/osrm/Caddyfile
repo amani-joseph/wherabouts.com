@@ -2,5 +2,23 @@
 	@noauth not header Authorization "Bearer {$OSRM_AUTH_TOKEN}"
 	respond @noauth "Forbidden" 403
 
-	reverse_proxy localhost:5001
+	# Route by the OSRM `{profile}` path segment, e.g. /route/v1/foot/...,
+	# /table/v1/bike/..., /match/v1/car/.... Each profile is its own osrm-routed.
+	@car path_regexp ^/[^/]+/v1/car/
+	@bike path_regexp ^/[^/]+/v1/bike/
+	@foot path_regexp ^/[^/]+/v1/foot/
+
+	handle @car {
+		reverse_proxy localhost:5001
+	}
+	handle @bike {
+		reverse_proxy localhost:5002
+	}
+	handle @foot {
+		reverse_proxy localhost:5003
+	}
+	# Default (health checks / unprefixed paths) → car.
+	handle {
+		reverse_proxy localhost:5001
+	}
 }

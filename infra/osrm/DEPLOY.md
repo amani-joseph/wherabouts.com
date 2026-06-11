@@ -24,8 +24,9 @@ cd infra/osrm
 ```
 
 Downloads `australia-latest.osm.pbf` from Geofabrik and runs extract → partition →
-customize. Output: a set of `data/australia-latest.osrm*` files (several files sharing
-that prefix). Takes 10–30 min. **Do not commit `data/`** (it's large; see `.gitignore`).
+customize **once per profile**. Output: `data/{car,bike,foot}/australia-latest.osrm*` (each
+subdir holds several files sharing that prefix). Takes ~30–60 min for all three. **Do not
+commit `data/`** (it's large; see `.gitignore`).
 
 ---
 
@@ -49,15 +50,15 @@ fly ips list --app wherabouts-osrm                    # confirm a v4 is listed
 
 ## Part C — Populate the volume with the graph (the fiddly bit)
 
-The container reads the graph from the mounted volume at `/data`, but the image doesn't
-contain it. Populate the volume **before** the real app runs, or it crash-loops looking
-for `/data/australia-latest.osrm`.
+The container reads the graphs from the mounted volume at `/data`, but the image doesn't
+contain them. Populate the volume **before** the real app runs, or it crash-loops looking
+for `/data/car/australia-latest.osrm`.
 
 Most reliable method — tar the artifacts, push via a one-off machine:
 
 ```bash
 cd infra/osrm/data
-tar czf ../graph.tgz australia-latest.osrm*
+tar czf ../graph.tgz car bike foot          # all three profile subdirs
 cd ..
 
 # Start a temporary machine with the volume mounted:
@@ -74,7 +75,8 @@ fly ssh console --command "sh -c 'cd /data && tar xzf graph.tgz && rm graph.tgz 
 fly machine destroy <that-machine-id> --force
 ```
 
-After this, `/data` on the volume holds the `australia-latest.osrm*` files.
+After this, `/data` on the volume holds `car/`, `bike/` and `foot/`, each with the
+`australia-latest.osrm*` files. **Size the volume for all three (~30–45 GB).**
 
 ---
 
@@ -158,9 +160,11 @@ graph you built in Part A, then point at it:
 ```bash
 # Use the SAME pinned image the graph was built with (build-graph.sh / Dockerfile).
 # OSRM graph files are version-specific — `osrm/osrm-backend:latest` will reject a v5.27.1 graph.
+# This runs the car profile only; for multi-profile locally use the full image
+# (entrypoint.sh starts car/bike/foot on :5001–:5003 behind Caddy).
 docker run --rm -p 5001:5000 -v "$PWD/infra/osrm/data:/data" \
   ghcr.io/project-osrm/osrm-backend:v5.27.1 \
-  osrm-routed --algorithm mld /data/australia-latest.osrm
+  osrm-routed --algorithm mld /data/car/australia-latest.osrm
 ```
 
 ```bash
@@ -186,7 +190,7 @@ OSM data drifts. Monthly: re-run Part A, then re-populate the volume (Part C) an
 
 | Symptom | Likely cause / fix |
 |---|---|
-| App crash-loops, logs show "Cannot open file /data/australia-latest.osrm" | Volume not populated (Part C failed or wrong filename prefix). `fly logs`; re-check `/data`. |
+| App crash-loops, logs show "Cannot open file /data/car/australia-latest.osrm" | Volume not populated or wrong layout (Part C failed, or the `{car,bike,foot}/` subdirs are missing). `fly logs`; re-check `/data` holds all three profile dirs. |
 | 403 from the API even with a valid key | `OSRM_AUTH_TOKEN` mismatch between Fly (Part D) and the Worker (Part E). |
 | API returns `internal_error` | Worker can't reach OSRM. Check `OSRM_BASE_URL` (no trailing slash) and that the Fly app is up. |
 | `internal_error` but the Fly app responds to direct `curl` | App likely has **no public IP** — `fly ips list`; if empty, `fly ips allocate-v4 --shared` (Part B). `wherabouts-osrm.fly.dev` won't resolve until then. |
