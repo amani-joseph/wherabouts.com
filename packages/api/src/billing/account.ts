@@ -80,3 +80,53 @@ export async function getOrCreateBillingAccount(
 	}
 	return row;
 }
+
+export interface CounterState {
+	currentPeriodStart: string;
+	currentPeriodRequests: number;
+	blocked: boolean;
+}
+
+/** Compute the new counter row after one production request. */
+export function nextCounterState(
+	account: {
+		currentPeriodStart: string | null;
+		currentPeriodRequests: number;
+		freeAllotment: number;
+		hasPaymentMethod: boolean;
+	},
+	now: Date
+): CounterState {
+	const newMonth = isInNewUtcMonth(account.currentPeriodStart, now);
+	const requests = newMonth ? 1 : account.currentPeriodRequests + 1;
+	const start = newMonth
+		? utcMonthStart(now)
+		: (account.currentPeriodStart as string);
+	return {
+		currentPeriodStart: start,
+		currentPeriodRequests: requests,
+		blocked: computeBlocked({
+			currentPeriodRequests: requests,
+			freeAllotment: account.freeAllotment,
+			hasPaymentMethod: account.hasPaymentMethod,
+		}),
+	};
+}
+
+/** Increment a billing account's monthly counter, resetting on month rollover. */
+export async function incrementBillingUsage(
+	db: Database,
+	account: BillingAccount,
+	now = new Date()
+): Promise<void> {
+	const next = nextCounterState(account, now);
+	await db
+		.update(billingAccounts)
+		.set({
+			currentPeriodStart: next.currentPeriodStart,
+			currentPeriodRequests: next.currentPeriodRequests,
+			blocked: next.blocked,
+			updatedAt: now,
+		})
+		.where(eq(billingAccounts.id, account.id));
+}
