@@ -69,7 +69,7 @@ describe("fetchOsrmRoute", () => {
 		);
 
 		expect(calls[0]?.url).toContain(
-			"/route/v1/driving/144.9631,-37.8136;151.2093,-33.8688"
+			"/route/v1/car/144.9631,-37.8136;151.2093,-33.8688"
 		);
 		expect(calls[0]?.url).toContain("geometries=geojson");
 		expect(calls[0]?.url).toContain("overview=full");
