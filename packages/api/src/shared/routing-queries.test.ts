@@ -81,6 +81,27 @@ describe("fetchOsrmRoute", () => {
 		expect(result.geometry.coordinates).toHaveLength(2);
 	});
 
+	it("uses the mapped OSRM profile in the /route URL (cycling → bike)", async () => {
+		const calls: string[] = [];
+		const fetchImpl = ((input: URL | string) => {
+			calls.push(String(input));
+			return Promise.resolve(
+				new Response(JSON.stringify(OSRM_OK), {
+					status: 200,
+					headers: { "content-type": "application/json" },
+				})
+			);
+		}) as typeof fetch;
+
+		await fetchOsrmRoute(
+			{ lat: -37.8136, lng: 144.9631 },
+			{ lat: -33.8688, lng: 151.2093 },
+			{ baseUrl: "http://osrm.test", authToken: "tok", fetchImpl },
+			"cycling"
+		);
+		expect(calls[0]).toContain("/route/v1/bike/");
+	});
+
 	it("throws RoutingError(no_route) when OSRM returns NoRoute", async () => {
 		const fetchImpl = osrmFetch(200, { code: "NoRoute", routes: [] });
 		await expect(
