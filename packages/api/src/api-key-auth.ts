@@ -58,6 +58,7 @@ export interface ValidatedApiKey {
 	apiKeyId: string;
 	projectId: string | null;
 	userId: string;
+	teamId: string | null;
 }
 
 export function parseApiKeyFromRequest(request: Request): string | null {
@@ -151,7 +152,12 @@ export async function validateApiKey(
 
 	await touchLastUsedAt(db, keyId);
 
-	return { apiKeyId: keyId, projectId: row.projectId, userId: row.userId };
+	return {
+		apiKeyId: keyId,
+		projectId: row.projectId,
+		userId: row.userId,
+		teamId: row.teamId,
+	};
 }
 
 export async function validateApiKeyById(
@@ -164,6 +170,7 @@ export async function validateApiKeyById(
 			expiresAt: apiKeys.expiresAt,
 			projectId: apiKeys.projectId,
 			userId: apiKeys.userId,
+			teamId: apiKeys.teamId,
 			revokedAt: apiKeys.revokedAt,
 		})
 		.from(apiKeys)
@@ -177,7 +184,12 @@ export async function validateApiKeyById(
 
 	await touchLastUsedAt(db, keyId);
 
-	return { apiKeyId: row.id, projectId: row.projectId, userId: row.userId };
+	return {
+		apiKeyId: row.id,
+		projectId: row.projectId,
+		userId: row.userId,
+		teamId: row.teamId,
+	};
 }
 
 function todayUtcDateString(): string {
