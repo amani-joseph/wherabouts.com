@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { billingOwnerFromKey, isInNewUtcMonth } from "./account.ts";
+import { billingOwnerFromKey, isInNewUtcMonth, nextCounterState } from "./account.ts";
 
 describe("billingOwnerFromKey", () => {
 	it("uses team when the key has a teamId", () => {
@@ -30,5 +30,36 @@ describe("isInNewUtcMonth", () => {
 		expect(isInNewUtcMonth("2026-06-01", new Date("2026-06-30T23:59:59Z"))).toBe(
 			false
 		);
+	});
+});
+
+describe("nextCounterState", () => {
+	const now = new Date("2026-06-15T00:00:00Z");
+
+	it("resets the counter when entering a new month", () => {
+		expect(
+			nextCounterState(
+				{ currentPeriodStart: "2026-05-01", currentPeriodRequests: 9000, freeAllotment: 10_000, hasPaymentMethod: false },
+				now
+			)
+		).toEqual({ currentPeriodStart: "2026-06-01", currentPeriodRequests: 1, blocked: false });
+	});
+
+	it("increments within the month and blocks at the free limit", () => {
+		expect(
+			nextCounterState(
+				{ currentPeriodStart: "2026-06-01", currentPeriodRequests: 9999, freeAllotment: 10_000, hasPaymentMethod: false },
+				now
+			)
+		).toEqual({ currentPeriodStart: "2026-06-01", currentPeriodRequests: 10_000, blocked: true });
+	});
+
+	it("never blocks when a card is on file", () => {
+		expect(
+			nextCounterState(
+				{ currentPeriodStart: "2026-06-01", currentPeriodRequests: 999_999, freeAllotment: 10_000, hasPaymentMethod: true },
+				now
+			).blocked
+		).toBe(false);
 	});
 });
