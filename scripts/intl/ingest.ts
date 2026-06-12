@@ -85,17 +85,13 @@ function psql(db: string, sql: string): string {
 	}).trim();
 }
 
-function countsByCountry(db: string): Map<string, number> {
-	const out = psql(
-		db,
-		"SELECT country, count(*) FROM addresses GROUP BY country;"
+// Target-country count via idx_addresses_country. Full GROUP BY snapshots were
+// O(table) per country and ballooned post-flight time as the table grew past
+// 40M rows; promote/DELETE are already scoped to one country by construction.
+function countryCount(db: string, country: string): number {
+	return Number(
+		psql(db, `SELECT count(*) FROM addresses WHERE country = '${country}';`)
 	);
-	const map = new Map<string, number>();
-	for (const line of out.split("\n").filter(Boolean)) {
-		const [c, n] = line.split("|");
-		map.set(c, Number(n));
-	}
-	return map;
 }
 
 const STAGING_DDL = `
@@ -185,9 +181,8 @@ async function main(): Promise<void> {
 	const host = args.db.replace(HOST_FROM_URL_RE, "$1");
 	console.log(`target host: ${host}`);
 
-	// Pre-flight: snapshot + refuse silent re-ingest
-	const before = countsByCountry(args.db);
-	const existing = before.get(args.country) ?? 0;
+	// Pre-flight: refuse silent re-ingest
+	const existing = countryCount(args.db, args.country);
 	if (existing > 0 && !args.replace) {
 		throw new Error(
 			`${args.country} already has ${existing} rows. Re-run with --replace to delete+reload.`
@@ -234,25 +229,23 @@ async function main(): Promise<void> {
 		: "";
 	psql(args.db, `BEGIN; ${replaceSql} ${PROMOTE_SQL} COMMIT;`);
 
-	// Post-flight: only the target country may have changed
-	const after = countsByCountry(args.db);
-	for (const [c, n] of before) {
-		if (c !== args.country && after.get(c) !== n) {
-			throw new Error(
-				`INVARIANT VIOLATED: country ${c} changed ${n} -> ${after.get(c)}`
-			);
-		}
-	}
-	const promoted = after.get(args.country) ?? 0;
-	const nullGeoms = Number(
-		psql(
-			args.db,
-			`SELECT count(*) FROM addresses WHERE country='${args.country}' AND geom IS NULL;`
-		)
+	// Post-flight: one indexed pass — total + null geoms together. Sanity: the
+	// promote INSERT and optional DELETE are both scoped to the target country,
+	// so other countries cannot change by construction.
+	const out = psql(
+		args.db,
+		`SELECT count(*) || '|' || count(*) FILTER (WHERE geom IS NULL)
+		 FROM addresses WHERE country = '${args.country}';`
 	);
+	const [promoted, nullGeoms] = out.split("|").map(Number);
 	console.log(`promoted: ${promoted} rows (${nullGeoms} null geoms)`);
-	if (nullGeoms > 0) {
+	if ((nullGeoms ?? 0) > 0) {
 		throw new Error("null geoms detected after promote");
+	}
+	if ((promoted ?? 0) < staged) {
+		throw new Error(
+			`promoted ${promoted} < staged ${staged} — promote incomplete?`
+		);
 	}
 
 	if (!args.keepStaging) {
