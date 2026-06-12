@@ -18,7 +18,7 @@ export interface DirectionsResult {
 	geometry: GeoJsonLineString;
 }
 
-export type RoutingErrorKind = "no_route" | "unavailable";
+export type RoutingErrorKind = "no_route" | "no_match" | "unavailable";
 
 export class RoutingError extends Error {
 	readonly kind: RoutingErrorKind;
@@ -102,7 +102,7 @@ interface OsrmResponse {
  * fetch throws "Illegal invocation" otherwise).
  */
 async function osrmRequest(
-	service: "route" | "table",
+	service: "route" | "table" | "match",
 	profile: RoutingProfile,
 	coords: string,
 	query: Record<string, string>,
@@ -172,24 +172,24 @@ export async function fetchOsrmRoute(
 
 interface OsrmTableResponse {
 	code: string;
-	durations?: (number | null)[][];
 	distances?: (number | null)[][];
+	durations?: (number | null)[][];
 }
 
 export interface MatrixResult {
-	/** Row-major durations in seconds (`sources` × `destinations`); unreachable cells are `null`. */
-	durations: (number | null)[][];
+	destinations: LatLng[];
 	/** Row-major distances in metres (`sources` × `destinations`); unreachable cells are `null`. */
 	distances: (number | null)[][];
+	/** Row-major durations in seconds (`sources` × `destinations`); unreachable cells are `null`. */
+	durations: (number | null)[][];
 	sources: LatLng[];
-	destinations: LatLng[];
 }
 
 interface TableOptions extends OsrmOptions {
+	destinations?: number[];
 	profile: RoutingProfile;
 	/** Index sub-selections into `coords`; omit ⇒ OSRM `all`. */
 	sources?: number[];
-	destinations?: number[];
 }
 
 /**
@@ -236,5 +236,112 @@ export async function fetchOsrmTable(
 		distances: body.distances,
 		sources: pick(options.sources),
 		destinations: pick(options.destinations),
+	};
+}
+
+export interface Matching {
+	confidence: number;
+	distance_m: number;
+	duration_s: number;
+	geometry: GeoJsonLineString;
+}
+
+export interface Tracepoint {
+	/** Snapped [lng, lat] location on the road network. */
+	location: [number, number];
+	/** Index of the matching this point belongs to. */
+	matchings_index: number;
+	/** Position within the matched leg sequence. */
+	waypoint_index: number;
+}
+
+export interface MatchResult {
+	matchings: Matching[];
+	/** One entry per input point; `null` where OSRM dropped the point as an outlier. */
+	tracepoints: (Tracepoint | null)[];
+}
+
+interface OsrmMatchResponse {
+	code: string;
+	matchings?: {
+		confidence: number;
+		distance: number;
+		duration: number;
+		geometry: GeoJsonLineString;
+	}[];
+	tracepoints?: (Tracepoint | null)[];
+}
+
+interface MatchOptions extends OsrmOptions {
+	/** How to treat large gaps between points: `split` (default) or `ignore`. */
+	gaps?: "split" | "ignore";
+	profile: RoutingProfile;
+	/** Per-point GPS accuracy in metres (`;`-joined). */
+	radiuses?: number[];
+	/** Whether OSRM should clean the trace of too-close points. */
+	tidy?: boolean;
+	/** UNIX seconds per point (`;`-joined); must be monotonically increasing. */
+	timestamps?: number[];
+}
+
+/**
+ * Snap a noisy GPS `trace` to the road network via OSRM `/match`. Returns the
+ * matched leg geometries + per-point tracepoints, **preserving `null`** for
+ * points OSRM drops as outliers. `NoMatch` → `RoutingError("no_match")` (→ 422),
+ * distinct from service failures (`unavailable` → 500).
+ */
+export async function fetchOsrmMatch(
+	trace: LatLng[],
+	options: MatchOptions
+): Promise<MatchResult> {
+	// OSRM coordinate order is lon,lat (not lat,lng).
+	const coordString = trace.map((c) => `${c.lng},${c.lat}`).join(";");
+
+	const query: Record<string, string> = {
+		geometries: "geojson",
+		overview: "full",
+	};
+	if (options.timestamps) {
+		query.timestamps = options.timestamps.join(";");
+	}
+	if (options.radiuses) {
+		query.radiuses = options.radiuses.join(";");
+	}
+	if (options.gaps) {
+		query.gaps = options.gaps;
+	}
+	if (options.tidy !== undefined) {
+		query.tidy = String(options.tidy);
+	}
+
+	const body = (await osrmRequest(
+		"match",
+		options.profile,
+		coordString,
+		query,
+		options
+	)) as OsrmMatchResponse;
+
+	if (body.code === "NoMatch") {
+		throw new RoutingError(
+			"no_match",
+			"No road match for the given GPS trace."
+		);
+	}
+	if (body.code !== "Ok" || !body.matchings) {
+		throw new RoutingError(
+			"unavailable",
+			`OSRM match request failed (code ${body.code}).`
+		);
+	}
+
+	return {
+		matchings: body.matchings.map((m) => ({
+			confidence: m.confidence,
+			distance_m: Math.round(m.distance),
+			duration_s: Math.round(m.duration),
+			geometry: m.geometry,
+		})),
+		tracepoints: body.tracepoints ?? [],
 	};
 }

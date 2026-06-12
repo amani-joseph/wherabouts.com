@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+	fetchOsrmMatch,
 	fetchOsrmRoute,
 	fetchOsrmTable,
 	parseLatLng,
@@ -201,6 +202,104 @@ describe("fetchOsrmTable", () => {
 		const fetchImpl = osrmFetch(200, { code: "InvalidQuery" });
 		await expect(
 			fetchOsrmTable(pts, {
+				baseUrl: "http://osrm.test",
+				authToken: "t",
+				fetchImpl,
+				profile: "driving",
+			})
+		).rejects.toMatchObject({ kind: "unavailable" });
+	});
+});
+
+const MATCH_OK = {
+	code: "Ok",
+	matchings: [
+		{
+			confidence: 0.95,
+			distance: 1234.6,
+			duration: 90.4,
+			geometry: {
+				type: "LineString",
+				coordinates: [
+					[144.9631, -37.8136],
+					[144.97, -37.81],
+				],
+			},
+		},
+	],
+	tracepoints: [
+		{ matchings_index: 0, waypoint_index: 0, location: [144.9631, -37.8136] },
+		null,
+		{ matchings_index: 0, waypoint_index: 1, location: [144.97, -37.81] },
+	],
+};
+
+describe("fetchOsrmMatch", () => {
+	const trace = [
+		{ lat: -37.8136, lng: 144.9631 },
+		{ lat: -37.8118, lng: 144.965 },
+		{ lat: -37.81, lng: 144.97 },
+	];
+
+	it("returns matchings and tracepoints, preserving null outliers", async () => {
+		const fetchImpl = osrmFetch(200, MATCH_OK);
+		const result = await fetchOsrmMatch(trace, {
+			baseUrl: "http://osrm.test",
+			authToken: "tok",
+			fetchImpl,
+			profile: "driving",
+		});
+		expect(result.matchings).toHaveLength(1);
+		expect(result.matchings[0]).toMatchObject({
+			confidence: 0.95,
+			distance_m: 1235,
+			duration_s: 90,
+		});
+		expect(result.tracepoints).toHaveLength(3);
+		expect(result.tracepoints[1]).toBeNull();
+	});
+
+	it("forwards profile, radiuses and timestamps in the /match URL", async () => {
+		const calls: string[] = [];
+		const fetchImpl = ((input: URL | string) => {
+			calls.push(String(input));
+			return Promise.resolve(
+				new Response(JSON.stringify(MATCH_OK), {
+					status: 200,
+					headers: { "content-type": "application/json" },
+				})
+			);
+		}) as typeof fetch;
+
+		await fetchOsrmMatch(trace, {
+			baseUrl: "http://osrm.test",
+			authToken: "tok",
+			fetchImpl,
+			profile: "driving",
+			radiuses: [5, 5, 8],
+			timestamps: [1000, 1005, 1012],
+		});
+		expect(calls[0]).toContain("/match/v1/car/");
+		expect(calls[0]).toContain("radiuses=5%3B5%3B8");
+		expect(calls[0]).toContain("timestamps=1000%3B1005%3B1012");
+	});
+
+	it("throws RoutingError(no_match) on a NoMatch response", async () => {
+		const fetchImpl = osrmFetch(200, { code: "NoMatch" });
+		await expect(
+			fetchOsrmMatch(trace, {
+				baseUrl: "http://osrm.test",
+				authToken: "t",
+				fetchImpl,
+				profile: "driving",
+			})
+		).rejects.toMatchObject({ kind: "no_match" });
+	});
+
+	it("throws RoutingError(unavailable) on a non-200 response", async () => {
+		const fetchImpl = osrmFetch(500, {});
+		await expect(
+			fetchOsrmMatch(trace, {
 				baseUrl: "http://osrm.test",
 				authToken: "t",
 				fetchImpl,
