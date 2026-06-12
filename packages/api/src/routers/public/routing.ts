@@ -12,6 +12,7 @@ import {
 } from "../../shared/isochrone-queries.ts";
 import { parseLayers } from "../../shared/region-queries.ts";
 import {
+	fetchOsrmMatch,
 	fetchOsrmRoute,
 	fetchOsrmTable,
 	type LatLng,
@@ -373,6 +374,119 @@ export const routingIsochrone = baseBuilder
 			};
 		} catch (error) {
 			if (error instanceof IsochroneError) {
+				throw new ORPCError("UNPROCESSABLE_CONTENT", {
+					message: error.message,
+				});
+			}
+			if (error instanceof RoutingError) {
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: "Routing service unavailable.",
+				});
+			}
+			throw error;
+		}
+	});
+
+interface MatchPoint {
+	lat: number;
+	lng: number;
+	radius?: number;
+	timestamp?: number;
+}
+
+/**
+ * Split a GPS trace into the parallel arrays OSRM `/match` expects. `timestamp`
+ * and `radius` are all-or-none across points; timestamps must be strictly
+ * increasing. Throws `BAD_REQUEST` on violation. Exported for unit testing.
+ */
+export function buildMatchArrays(coordinates: MatchPoint[]): {
+	trace: LatLng[];
+	timestamps?: number[];
+	radiuses?: number[];
+} {
+	const trace = coordinates.map((c) => ({ lat: c.lat, lng: c.lng }));
+
+	const withTs = coordinates.filter((c) => c.timestamp !== undefined).length;
+	let timestamps: number[] | undefined;
+	if (withTs > 0) {
+		if (withTs !== coordinates.length) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Provide a 'timestamp' on every coordinate or none.",
+			});
+		}
+		timestamps = coordinates.map((c) => c.timestamp as number);
+		for (let i = 1; i < timestamps.length; i++) {
+			const prev = timestamps[i - 1];
+			const curr = timestamps[i];
+			if (prev !== undefined && curr !== undefined && curr <= prev) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Coordinate 'timestamp' values must be strictly increasing.",
+				});
+			}
+		}
+	}
+
+	const withRadius = coordinates.filter((c) => c.radius !== undefined).length;
+	let radiuses: number[] | undefined;
+	if (withRadius > 0) {
+		if (withRadius !== coordinates.length) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Provide a 'radius' on every coordinate or none.",
+			});
+		}
+		radiuses = coordinates.map((c) => c.radius as number);
+	}
+
+	return { trace, timestamps, radiuses };
+}
+
+export const routingMatch = baseBuilder
+	.use(apiKeyAuth)
+	.use(usageMiddleware("routing.match"))
+	.route({
+		method: "POST",
+		path: "/api/v1/routing/match",
+		summary: "Snap a GPS trace to the road network (map-matching)",
+		tags: ["routing"],
+	})
+	.input(
+		z.object({
+			profile: z.enum(["driving", "walking", "cycling"]).default("driving"),
+			// POST body — validates normally, no z.coerce needed.
+			coordinates: z
+				.array(
+					z.object({
+						lat: z.number().min(-90).max(90),
+						lng: z.number().min(-180).max(180),
+						timestamp: z.number().int().nonnegative().optional(),
+						radius: z.number().positive().optional(),
+					})
+				)
+				.min(2, "Provide at least two coordinates to match."),
+			gaps: z.enum(["split", "ignore"]).optional(),
+			tidy: z.boolean().optional(),
+		})
+	)
+	.handler(async ({ input }) => {
+		const { trace, timestamps, radiuses } = buildMatchArrays(input.coordinates);
+		try {
+			const result = await fetchOsrmMatch(trace, {
+				baseUrl: serverEnv.OSRM_BASE_URL,
+				authToken: serverEnv.OSRM_AUTH_TOKEN,
+				fetchImpl: globalThis.fetch.bind(globalThis),
+				profile: input.profile,
+				timestamps,
+				radiuses,
+				gaps: input.gaps,
+				tidy: input.tidy,
+			});
+			return {
+				query: { profile: input.profile },
+				matchings: result.matchings,
+				tracepoints: result.tracepoints,
+			};
+		} catch (error) {
+			if (error instanceof RoutingError && error.kind === "no_match") {
 				throw new ORPCError("UNPROCESSABLE_CONTENT", {
 					message: error.message,
 				});
