@@ -15,6 +15,7 @@ import { regionsClassify } from "./public/regions.ts";
 import {
 	routingDirections,
 	routingIsochrone,
+	routingMatch,
 	routingMatrix,
 } from "./public/routing.ts";
 import {
@@ -311,6 +312,7 @@ export const publicHttpRouter = {
 		directions: routingDirections,
 		matrix: routingMatrix,
 		isochrone: routingIsochrone,
+		match: routingMatch,
 	},
 	devices: {
 		deviceLocation: pushDeviceLocation,

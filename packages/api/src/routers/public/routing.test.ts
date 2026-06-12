@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+	buildMatchArrays,
 	parseMatrixSides,
 	resolveDirectionsInput,
 	resolveMatrixPoints,
@@ -105,5 +106,49 @@ describe("resolveMatrixPoints", () => {
 		await expect(
 			resolveMatrixPoints(mockDb([]), "sources", ["not-a-point"])
 		).rejects.toMatchObject({ code: "BAD_REQUEST" });
+	});
+});
+
+describe("buildMatchArrays", () => {
+	const p0 = { lat: -37.8136, lng: 144.9631 };
+	const p1 = { lat: -37.81, lng: 144.97 };
+
+	it("returns a bare trace when no timestamps/radiuses given", () => {
+		expect(buildMatchArrays([p0, p1])).toEqual({
+			trace: [p0, p1],
+			timestamps: undefined,
+			radiuses: undefined,
+		});
+	});
+
+	it("splits per-point timestamp and radius into parallel arrays", () => {
+		const result = buildMatchArrays([
+			{ ...p0, timestamp: 1000, radius: 5 },
+			{ ...p1, timestamp: 1005, radius: 8 },
+		]);
+		expect(result.timestamps).toEqual([1000, 1005]);
+		expect(result.radiuses).toEqual([5, 8]);
+		expect(result.trace).toEqual([p0, p1]);
+	});
+
+	it("throws bad_request when timestamps are not strictly increasing", () => {
+		expect(() =>
+			buildMatchArrays([
+				{ ...p0, timestamp: 1005 },
+				{ ...p1, timestamp: 1005 },
+			])
+		).toThrowError(expect.objectContaining({ code: "BAD_REQUEST" }));
+	});
+
+	it("throws bad_request when timestamp is present on some points only", () => {
+		expect(() =>
+			buildMatchArrays([{ ...p0, timestamp: 1000 }, p1])
+		).toThrowError(expect.objectContaining({ code: "BAD_REQUEST" }));
+	});
+
+	it("throws bad_request when radius is present on some points only", () => {
+		expect(() => buildMatchArrays([{ ...p0, radius: 5 }, p1])).toThrowError(
+			expect.objectContaining({ code: "BAD_REQUEST" })
+		);
 	});
 });
