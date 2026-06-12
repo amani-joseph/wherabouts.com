@@ -11,3 +11,6 @@ export {
 	generateWebhookSecret,
 } from "./secret-crypto.ts";
 export { validateWebhookUrl } from "./shared/webhook-url.ts";
+export { applyStripeEvent } from "./billing/stripe-sync.ts";
+export { reportUsageToStripe } from "./billing/meter-reporting.ts";
+export { getStripeClient, stripeCryptoProvider } from "./billing/stripe.ts";

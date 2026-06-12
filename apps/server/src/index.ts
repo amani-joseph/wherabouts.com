@@ -2,10 +2,16 @@ import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { ORPCError, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import {
+	applyStripeEvent,
 	appRouter,
 	createContext,
+	db,
+	getStripeClient,
 	publicHttpRouter,
+	reportUsageToStripe,
+	stripeCryptoProvider,
 } from "@wherabouts.com/api";
+import type Stripe from "stripe";
 import { auth } from "@wherabouts.com/auth";
 import { serverEnv } from "@wherabouts.com/env/server";
 import { Hono } from "hono";
@@ -69,6 +75,35 @@ app.on(["GET", "POST"], "/api/auth/*", async (context) => {
 	}
 });
 
+app.post("/api/stripe/webhook", async (context) => {
+	const signature = context.req.header("stripe-signature");
+	if (!signature) {
+		return context.json({ error: "missing signature" }, 400);
+	}
+	const payload = await context.req.text();
+	let event: Stripe.Event;
+	try {
+		event = await getStripeClient().webhooks.constructEventAsync(
+			payload,
+			signature,
+			serverEnv.STRIPE_WEBHOOK_SECRET,
+			undefined,
+			stripeCryptoProvider
+		);
+	} catch (err) {
+		console.error("[stripe] signature verification failed:", err);
+		return context.json({ error: "invalid signature" }, 400);
+	}
+
+	try {
+		await applyStripeEvent(db, event);
+	} catch (err) {
+		console.error("[stripe] event handling failed:", err);
+		return context.json({ error: "handler error" }, 500);
+	}
+	return context.json({ received: true });
+});
+
 // ---------------------------------------------------------------------------
 // Map ORPCError codes to our API error codes (Fix #2: complete mapping)
 // ---------------------------------------------------------------------------
@@ -76,6 +111,7 @@ app.on(["GET", "POST"], "/api/auth/*", async (context) => {
 const ORPC_TO_API_ERROR: Record<string, { status: number; code: string }> = {
 	BAD_REQUEST: { status: 400, code: "bad_request" },
 	UNAUTHORIZED: { status: 401, code: "unauthorized" },
+	PAYMENT_REQUIRED: { status: 402, code: "payment_required" },
 	FORBIDDEN: { status: 403, code: "unauthorized" },
 	NOT_FOUND: { status: 404, code: "not_found" },
 	METHOD_NOT_SUPPORTED: { status: 405, code: "bad_request" },
@@ -328,5 +364,16 @@ export default {
 				msg.ack();
 			}
 		}
+	},
+	async scheduled(
+		_event: { cron: string; scheduledTime: number },
+		_env: unknown,
+		ctx: { waitUntil(p: Promise<unknown>): void }
+	): Promise<void> {
+		ctx.waitUntil(
+			reportUsageToStripe(db).catch((err: unknown) => {
+				console.error("[cron] reportUsageToStripe failed:", err);
+			})
+		);
 	},
 };

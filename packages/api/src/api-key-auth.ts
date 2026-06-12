@@ -2,6 +2,11 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { Database } from "@wherabouts.com/database";
 import { apiKeys, apiUsageDaily } from "@wherabouts.com/database/schema";
 import { eq, sql } from "drizzle-orm";
+import {
+	billingOwnerFromKey,
+	getOrCreateBillingAccount,
+	incrementBillingUsage,
+} from "./billing/account.ts";
 
 export const API_KEY_PREFIX = "wh_" as const;
 export const INTERNAL_API_AUTH_HEADER = "x-wherabouts-internal-auth";
@@ -58,6 +63,7 @@ export interface ValidatedApiKey {
 	apiKeyId: string;
 	projectId: string | null;
 	userId: string;
+	teamId: string | null;
 }
 
 export function parseApiKeyFromRequest(request: Request): string | null {
@@ -151,7 +157,12 @@ export async function validateApiKey(
 
 	await touchLastUsedAt(db, keyId);
 
-	return { apiKeyId: keyId, projectId: row.projectId, userId: row.userId };
+	return {
+		apiKeyId: keyId,
+		projectId: row.projectId,
+		userId: row.userId,
+		teamId: row.teamId,
+	};
 }
 
 export async function validateApiKeyById(
@@ -164,6 +175,7 @@ export async function validateApiKeyById(
 			expiresAt: apiKeys.expiresAt,
 			projectId: apiKeys.projectId,
 			userId: apiKeys.userId,
+			teamId: apiKeys.teamId,
 			revokedAt: apiKeys.revokedAt,
 		})
 		.from(apiKeys)
@@ -177,7 +189,12 @@ export async function validateApiKeyById(
 
 	await touchLastUsedAt(db, keyId);
 
-	return { apiKeyId: row.id, projectId: row.projectId, userId: row.userId };
+	return {
+		apiKeyId: row.id,
+		projectId: row.projectId,
+		userId: row.userId,
+		teamId: row.teamId,
+	};
 }
 
 function todayUtcDateString(): string {
@@ -194,16 +211,24 @@ export async function recordUsage(
 		apiKeyId: string;
 		projectId?: string | null;
 		userId: string;
+		teamId?: string | null;
 		endpoint: string;
 		requestSource?: string;
 	}
 ): Promise<void> {
 	const usageDate = todayUtcDateString();
+	const owner = billingOwnerFromKey({
+		teamId: input.teamId ?? null,
+		userId: input.userId,
+	});
+	const account = await getOrCreateBillingAccount(db, owner);
+
 	await db
 		.insert(apiUsageDaily)
 		.values({
 			apiKeyId: input.apiKeyId,
 			projectId: input.projectId ?? null,
+			billingAccountId: account.id,
 			userId: input.userId,
 			usageDate,
 			endpoint: input.endpoint,
@@ -221,6 +246,10 @@ export async function recordUsage(
 				requestCount: sql`${apiUsageDaily.requestCount} + 1`,
 			},
 		});
+	const source = input.requestSource ?? REQUEST_SOURCE_PRODUCTION;
+	if (source === REQUEST_SOURCE_PRODUCTION) {
+		await incrementBillingUsage(db, account);
+	}
 }
 
 export async function hashApiKeySecret(secretPart: string): Promise<{
