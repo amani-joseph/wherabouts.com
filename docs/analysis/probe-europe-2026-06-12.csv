@@ -1,0 +1,24 @@
+country,lvls,cnt,lvl1_maxlen,lvl1_sample,lvl_last_sample,pct_null_postcode,pct_null_street,pct_null_number
+AT,2,2516341,37,Gaißau,Gaißau,0.0,0.0,0.0
+BE,1,6696150,28,Comines-Warneton,Comines-Warneton,0.0,0.0,0.0
+CH,1,3288386,28,Satigny,Satigny,0.0,0.0,0.6
+CZ,1,3015202,33,Železná Ruda,Železná Ruda,0.0,47.8,0.0
+DE,2,19259592,2,NW,Aachen,79.3,0.0,0.0
+DK,2,3933282,18,Region Syddanmark,Varde,0.0,0.0,0.0
+EE,3,2230000,18,Pärnu maakond,Orajõe küla,100.0,41.9,0.9
+ES,1,15656333,65,Moguer,Moguer,0.0,0.0,0.3
+FI,1,3633089,24,NAANTALI,NAANTALI,0.0,0.0,4.6
+FO,2,26300,12,Sørvágs,Mykines,0.0,0.0,0.0
+FR,1,26056645,45,Grand-Santi,Grand-Santi,0.0,0.0,0.0
+HR,1,1679224,79,Radoši kod Žbandaja,Radoši kod Žbandaja,0.0,0.0,0.0
+IT,3,25914431,28,Liguria,Ventimiglia,100.0,0.0,0.1
+LI,1,12946,15,Ruggell,Ruggell,0.0,0.0,0.0
+LT,1,1125293,27,Neringos m.,Neringos m.,0.1,6.5,0.0
+LV,3,548712,20,Jelgavas nov.,Sesava,0.0,41.4,0.0
+NL,1,9889259,28,Waterlandkerkje,Waterlandkerkje,2.5,0.0,0.0
+NO,1,3579905,15,SOLUND,SOLUND,0.0,0.8,0.0
+PL,3,8528581,23,cieszyński,Istebna,0.0,35.9,0.0
+PT,1,5614635,25,VILA DO PORTO,VILA DO PORTO,0.0,0.2,22.2
+RS,1,2681230,23,DONJA BUKOVICA,DONJA BUKOVICA,100.0,0.0,0.0
+SI,3,579011,21,Obalno-kraška,Krvavi Potok,0.0,0.0,0.0
+SK,3,1697528,15,Bratislavský,Malacky,0.0,55.5,0.0
