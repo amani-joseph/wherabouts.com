@@ -34,6 +34,7 @@ import {
 
 const MANIFEST_PATH = new URL("manifest.json", import.meta.url).pathname;
 const HOST_FROM_URL_RE = /.*@([^/:]+).*/;
+const WHITESPACE_RE = /\s+/;
 
 interface Args {
 	country: string;
@@ -42,6 +43,7 @@ interface Args {
 	keepStaging: boolean;
 	release: string;
 	replace: boolean;
+	useCachedCsv: boolean;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -73,6 +75,7 @@ function parseArgs(argv: string[]): Args {
 		dryRun: has("dry-run"),
 		replace: has("replace"),
 		keepStaging: has("keep-staging"),
+		useCachedCsv: has("use-cached-csv"),
 	};
 }
 
@@ -191,15 +194,20 @@ async function main(): Promise<void> {
 		);
 	}
 
-	// Extract
-	console.log(`extracting via ${config.adapter} adapter…`);
-	const { rowCount } = await extract(
-		args.country,
-		config,
-		args.release,
-		csvPath
-	);
-	console.log(`extracted ${rowCount} rows -> ${csvPath}`);
+	// Extract (or reuse a prefetched CSV — see prefetch.ts)
+	let rowCount: number;
+	if (args.useCachedCsv && existsSync(csvPath)) {
+		const wc = execFileSync("wc", ["-l", csvPath], { encoding: "utf-8" });
+		rowCount = Number.parseInt(wc.trim().split(WHITESPACE_RE)[0] ?? "0", 10);
+		console.log(`using prefetched CSV: ${rowCount} rows at ${csvPath}`);
+		if (rowCount === 0) {
+			throw new Error(`cached CSV ${csvPath} is empty — delete it and re-run`);
+		}
+	} else {
+		console.log(`extracting via ${config.adapter} adapter…`);
+		({ rowCount } = await extract(args.country, config, args.release, csvPath));
+		console.log(`extracted ${rowCount} rows -> ${csvPath}`);
+	}
 
 	// Stage
 	psql(args.db, STAGING_DDL);
