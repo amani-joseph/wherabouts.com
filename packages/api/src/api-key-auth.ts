@@ -1,7 +1,12 @@
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { Database } from "@wherabouts.com/database";
 import { apiKeys, apiUsageDaily } from "@wherabouts.com/database/schema";
 import { eq, sql } from "drizzle-orm";
+import {
+	billingOwnerFromKey,
+	getOrCreateBillingAccount,
+	incrementBillingUsage,
+} from "./billing/account.ts";
 
 export const API_KEY_PREFIX = "wh_" as const;
 export const INTERNAL_API_AUTH_HEADER = "x-wherabouts-internal-auth";
@@ -14,19 +19,53 @@ export const REQUEST_SOURCE_EXPLORER_TEST = "explorer_test";
 const API_KEY_TOKEN_RE =
 	/^wh_([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})_(.+)$/i;
 
-const SCRYPT_KEYLEN = 64;
-const SCRYPT_OPTIONS = {
-	N: 16_384,
-	r: 8,
-	p: 1,
-	maxmem: 64 * 1024 * 1024,
-} as const;
+// API-key secret hashing uses WebCrypto PBKDF2-HMAC-SHA256 rather than
+// node:crypto `scryptSync`. The Cloudflare Workers runtime (workerd) does not
+// produce a `scryptSync` digest that round-trips against itself, so raw-key
+// verification silently failed in production. WebCrypto `crypto.subtle` is a
+// W3C standard implemented identically on workerd and Node, so hashes computed
+// at key-creation time verify correctly at request time on either runtime.
+const PBKDF2_ITERATIONS = 100_000;
+const PBKDF2_KEYLEN_BYTES = 32;
+const SALT_BYTES = 16;
 const LAST_USED_WRITE_INTERVAL_MINUTES = 30;
+
+/**
+ * Derive a fixed-length key from an API-key secret using PBKDF2-HMAC-SHA256.
+ * Runs on the global WebCrypto implementation so creation and verification
+ * agree across the Workers and Node runtimes.
+ */
+async function deriveApiKeyHash(
+	secretPart: string,
+	salt: Uint8Array
+): Promise<Buffer> {
+	const keyMaterial = await crypto.subtle.importKey(
+		"raw",
+		new TextEncoder().encode(secretPart),
+		"PBKDF2",
+		false,
+		["deriveBits"]
+	);
+	const bits = await crypto.subtle.deriveBits(
+		{
+			name: "PBKDF2",
+			// Copy into a fresh ArrayBuffer-backed view: BufferSource rejects
+			// Uint8Array<ArrayBufferLike> under TS 5.9 generic typed arrays.
+			salt: new Uint8Array(salt),
+			iterations: PBKDF2_ITERATIONS,
+			hash: "SHA-256",
+		},
+		keyMaterial,
+		PBKDF2_KEYLEN_BYTES * 8
+	);
+	return Buffer.from(bits);
+}
 
 export interface ValidatedApiKey {
 	apiKeyId: string;
 	projectId: string | null;
 	userId: string;
+	teamId: string | null;
 }
 
 export function parseApiKeyFromRequest(request: Request): string | null {
@@ -106,12 +145,7 @@ export async function validateApiKey(
 
 	let derived: Buffer;
 	try {
-		derived = scryptSync(
-			secretPart,
-			saltBuf,
-			storedHashBuf.length,
-			SCRYPT_OPTIONS
-		);
+		derived = await deriveApiKeyHash(secretPart, saltBuf);
 	} catch {
 		return null;
 	}
@@ -125,7 +159,12 @@ export async function validateApiKey(
 
 	await touchLastUsedAt(db, keyId);
 
-	return { apiKeyId: keyId, projectId: row.projectId, userId: row.userId };
+	return {
+		apiKeyId: keyId,
+		projectId: row.projectId,
+		userId: row.userId,
+		teamId: row.teamId,
+	};
 }
 
 export async function validateApiKeyById(
@@ -138,6 +177,7 @@ export async function validateApiKeyById(
 			expiresAt: apiKeys.expiresAt,
 			projectId: apiKeys.projectId,
 			userId: apiKeys.userId,
+			teamId: apiKeys.teamId,
 			revokedAt: apiKeys.revokedAt,
 		})
 		.from(apiKeys)
@@ -151,7 +191,12 @@ export async function validateApiKeyById(
 
 	await touchLastUsedAt(db, keyId);
 
-	return { apiKeyId: row.id, projectId: row.projectId, userId: row.userId };
+	return {
+		apiKeyId: row.id,
+		projectId: row.projectId,
+		userId: row.userId,
+		teamId: row.teamId,
+	};
 }
 
 function todayUtcDateString(): string {
@@ -168,16 +213,24 @@ export async function recordUsage(
 		apiKeyId: string;
 		projectId?: string | null;
 		userId: string;
+		teamId?: string | null;
 		endpoint: string;
 		requestSource?: string;
 	}
 ): Promise<void> {
 	const usageDate = todayUtcDateString();
+	const owner = billingOwnerFromKey({
+		teamId: input.teamId ?? null,
+		userId: input.userId,
+	});
+	const account = await getOrCreateBillingAccount(db, owner);
+
 	await db
 		.insert(apiUsageDaily)
 		.values({
 			apiKeyId: input.apiKeyId,
 			projectId: input.projectId ?? null,
+			billingAccountId: account.id,
 			userId: input.userId,
 			usageDate,
 			endpoint: input.endpoint,
@@ -195,14 +248,18 @@ export async function recordUsage(
 				requestCount: sql`${apiUsageDaily.requestCount} + 1`,
 			},
 		});
+	const source = input.requestSource ?? REQUEST_SOURCE_PRODUCTION;
+	if (source === REQUEST_SOURCE_PRODUCTION) {
+		await incrementBillingUsage(db, account);
+	}
 }
 
-export function hashApiKeySecret(secretPart: string): {
+export async function hashApiKeySecret(secretPart: string): Promise<{
 	saltB64: string;
 	hashB64: string;
-} {
-	const salt = randomBytes(16);
-	const hash = scryptSync(secretPart, salt, SCRYPT_KEYLEN, SCRYPT_OPTIONS);
+}> {
+	const salt = randomBytes(SALT_BYTES);
+	const hash = await deriveApiKeyHash(secretPart, salt);
 	return {
 		saltB64: salt.toString("base64url"),
 		hashB64: hash.toString("base64url"),

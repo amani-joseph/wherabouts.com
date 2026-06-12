@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS "idx_addresses_geom_geography" ON "addresses" USING gist (("geom"::geography));

@@ -53,6 +53,7 @@ export const apiUsageDaily = pgTable(
 		projectId: uuid("project_id").references(() => projects.id, {
 			onDelete: "cascade",
 		}),
+		billingAccountId: uuid("billing_account_id"),
 		usageDate: date("usage_date", { mode: "string" }).notNull(),
 		endpoint: text("endpoint").notNull(),
 		requestSource: text("request_source").notNull().default("production"),
@@ -79,6 +80,7 @@ export const apiUsageDaily = pgTable(
 			table.usageDate,
 			table.endpoint
 		),
+		index("idx_api_usage_daily_billing_account").on(table.billingAccountId),
 	]
 );
 

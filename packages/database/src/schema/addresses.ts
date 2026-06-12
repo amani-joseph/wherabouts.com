@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
 	customType,
 	index,
@@ -58,6 +59,16 @@ export const addresses = pgTable(
 			table.postcode
 		),
 		index("idx_addresses_geom").using("gist", table.geom),
+		// Expression index on the geography cast. The proximity endpoints
+		// (addresses.nearby / addresses.reverse) filter with
+		// `ST_DWithin(geom::geography, point, meters)`; the plain geometry GiST
+		// index above cannot serve that cast, which forced a full seq scan of
+		// ~5.6M rows (~15-48s). This expression index brings those queries to
+		// ~130-220ms.
+		index("idx_addresses_geom_geography").using(
+			"gist",
+			sql`(${table.geom}::geography)`
+		),
 	]
 );
 

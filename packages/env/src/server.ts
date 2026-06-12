@@ -24,6 +24,11 @@ export const serverEnv = createEnv({
 			),
 		OSRM_BASE_URL: z.string().url(),
 		OSRM_AUTH_TOKEN: z.string().min(1),
+		STRIPE_SECRET_KEY: z.string().min(1),
+		STRIPE_WEBHOOK_SECRET: z.string().min(1),
+		STRIPE_PRICE_ID: z.string().min(1),
+		STRIPE_METER_EVENT_NAME: z.string().min(1).default("api_request"),
+		BILLING_FREE_ALLOTMENT: z.coerce.number().int().positive().default(10_000),
 	},
 	runtimeEnv: {
 		...process.env,
@@ -33,6 +38,11 @@ export const serverEnv = createEnv({
 		KEY_ENC_KEY: process.env.KEY_ENC_KEY,
 		OSRM_BASE_URL: process.env.OSRM_BASE_URL,
 		OSRM_AUTH_TOKEN: process.env.OSRM_AUTH_TOKEN,
+		STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+		STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+		STRIPE_PRICE_ID: process.env.STRIPE_PRICE_ID,
+		STRIPE_METER_EVENT_NAME: process.env.STRIPE_METER_EVENT_NAME,
+		BILLING_FREE_ALLOTMENT: process.env.BILLING_FREE_ALLOTMENT,
 	},
 	emptyStringAsUndefined: true,
 });

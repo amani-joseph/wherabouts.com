@@ -3,7 +3,6 @@ import {
 	fetchOsrmMatch,
 	fetchOsrmRoute,
 	fetchOsrmTable,
-	fetchOsrmTrip,
 	parseLatLng,
 	RoutingError,
 } from "./routing-queries.ts";
@@ -301,121 +300,6 @@ describe("fetchOsrmMatch", () => {
 		const fetchImpl = osrmFetch(500, {});
 		await expect(
 			fetchOsrmMatch(trace, {
-				baseUrl: "http://osrm.test",
-				authToken: "t",
-				fetchImpl,
-				profile: "driving",
-			})
-		).rejects.toMatchObject({ kind: "unavailable" });
-	});
-});
-
-const TRIP_OK = {
-	code: "Ok",
-	trips: [
-		{
-			distance: 4567.8,
-			duration: 320.4,
-			geometry: {
-				type: "LineString",
-				coordinates: [
-					[144.9631, -37.8136],
-					[144.97, -37.81],
-				],
-			},
-		},
-	],
-	waypoints: [
-		{ waypoint_index: 0, trips_index: 0, location: [144.9631, -37.8136] },
-		{ waypoint_index: 2, trips_index: 0, location: [144.97, -37.81] },
-		{ waypoint_index: 1, trips_index: 0, location: [144.98, -37.8] },
-	],
-};
-
-describe("fetchOsrmTrip", () => {
-	const stops = [
-		{ lat: -37.8136, lng: 144.9631 },
-		{ lat: -37.81, lng: 144.97 },
-		{ lat: -37.8, lng: 144.98 },
-	];
-
-	it("returns trips plus per-waypoint visiting order", async () => {
-		const fetchImpl = osrmFetch(200, TRIP_OK);
-		const result = await fetchOsrmTrip(stops, {
-			baseUrl: "http://osrm.test",
-			authToken: "tok",
-			fetchImpl,
-			profile: "driving",
-		});
-		expect(result.trips[0]).toMatchObject({
-			distance_m: 4568,
-			duration_s: 320,
-		});
-		expect(result.waypoints.map((w) => w.waypoint_index)).toEqual([0, 2, 1]);
-	});
-
-	it("forwards profile and roundtrip=false (with a fixed end) in the URL", async () => {
-		const calls: string[] = [];
-		const fetchImpl = ((input: URL | string) => {
-			calls.push(String(input));
-			return Promise.resolve(
-				new Response(JSON.stringify(TRIP_OK), {
-					status: 200,
-					headers: { "content-type": "application/json" },
-				})
-			);
-		}) as typeof fetch;
-
-		await fetchOsrmTrip(stops, {
-			baseUrl: "http://osrm.test",
-			authToken: "tok",
-			fetchImpl,
-			profile: "driving",
-			roundtrip: false,
-			source: "first",
-			destination: "last",
-		});
-		expect(calls[0]).toContain("/trip/v1/car/");
-		expect(calls[0]).toContain("roundtrip=false");
-		expect(calls[0]).toContain("source=first");
-	});
-
-	it("rejects an open trip with no fixed end before calling OSRM", async () => {
-		let called = false;
-		const fetchImpl = (() => {
-			called = true;
-			return Promise.resolve(new Response("{}"));
-		}) as typeof fetch;
-		await expect(
-			fetchOsrmTrip(stops, {
-				baseUrl: "http://osrm.test",
-				authToken: "t",
-				fetchImpl,
-				profile: "driving",
-				roundtrip: false,
-			})
-		).rejects.toMatchObject({ kind: "no_trip" });
-		expect(called).toBe(false);
-	});
-
-	it("maps NoTrip and NotImplemented to RoutingError(no_trip)", async () => {
-		for (const code of ["NoTrip", "NotImplemented"]) {
-			const fetchImpl = osrmFetch(200, { code });
-			await expect(
-				fetchOsrmTrip(stops, {
-					baseUrl: "http://osrm.test",
-					authToken: "t",
-					fetchImpl,
-					profile: "driving",
-				})
-			).rejects.toMatchObject({ kind: "no_trip" });
-		}
-	});
-
-	it("throws RoutingError(unavailable) on a non-200 response", async () => {
-		const fetchImpl = osrmFetch(503, {});
-		await expect(
-			fetchOsrmTrip(stops, {
 				baseUrl: "http://osrm.test",
 				authToken: "t",
 				fetchImpl,

@@ -1,10 +1,15 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import type { GlobeArcDatum, GlobeConfig } from "@/components/ui/globe";
-import { World } from "@/components/ui/globe";
 import { cn } from "@/lib/utils";
+
+// Lazy-load so three-globe stays out of the SSR module graph — its browser
+// build reads `window` at module scope, which crashes the workerd runtime.
+const World = lazy(() =>
+	import("@/components/ui/globe").then((m) => ({ default: m.World }))
+);
 
 const ARC_COLORS = ["#22d3ee", "#3b82f6", "#6366f1"] as const;
 
@@ -190,7 +195,9 @@ export function GlobeDemo({
 					className={cn("relative h-120 w-full md:h-152", globeHeightClassName)}
 				>
 					{isMounted ? (
-						<World data={arcs} globeConfig={GLOBE_CONFIG} />
+						<Suspense fallback={<GlobeFallback />}>
+							<World data={arcs} globeConfig={GLOBE_CONFIG} />
+						</Suspense>
 					) : (
 						<GlobeFallback />
 					)}

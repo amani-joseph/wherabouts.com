@@ -18,11 +18,7 @@ export interface DirectionsResult {
 	geometry: GeoJsonLineString;
 }
 
-export type RoutingErrorKind =
-	| "no_route"
-	| "no_match"
-	| "no_trip"
-	| "unavailable";
+export type RoutingErrorKind = "no_route" | "no_match" | "unavailable";
 
 export class RoutingError extends Error {
 	readonly kind: RoutingErrorKind;
@@ -106,7 +102,7 @@ interface OsrmResponse {
  * fetch throws "Illegal invocation" otherwise).
  */
 async function osrmRequest(
-	service: "route" | "table" | "match" | "trip",
+	service: "route" | "table" | "match",
 	profile: RoutingProfile,
 	coords: string,
 	query: Record<string, string>,
@@ -347,117 +343,5 @@ export async function fetchOsrmMatch(
 			geometry: m.geometry,
 		})),
 		tracepoints: body.tracepoints ?? [],
-	};
-}
-
-export interface Trip {
-	distance_m: number;
-	duration_s: number;
-	geometry: GeoJsonLineString;
-}
-
-export interface TripWaypoint {
-	/** Snapped [lng, lat] location on the road network. */
-	location: [number, number];
-	/** Index of the trip this waypoint belongs to. */
-	trips_index: number;
-	/** Position of this waypoint in the optimised visiting order. */
-	waypoint_index: number;
-}
-
-export interface TripResult {
-	trips: Trip[];
-	/** One entry per input waypoint (input order); `waypoint_index` is its tour position. */
-	waypoints: TripWaypoint[];
-}
-
-interface OsrmTripResponse {
-	code: string;
-	trips?: {
-		distance: number;
-		duration: number;
-		geometry: GeoJsonLineString;
-	}[];
-	waypoints?: TripWaypoint[];
-}
-
-interface TripOptions extends OsrmOptions {
-	/** Fix the end: `any` (default) or `last`. */
-	destination?: "any" | "last";
-	profile: RoutingProfile;
-	/** Return to the start (TSP cycle). Default `true`. */
-	roundtrip?: boolean;
-	/** Fix the start: `any` (default) or `first`. */
-	source?: "any" | "first";
-}
-
-/**
- * Solve a near-optimal visiting order over `waypoints` via OSRM `/trip` (TSP).
- * Returns the trip geometry/distance/duration + each waypoint's tour position
- * (`waypoint_index`). OSRM only supports an open trip (`roundtrip=false`) when an
- * end is fixed; unsupported combos (`NotImplemented`) and `NoTrip` map to
- * `RoutingError("no_trip")` (→ 422), distinct from `unavailable` (→ 500).
- */
-export async function fetchOsrmTrip(
-	waypoints: LatLng[],
-	options: TripOptions
-): Promise<TripResult> {
-	const roundtrip = options.roundtrip ?? true;
-	// OSRM rejects an open trip with both ends free; require at least one fixed.
-	if (
-		!roundtrip &&
-		options.source !== "first" &&
-		options.destination !== "last"
-	) {
-		throw new RoutingError(
-			"no_trip",
-			"An open trip (roundtrip=false) requires source=first and/or destination=last."
-		);
-	}
-
-	// OSRM coordinate order is lon,lat (not lat,lng).
-	const coordString = waypoints.map((c) => `${c.lng},${c.lat}`).join(";");
-	const query: Record<string, string> = {
-		geometries: "geojson",
-		overview: "full",
-		roundtrip: String(roundtrip),
-	};
-	if (options.source) {
-		query.source = options.source;
-	}
-	if (options.destination) {
-		query.destination = options.destination;
-	}
-
-	const body = (await osrmRequest(
-		"trip",
-		options.profile,
-		coordString,
-		query,
-		options
-	)) as OsrmTripResponse;
-
-	if (body.code === "NoTrip" || body.code === "NotImplemented") {
-		throw new RoutingError(
-			"no_trip",
-			body.code === "NoTrip"
-				? "No trip found for the given waypoints."
-				: "The requested roundtrip/source/destination combination is not supported."
-		);
-	}
-	if (body.code !== "Ok" || !(body.trips && body.waypoints)) {
-		throw new RoutingError(
-			"unavailable",
-			`OSRM trip request failed (code ${body.code}).`
-		);
-	}
-
-	return {
-		trips: body.trips.map((t) => ({
-			distance_m: Math.round(t.distance),
-			duration_s: Math.round(t.duration),
-			geometry: t.geometry,
-		})),
-		waypoints: body.waypoints,
 	};
 }

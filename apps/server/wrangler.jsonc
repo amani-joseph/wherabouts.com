@@ -27,6 +27,9 @@
 			"head_sampling_rate": 1
 		}
 	},
+	"triggers": {
+		"crons": ["0 * * * *"]
+	},
 	"queues": {
 		"producers": [
 			{ "queue": "wherabouts-batch-geocode", "binding": "BATCH_GEOCODE_QUEUE" },

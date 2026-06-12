@@ -1,4 +1,3 @@
-import { env } from "@wherabouts.com/env/web";
 import {
 	Map,
 	MapClusterLayer,
@@ -11,14 +10,11 @@ import {
 	OPENFREEMAP_DARK,
 	OPENFREEMAP_LIGHT,
 } from "@/components/map/map-style";
-import { buildMapStyleUrl } from "@/components/map/map-style";
 import type { BatchResultRow } from "./results-table";
 
-// Shared dark basemap (same one the zone maps use) — free, no key, CORS-open.
+// Shared basemap (same one the zone maps use) — free, no key, CORS-open, and
+// ships working glyphs, unlike the mapcn Carto default whose label fonts 404.
 const BASEMAP = { dark: OPENFREEMAP_DARK, light: OPENFREEMAP_LIGHT };
-// Reuse the project's basemap (matches the zone maps) — also keeps glyphs on a
-// CORS-clean provider (MapTiler / OSM raster) instead of the mapcn Carto default.
-const projectStyle = buildMapStyleUrl(env.VITE_MAPTILER_KEY);
 const MAP_HEIGHT_PX = 480;
 const CLUSTER_COLORS: [string, string, string] = [
 	"#3b82f6",
@@ -121,6 +117,7 @@ export function ResultsMap({ results }: ResultsMapProps) {
 				<Map
 					center={AU_CENTER}
 					fadeDuration={0}
+					styles={BASEMAP}
 					zoom={AU_ZOOM}
 				>
 					<MapClusterLayer<PointProps>

@@ -1,3 +1,10 @@
+export type {
+	BillingAccount,
+	BillingMeterReport,
+	NewBillingAccount,
+	NewBillingMeterReport,
+} from "./billing.ts";
+export { billingAccounts, billingMeterReports } from "./billing.ts";
 export type { Address, NewAddress } from "./addresses.ts";
 export { addresses } from "./addresses.ts";
 export type {

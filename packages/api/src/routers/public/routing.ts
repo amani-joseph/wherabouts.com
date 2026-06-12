@@ -15,7 +15,6 @@ import {
 	fetchOsrmMatch,
 	fetchOsrmRoute,
 	fetchOsrmTable,
-	fetchOsrmTrip,
 	type LatLng,
 	parseLatLng,
 	RoutingError,
@@ -488,120 +487,6 @@ export const routingMatch = baseBuilder
 			};
 		} catch (error) {
 			if (error instanceof RoutingError && error.kind === "no_match") {
-				throw new ORPCError("UNPROCESSABLE_CONTENT", {
-					message: error.message,
-				});
-			}
-			if (error instanceof RoutingError) {
-				throw new ORPCError("INTERNAL_SERVER_ERROR", {
-					message: "Routing service unavailable.",
-				});
-			}
-			throw error;
-		}
-	});
-
-/** Upper bound on optimize waypoints; keeps OSRM `/trip` responsive. */
-const MAX_OPTIMIZE_WAYPOINTS = 50;
-
-interface OptimizeWaypoint {
-	addressId?: number;
-	lat?: number;
-	lng?: number;
-}
-
-/**
- * Resolve one optimize waypoint to coordinates — exactly one of a `{lat,lng}`
- * pair or an `addressId`. Throws `BAD_REQUEST`/`NOT_FOUND`. Exported for testing.
- */
-export async function resolveOptimizeWaypoint(
-	db: Database,
-	index: number,
-	wp: OptimizeWaypoint
-): Promise<LatLng> {
-	const hasCoords = wp.lat !== undefined && wp.lng !== undefined;
-	const hasAddress = wp.addressId !== undefined;
-	if (hasCoords && hasAddress) {
-		throw new ORPCError("BAD_REQUEST", {
-			message: `waypoint[${index}]: provide either lat/lng or addressId, not both.`,
-		});
-	}
-	if (hasAddress) {
-		const coords = await resolveAddressCoords(db, wp.addressId as number);
-		if (!coords) {
-			throw new ORPCError("NOT_FOUND", {
-				message: `waypoint[${index}]: address ${wp.addressId} not found.`,
-			});
-		}
-		return coords;
-	}
-	if (hasCoords) {
-		return { lat: wp.lat as number, lng: wp.lng as number };
-	}
-	throw new ORPCError("BAD_REQUEST", {
-		message: `waypoint[${index}]: provide lat/lng or addressId.`,
-	});
-}
-
-export const routingOptimize = baseBuilder
-	.use(apiKeyAuth)
-	.use(usageMiddleware("routing.optimize"))
-	.route({
-		method: "POST",
-		path: "/api/v1/routing/optimize",
-		summary: "Optimise the visiting order of a set of stops (TSP)",
-		tags: ["routing"],
-	})
-	.input(
-		z.object({
-			profile: z.enum(["driving", "walking", "cycling"]).default("driving"),
-			waypoints: z
-				.array(
-					z.object({
-						lat: z.number().min(-90).max(90).optional(),
-						lng: z.number().min(-180).max(180).optional(),
-						addressId: z.number().int().min(1).optional(),
-					})
-				)
-				.min(2, "Provide at least two waypoints to optimise."),
-			roundtrip: z.boolean().default(true),
-			source: z.enum(["any", "first"]).optional(),
-			destination: z.enum(["any", "last"]).optional(),
-		})
-	)
-	.handler(async ({ input, context }) => {
-		if (input.waypoints.length > MAX_OPTIMIZE_WAYPOINTS) {
-			throw new ORPCError("BAD_REQUEST", {
-				message: `Optimisation is limited to ${MAX_OPTIMIZE_WAYPOINTS} waypoints.`,
-			});
-		}
-		const resolved: LatLng[] = [];
-		for (const [index, wp] of input.waypoints.entries()) {
-			resolved.push(await resolveOptimizeWaypoint(context.db, index, wp));
-		}
-
-		try {
-			const trip = await fetchOsrmTrip(resolved, {
-				baseUrl: serverEnv.OSRM_BASE_URL,
-				authToken: serverEnv.OSRM_AUTH_TOKEN,
-				fetchImpl: globalThis.fetch.bind(globalThis),
-				profile: input.profile,
-				roundtrip: input.roundtrip,
-				source: input.source,
-				destination: input.destination,
-			});
-			return {
-				query: { profile: input.profile, roundtrip: input.roundtrip },
-				trips: trip.trips,
-				// Echo each input waypoint with its resolved coords + optimised order.
-				waypoints: resolved.map((coords, i) => ({
-					input_index: i,
-					coords,
-					order: trip.waypoints[i]?.waypoint_index ?? null,
-				})),
-			};
-		} catch (error) {
-			if (error instanceof RoutingError && error.kind === "no_trip") {
 				throw new ORPCError("UNPROCESSABLE_CONTENT", {
 					message: error.message,
 				});
