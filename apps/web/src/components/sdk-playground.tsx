@@ -13,10 +13,15 @@ import {
 	SelectValue,
 } from "@wherabouts.com/ui/components/select";
 import { Textarea } from "@wherabouts.com/ui/components/textarea";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiExplorerEndpoints } from "@/lib/api-explorer-endpoints";
 import { orpcClient } from "@/lib/orpc";
 import { buildSdkSnippet } from "@/lib/sdk-snippet";
+import {
+	type ApiKeyAuthValue,
+	ApiKeyComboboxField,
+} from "./sdk-playground/api-key-combobox";
+import { LocationInput } from "./sdk-playground/location-input";
 
 export function SdkPlayground() {
 	const [endpointId, setEndpointId] = useState(
@@ -28,9 +33,23 @@ export function SdkPlayground() {
 	);
 	const [paramValues, setParamValues] = useState<Record<string, string>>({});
 	const [bodyText, setBodyText] = useState<string>("");
-	const [rawApiKey, setRawApiKey] = useState("");
+	const [authValue, setAuthValue] = useState<ApiKeyAuthValue | null>(null);
+	const [locationComments, setLocationComments] = useState<
+		Record<string, string>
+	>({});
 	const [result, setResult] = useState<string | null>(null);
 	const [running, setRunning] = useState(false);
+
+	// Switching methods clears the previous method's inputs so stale params,
+	// body, and resolved place-name comments don't bleed into the next method's
+	// request or generated snippet.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: endpointId is the trigger, not a value read in the body
+	useEffect(() => {
+		setParamValues({});
+		setBodyText("");
+		setLocationComments({});
+		setResult(null);
+	}, [endpointId]);
 
 	const parseBodyOrUndefined = (): Record<string, unknown> | undefined => {
 		if (!endpoint || endpoint.method === "GET" || bodyText.trim() === "") {
@@ -47,7 +66,7 @@ export function SdkPlayground() {
 	}
 
 	const snippet = endpoint
-		? buildSdkSnippet(endpoint.id, paramValues, snippetBody)
+		? buildSdkSnippet(endpoint.id, paramValues, snippetBody, locationComments)
 		: "";
 
 	const run = async () => {
@@ -65,11 +84,22 @@ export function SdkPlayground() {
 				setRunning(false);
 				return;
 			}
+			if (!authValue) {
+				setResult("Select a saved API key or paste a raw key first.");
+				setRunning(false);
+				return;
+			}
+			const auth =
+				authValue.mode === "managed"
+					? {
+							authMode: "managed" as const,
+							managedKeyId: authValue.managedKeyId,
+						}
+					: { authMode: "raw" as const, rawApiKey: authValue.rawApiKey };
 			const res = await orpcClient.apiExplorer.sendRequest({
-				authMode: "raw",
+				...auth,
 				endpointId: endpoint.id,
 				paramValues,
-				rawApiKey,
 				body: parsedBody,
 			});
 			setResult(JSON.stringify(res.body, null, 2));
@@ -107,26 +137,56 @@ export function SdkPlayground() {
 							))}
 						</SelectContent>
 					</Select>
-					{endpoint?.params.map((p) => (
-						<div className="flex flex-col gap-1" key={p.name}>
-							<label className="text-sm" htmlFor={`pg-${p.name}`}>
-								{p.name}
-								{p.required ? " *" : ""}
-							</label>
-							<input
-								className="rounded border px-2 py-1 text-sm"
-								id={`pg-${p.name}`}
-								onChange={(ev) =>
-									setParamValues((prev) => ({
-										...prev,
-										[p.name]: ev.target.value,
-									}))
-								}
-								placeholder={p.example ?? ""}
-								value={paramValues[p.name] ?? ""}
-							/>
-						</div>
-					))}
+					{endpoint?.params.map((p) => {
+						const isLocation =
+							endpoint.id === "routing.directions" &&
+							(p.name === "from" || p.name === "to");
+						if (isLocation) {
+							return (
+								<LocationInput
+									id={`pg-${p.name}`}
+									key={p.name}
+									label={`${p.name}${p.required ? " *" : ""}`}
+									onChange={(sent) =>
+										setParamValues((prev) => ({ ...prev, [p.name]: sent }))
+									}
+									onResolvedLabelChange={(lbl) =>
+										setLocationComments((prev) => {
+											const next = { ...prev };
+											if (lbl) {
+												next[p.name] = lbl;
+											} else {
+												delete next[p.name];
+											}
+											return next;
+										})
+									}
+									placeholder={p.example ?? "Place name or lat,lng"}
+									value={paramValues[p.name] ?? ""}
+								/>
+							);
+						}
+						return (
+							<div className="flex flex-col gap-1" key={p.name}>
+								<label className="text-sm" htmlFor={`pg-${p.name}`}>
+									{p.name}
+									{p.required ? " *" : ""}
+								</label>
+								<input
+									className="rounded border px-2 py-1 text-sm"
+									id={`pg-${p.name}`}
+									onChange={(ev) =>
+										setParamValues((prev) => ({
+											...prev,
+											[p.name]: ev.target.value,
+										}))
+									}
+									placeholder={p.example ?? ""}
+									value={paramValues[p.name] ?? ""}
+								/>
+							</div>
+						);
+					})}
 					{endpoint && endpoint.method !== "GET" ? (
 						<Textarea
 							className="font-mono text-xs"
@@ -140,12 +200,7 @@ export function SdkPlayground() {
 							value={bodyText}
 						/>
 					) : null}
-					<input
-						className="rounded border px-2 py-1 text-sm"
-						onChange={(ev) => setRawApiKey(ev.target.value)}
-						placeholder="Raw API key (wh_...)"
-						value={rawApiKey}
-					/>
+					<ApiKeyComboboxField onChange={setAuthValue} value={authValue} />
 					<Button disabled={running || !endpoint} onClick={run}>
 						{running ? "Running…" : "Run"}
 					</Button>
