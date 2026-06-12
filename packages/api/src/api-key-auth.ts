@@ -39,17 +39,19 @@ async function deriveApiKeyHash(
 	secretPart: string,
 	salt: Uint8Array
 ): Promise<Buffer> {
-	const keyMaterial = await globalThis.crypto.subtle.importKey(
+	const keyMaterial = await crypto.subtle.importKey(
 		"raw",
 		new TextEncoder().encode(secretPart),
 		"PBKDF2",
 		false,
 		["deriveBits"]
 	);
-	const bits = await globalThis.crypto.subtle.deriveBits(
+	const bits = await crypto.subtle.deriveBits(
 		{
 			name: "PBKDF2",
-			salt,
+			// Copy into a fresh ArrayBuffer-backed view: BufferSource rejects
+			// Uint8Array<ArrayBufferLike> under TS 5.9 generic typed arrays.
+			salt: new Uint8Array(salt),
 			iterations: PBKDF2_ITERATIONS,
 			hash: "SHA-256",
 		},
