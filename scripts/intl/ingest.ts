@@ -116,15 +116,8 @@ const STAGING_COLUMNS =
 	"building_name,flat_type,flat_number,level_type,level_number,number_first," +
 	"number_last,longitude,latitude,confidence,source_id";
 
-const DEDUP_SQL = `
-DELETE FROM addresses_staging a USING addresses_staging b
-WHERE a.ctid < b.ctid
-  AND a.country = b.country AND a.locality = b.locality
-  AND a.street_name = b.street_name
-  AND a.number_first IS NOT DISTINCT FROM b.number_first
-  AND a.flat_number IS NOT DISTINCT FROM b.flat_number
-  AND round(a.latitude::numeric, 5) = round(b.latitude::numeric, 5)
-  AND round(a.longitude::numeric, 5) = round(b.longitude::numeric, 5);`;
+// Dedup moved into the adapters' extract SQL (DuckDB window function) — the
+// Postgres ctid self-join went quadratic past ~6M staged rows.
 
 // search_text mirrors drizzle/0004_autocomplete_search.sql, with NULLIF on
 // empty strings so single-level countries (state='') don't get double spaces
@@ -217,11 +210,10 @@ async function main(): Promise<void> {
 		],
 		{ stdio: ["ignore", "inherit", "inherit"] }
 	);
-	psql(args.db, DEDUP_SQL);
 	const staged = Number(
 		psql(args.db, "SELECT count(*) FROM addresses_staging;")
 	);
-	console.log(`staged ${staged} rows after dedup`);
+	console.log(`staged ${staged} rows (deduped at extract)`);
 
 	// Promote (with optional replace) — single transaction
 	const replaceSql = args.replace

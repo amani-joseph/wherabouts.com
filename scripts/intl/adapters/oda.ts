@@ -94,6 +94,7 @@ export async function runExtract(outPath: string): Promise<ExtractResult> {
 	const sql = `
 CREATE OR REPLACE MACRO squash(x) AS COALESCE(trim(regexp_replace(x, '\\s+', ' ', 'g')), '');
 COPY (
+  SELECT * EXCLUDE (rn) FROM (
   SELECT
     'ODA' AS source,
     'CA' AS country,
@@ -112,12 +113,22 @@ COPY (
     round(TRY_CAST(longitude AS DOUBLE), 7) AS longitude,
     round(TRY_CAST(latitude AS DOUBLE), 7) AS latitude,
     NULL AS confidence,
-    id AS source_id
+    id AS source_id,
+    row_number() OVER (
+      PARTITION BY
+        squash(COALESCE(NULLIF(city_pcs, ''), NULLIF(city, ''), csdname)),
+        squash(COALESCE(NULLIF(str_name_pcs, ''), NULLIF(str_name, ''), street)),
+        CASE WHEN length(squash(street_no)) BETWEEN 1 AND 15 THEN squash(street_no) END,
+        CASE WHEN length(squash(unit)) BETWEEN 1 AND 10 THEN squash(unit) END,
+        round(TRY_CAST(longitude AS DOUBLE), 5),
+        round(TRY_CAST(latitude AS DOUBLE), 5)
+    ) AS rn
   FROM read_csv([${fileList}], header=true, normalize_names=true, union_by_name=true, all_varchar=true)
   WHERE TRY_CAST(longitude AS DOUBLE) BETWEEN -180 AND 180
     AND TRY_CAST(latitude AS DOUBLE) BETWEEN -90 AND 90
     AND (NULLIF(street_no, '') IS NOT NULL
          OR COALESCE(NULLIF(str_name_pcs, ''), NULLIF(str_name, ''), NULLIF(street, '')) IS NOT NULL)
+  ) WHERE rn = 1
 ) TO '${outPath}' (FORMAT csv, HEADER false);
 `;
 	execFileSync("duckdb", ["-c", sql], {
