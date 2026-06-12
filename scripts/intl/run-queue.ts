@@ -86,17 +86,41 @@ function main(): void {
 	}
 	console.log(`queue (${queue.length}): ${queue.join(", ")}`);
 
+	const MAX_ATTEMPTS = 3;
+	const RETRY_DELAY_MS = 60_000;
+
 	for (const country of queue) {
 		const startedAt = Date.now();
 		console.log(`\n===== ${country} =====`);
-		const result = spawnSync(
-			"bun",
-			[new URL("ingest.ts", import.meta.url).pathname, country, "--db", db],
-			{ stdio: "inherit" }
-		);
-		if (result.status !== 0) {
+
+		let succeeded = false;
+		for (let attempt = 1; attempt <= MAX_ATTEMPTS && !succeeded; attempt++) {
+			if (attempt > 1) {
+				console.log(`retry ${attempt}/${MAX_ATTEMPTS} for ${country} in 60s…`);
+				execFileSync("sleep", [String(RETRY_DELAY_MS / 1000)]);
+			}
+			const result = spawnSync(
+				"bun",
+				[new URL("ingest.ts", import.meta.url).pathname, country, "--db", db],
+				{ stdio: "inherit" }
+			);
+			if (result.status === 0) {
+				succeeded = true;
+				break;
+			}
+			// Transient compute restarts (Neon apply_config/suspend) kill connections
+			// mid-step. Promote is transactional, so a failure leaves either 0 rows
+			// (retry cleanly) or all rows (commit succeeded, ack lost — treat as done).
+			if (loadedCountries(db).has(country)) {
+				console.log(
+					`${country}: rows present after failure — promote committed, ack lost. Continuing.`
+				);
+				succeeded = true;
+			}
+		}
+		if (!succeeded) {
 			throw new Error(
-				`${country} failed (exit ${result.status}) — queue stopped; re-run to resume`
+				`${country} failed ${MAX_ATTEMPTS}x — queue stopped; re-run to resume`
 			);
 		}
 		const mins = ((Date.now() - startedAt) / 60_000).toFixed(1);
