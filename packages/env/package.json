@@ -13,6 +13,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@types/node": "^20.19.39",
     "@wherabouts.com/config": "workspace:*",
     "typescript": "^5"
   }

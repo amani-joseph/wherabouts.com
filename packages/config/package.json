@@ -1,5 +1,8 @@
 {
   "name": "@wherabouts.com/config",
   "version": "0.0.0",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^20.19.39"
+  }
 }
