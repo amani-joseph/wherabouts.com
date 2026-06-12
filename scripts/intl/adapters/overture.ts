@@ -25,11 +25,12 @@ export function buildExtractSql(
 	outPath: string
 ): string {
 	// Overture lvl1 values are short region codes in 2-level countries (e.g. US
-	// "AZ", DE "SL"); guard length anyway — never let long names into varchar(10).
+	// "AZ", DE "NW"). Guards: require >=2 levels (in 1-level rows lvl1 IS the
+	// locality, not a region) and length <=10 — never let long names into varchar(10).
 	const stateExpr =
 		config.state === "none"
 			? "''"
-			: "CASE WHEN length(squash(address_levels[1].value)) <= 10 THEN squash(address_levels[1].value) ELSE '' END";
+			: "CASE WHEN len(address_levels) >= 2 AND length(squash(address_levels[1].value)) <= 10 THEN squash(address_levels[1].value) ELSE '' END";
 	return `
 -- squash: trim + collapse internal whitespace (source data sometimes has doubles)
 CREATE OR REPLACE MACRO squash(x) AS COALESCE(trim(regexp_replace(x, '\\s+', ' ', 'g')), '');
