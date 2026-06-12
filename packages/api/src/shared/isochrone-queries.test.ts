@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
 	generateSamplePoints,
+	hullPolygon,
 	ISO_SAMPLE_COUNT,
+	IsochroneError,
 	reachablePoints,
 } from "./isochrone-queries.ts";
 
@@ -67,5 +69,25 @@ describe("reachablePoints", () => {
 		const metric = [[0, 999, 999, 999]];
 		const result = reachablePoints(metric, coords, 10);
 		expect(result).toEqual([{ lat: 0, lng: 0 }]);
+	});
+});
+
+describe("hullPolygon", () => {
+	it("rejects with IsochroneError on a degenerate (<3) point set, without hitting the db", async () => {
+		// db must never be touched on the degenerate path — make any access throw.
+		const db = new Proxy(
+			{},
+			{
+				get() {
+					throw new Error("db should not be queried for <3 points");
+				},
+			}
+		) as never;
+		await expect(
+			hullPolygon(db, [
+				{ lat: 0, lng: 0 },
+				{ lat: 1, lng: 1 },
+			])
+		).rejects.toBeInstanceOf(IsochroneError);
 	});
 });

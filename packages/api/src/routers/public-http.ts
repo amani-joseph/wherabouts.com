@@ -12,7 +12,11 @@ import {
 	forwardGeocode,
 } from "./public/geocode.ts";
 import { regionsClassify } from "./public/regions.ts";
-import { routingDirections, routingMatrix } from "./public/routing.ts";
+import {
+	routingDirections,
+	routingIsochrone,
+	routingMatrix,
+} from "./public/routing.ts";
 import {
 	createWebhook,
 	deleteWebhook,
@@ -306,6 +310,7 @@ export const publicHttpRouter = {
 	routing: {
 		directions: routingDirections,
 		matrix: routingMatrix,
+		isochrone: routingIsochrone,
 	},
 	devices: {
 		deviceLocation: pushDeviceLocation,
