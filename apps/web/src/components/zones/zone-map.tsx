@@ -1,7 +1,8 @@
+import type { GeoJsonPolygon } from "@wherabouts.com/api/routers/public/zones-schema";
+import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-queries";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import { MapCanvas } from "@/components/map/map-canvas";
-import { useAddressOverlay } from "./use-address-overlay.ts";
 import { type UseZoneDraw, useZoneDraw } from "./use-zone-draw.ts";
 
 const EXISTING_SRC = "existing-zones";
@@ -15,8 +16,14 @@ const EMPTY_FC = {
 };
 
 export interface ZoneMapProps {
-	zones: ZoneWithGeometryRow[];
+	highlightZoneIds?: number[];
+	onDrawnPolygonChange?: (polygon: GeoJsonPolygon | null) => void;
+	onPick?: (lat: number, lng: number) => void;
+	onPolygonDrawn?: () => void;
 	onReady?: (controls: UseZoneDraw) => void;
+	picking?: boolean;
+	testPoint?: { lat: number; lng: number } | null;
+	zones: ZoneWithGeometryRow[];
 }
 
 export function ZoneMap({
@@ -30,7 +37,7 @@ export function ZoneMap({
 	highlightZoneIds = [],
 }: ZoneMapProps) {
 	const [map, setMap] = useState<MapLibreMap | null>(null);
-	const draw = useZoneDraw(map);
+	const draw = useZoneDraw(map, { onPolygonDrawn });
 
 	const onReadyRef = useRef(onReady);
 	onReadyRef.current = onReady;
@@ -181,39 +188,6 @@ export function ZoneMap({
 			canvas.style.cursor = "";
 		};
 	}, [map, picking]);
-
-	const fittedRef = useRef(false);
-	useEffect(() => {
-		if (!map || fittedRef.current) {
-			return;
-		}
-		fittedRef.current = true;
-		if (zones.length === 0) {
-			map.jumpTo({ center: [151.2093, -33.8688], zoom: 12 });
-			return;
-		}
-		let minLng = 180;
-		let minLat = 90;
-		let maxLng = -180;
-		let maxLat = -90;
-		for (const z of zones) {
-			for (const ring of z.geometry.coordinates) {
-				for (const [lng, lat] of ring) {
-					minLng = Math.min(minLng, lng);
-					minLat = Math.min(minLat, lat);
-					maxLng = Math.max(maxLng, lng);
-					maxLat = Math.max(maxLat, lat);
-				}
-			}
-		}
-		map.fitBounds(
-			[
-				[minLng, minLat],
-				[maxLng, maxLat],
-			],
-			{ padding: 48, maxZoom: 16, duration: 0 }
-		);
-	}, [map, zones]);
 
 	const fittedRef = useRef(false);
 	useEffect(() => {
