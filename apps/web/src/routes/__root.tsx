@@ -5,13 +5,24 @@ import {
 	Outlet,
 	Scripts,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import { Toaster } from "@wherabouts.com/ui/components/sonner";
+import { lazy, Suspense } from "react";
 import { authClient } from "@/lib/auth-client";
 import { type BetterAuthSession, getSession } from "@/lib/auth-server";
 
 import appCss from "../index.css?url";
+
+// Client-only: the devtools browser build touches `window` at module scope,
+// which crashes SSR in the workerd runtime.
+const TanStackRouterDevtools =
+	typeof window === "undefined"
+		? () => null
+		: lazy(() =>
+				import("@tanstack/react-router-devtools").then((m) => ({
+					default: m.TanStackRouterDevtools,
+				}))
+			);
 
 const fetchSession = createServerFn({ method: "GET" }).handler(async () => {
 	return await getSession();
@@ -88,7 +99,9 @@ function RootDocument() {
 					<Outlet />
 				</div>
 				<Toaster richColors />
-				<TanStackRouterDevtools position="bottom-left" />
+				<Suspense>
+					<TanStackRouterDevtools position="bottom-left" />
+				</Suspense>
 				<Scripts />
 			</body>
 		</html>
