@@ -4,11 +4,20 @@ import { serverEnv } from "@wherabouts.com/env/server";
 import { z } from "zod";
 import { o as baseBuilder } from "../../builder.ts";
 import {
+	generateSamplePoints,
+	hullPolygon,
+	IsochroneError,
+	reachablePoints,
+	regionsOverlappingIsochrone,
+} from "../../shared/isochrone-queries.ts";
+import { parseLayers } from "../../shared/region-queries.ts";
+import {
 	fetchOsrmRoute,
 	fetchOsrmTable,
 	type LatLng,
 	parseLatLng,
 	RoutingError,
+	type RoutingProfile,
 	resolveAddressCoords,
 } from "../../shared/routing-queries.ts";
 import { apiKeyAuth, usageMiddleware } from "../public-middleware.ts";
@@ -259,6 +268,115 @@ export const routingMatrix = baseBuilder
 				destinations: table.destinations,
 			};
 		} catch (error) {
+			if (error instanceof RoutingError) {
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: "Routing service unavailable.",
+				});
+			}
+			throw error;
+		}
+	});
+
+/**
+ * Generous per-profile speed ceiling (m/s) used only to size the sampling
+ * radius from a duration budget — the outer ring must over-reach the true
+ * isochrone so the hull captures its boundary. driving ~108 km/h, cycling
+ * ~29 km/h, walking ~9 km/h.
+ */
+const PROFILE_MAX_SPEED_MPS: Record<RoutingProfile, number> = {
+	driving: 30,
+	cycling: 8,
+	walking: 2.5,
+};
+
+export const routingIsochrone = baseBuilder
+	.use(apiKeyAuth)
+	.use(usageMiddleware("routing.isochrone"))
+	.route({
+		method: "GET",
+		path: "/api/v1/routing/isochrone",
+		summary: "Reachability isochrone polygon for an origin + travel budget",
+		tags: ["routing"],
+	})
+	.input(
+		z
+			.object({
+				// "lat,lng" or a bare G-NAF address id (string ⇒ no z.coerce pitfall).
+				origin: z.string(),
+				profile: z.enum(["driving", "walking", "cycling"]).default("driving"),
+				durationSeconds: z.coerce.number().positive().optional(),
+				distanceMeters: z.coerce.number().positive().optional(),
+				includeRegions: z
+					.enum(["true", "false"])
+					.default("false")
+					.transform((v) => v === "true"),
+				layers: z.string().optional(),
+			})
+			.refine(
+				(d) =>
+					(d.durationSeconds === undefined) !==
+					(d.distanceMeters === undefined),
+				{
+					message:
+						"Provide exactly one of 'durationSeconds' or 'distanceMeters'.",
+				}
+			)
+	)
+	.handler(async ({ input, context }) => {
+		const points = await resolveMatrixPoints(context.db, "origin", [
+			input.origin,
+		]);
+		const origin = points[0];
+		if (!origin) {
+			throw new ORPCError("BAD_REQUEST", { message: "Provide an 'origin'." });
+		}
+
+		const isDuration = input.durationSeconds !== undefined;
+		const budget = (
+			isDuration ? input.durationSeconds : input.distanceMeters
+		) as number;
+		const maxRadiusMeters = isDuration
+			? budget * PROFILE_MAX_SPEED_MPS[input.profile]
+			: budget;
+
+		const samples = generateSamplePoints(origin, { maxRadiusMeters });
+		const coords = [origin, ...samples];
+
+		try {
+			const table = await fetchOsrmTable(coords, {
+				baseUrl: serverEnv.OSRM_BASE_URL,
+				authToken: serverEnv.OSRM_AUTH_TOKEN,
+				fetchImpl: globalThis.fetch.bind(globalThis),
+				profile: input.profile,
+				sources: [0],
+			});
+			const metric = isDuration ? table.durations : table.distances;
+			const reachable = reachablePoints(metric, coords, budget);
+			const polygon = await hullPolygon(context.db, reachable);
+			const regions = input.includeRegions
+				? await regionsOverlappingIsochrone(
+						context.db,
+						polygon,
+						parseLayers(input.layers)
+					)
+				: undefined;
+
+			return {
+				query: {
+					origin,
+					profile: input.profile,
+					durationSeconds: input.durationSeconds,
+					distanceMeters: input.distanceMeters,
+				},
+				polygon,
+				...(regions ? { regions } : {}),
+			};
+		} catch (error) {
+			if (error instanceof IsochroneError) {
+				throw new ORPCError("UNPROCESSABLE_CONTENT", {
+					message: error.message,
+				});
+			}
 			if (error instanceof RoutingError) {
 				throw new ORPCError("INTERNAL_SERVER_ERROR", {
 					message: "Routing service unavailable.",
