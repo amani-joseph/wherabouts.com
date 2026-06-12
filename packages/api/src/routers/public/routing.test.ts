@@ -4,6 +4,7 @@ import {
 	parseMatrixSides,
 	resolveDirectionsInput,
 	resolveMatrixPoints,
+	resolveOptimizeWaypoint,
 } from "./routing.ts";
 
 /** Minimal chainable Drizzle stub whose `.limit()` resolves to `rows`. */
@@ -150,5 +151,46 @@ describe("buildMatchArrays", () => {
 		expect(() => buildMatchArrays([{ ...p0, radius: 5 }, p1])).toThrowError(
 			expect.objectContaining({ code: "BAD_REQUEST" })
 		);
+	});
+});
+
+describe("resolveOptimizeWaypoint", () => {
+	it("returns the lat/lng pair without touching the db", async () => {
+		const coords = await resolveOptimizeWaypoint(mockDb([]), 0, {
+			lat: -37.8136,
+			lng: 144.9631,
+		});
+		expect(coords).toEqual({ lat: -37.8136, lng: 144.9631 });
+	});
+
+	it("resolves an addressId to coordinates", async () => {
+		const coords = await resolveOptimizeWaypoint(
+			mockDb([{ latitude: -37.81, longitude: 144.96 }]),
+			1,
+			{ addressId: 512 }
+		);
+		expect(coords).toEqual({ lat: -37.81, lng: 144.96 });
+	});
+
+	it("throws not_found when the addressId does not resolve", async () => {
+		await expect(
+			resolveOptimizeWaypoint(mockDb([]), 0, { addressId: 999_999 })
+		).rejects.toMatchObject({ code: "NOT_FOUND" });
+	});
+
+	it("throws bad_request when both coords and addressId given", async () => {
+		await expect(
+			resolveOptimizeWaypoint(mockDb([]), 0, {
+				lat: -37.8,
+				lng: 144.9,
+				addressId: 5,
+			})
+		).rejects.toMatchObject({ code: "BAD_REQUEST" });
+	});
+
+	it("throws bad_request when neither coords nor addressId given", async () => {
+		await expect(
+			resolveOptimizeWaypoint(mockDb([]), 0, {})
+		).rejects.toMatchObject({ code: "BAD_REQUEST" });
 	});
 });

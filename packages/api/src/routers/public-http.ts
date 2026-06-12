@@ -17,6 +17,7 @@ import {
 	routingIsochrone,
 	routingMatch,
 	routingMatrix,
+	routingOptimize,
 } from "./public/routing.ts";
 import {
 	createWebhook,
@@ -306,6 +307,7 @@ export const publicHttpRouter = {
 		matrix: routingMatrix,
 		isochrone: routingIsochrone,
 		match: routingMatch,
+		optimize: routingOptimize,
 	},
 	devices: {
 		deviceLocation: pushDeviceLocation,
