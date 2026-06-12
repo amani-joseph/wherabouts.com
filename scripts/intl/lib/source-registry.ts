@@ -124,8 +124,15 @@ export const COUNTRIES: Record<string, CountryConfig> = {
 		state: "none",
 		notes: "3 lvls, last=municipality. nullst 55.5%.",
 	},
+	CA: {
+		adapter: "oda",
+		state: "none", // state derived from PRUID inside the ODA adapter, not address_levels
+		notes:
+			"Tier-1 StatCan ODA (~10M rows, OGL-Canada). _pcs standardized fields used. " +
+			"GAP: ODA v1 has no NL/YT/NU — consider Overture backfill for those provinces later. " +
+			"Postcode coverage varies by provider (PE 100% null).",
+	},
 	// US: { adapter: "nad", ... }   — Tier 1 (deferred phase), see spec §9.1
-	// CA: { adapter: "oda", ... }   — Tier 1, pending adapter build
 };
 
 export function getCountryConfig(country: string): CountryConfig {

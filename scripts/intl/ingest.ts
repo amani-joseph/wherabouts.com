@@ -21,8 +21,16 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { runExtract } from "./adapters/overture";
-import { getCountryConfig, OVERTURE_RELEASE } from "./lib/source-registry";
+import { runExtract as odaExtract } from "./adapters/oda";
+import {
+	type ExtractResult,
+	runExtract as overtureExtract,
+} from "./adapters/overture";
+import {
+	type CountryConfig,
+	getCountryConfig,
+	OVERTURE_RELEASE,
+} from "./lib/source-registry";
 
 const MANIFEST_PATH = new URL("manifest.json", import.meta.url).pathname;
 const HOST_FROM_URL_RE = /.*@([^/:]+).*/;
@@ -139,10 +147,25 @@ SELECT country, state, locality, postcode, street_name, street_type, street_suff
   0, 5
 FROM addresses_staging;`;
 
-function main(): void {
+async function extract(
+	country: string,
+	config: CountryConfig,
+	release: string,
+	csvPath: string
+): Promise<ExtractResult> {
+	if (config.adapter === "overture") {
+		return overtureExtract(country, config, release, csvPath);
+	}
+	if (config.adapter === "oda") {
+		return await odaExtract(csvPath);
+	}
+	throw new Error(`adapter "${config.adapter}" not implemented yet`);
+}
+
+async function main(): Promise<void> {
 	const args = parseArgs(process.argv.slice(2));
 	const config = getCountryConfig(args.country);
-	const csvPath = `/tmp/overture-${args.country.toLowerCase()}.csv`;
+	const csvPath = `/tmp/${config.adapter}-${args.country.toLowerCase()}.csv`;
 
 	console.log(
 		`country=${args.country} adapter=${config.adapter} release=${args.release}`
@@ -169,8 +192,13 @@ function main(): void {
 	}
 
 	// Extract
-	console.log("extracting from Overture…");
-	const { rowCount } = runExtract(args.country, config, args.release, csvPath);
+	console.log(`extracting via ${config.adapter} adapter…`);
+	const { rowCount } = await extract(
+		args.country,
+		config,
+		args.release,
+		csvPath
+	);
 	console.log(`extracted ${rowCount} rows -> ${csvPath}`);
 
 	// Stage
@@ -242,4 +270,4 @@ function main(): void {
 	console.log("done — manifest updated");
 }
 
-main();
+await main();
