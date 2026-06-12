@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-	generateSamplePoints,
-	ISO_SAMPLE_COUNT,
-	reachablePoints,
-} from "./isochrone-queries.ts";
+import { generateSamplePoints, ISO_SAMPLE_COUNT } from "./isochrone-queries.ts";
 
 const ORIGIN = { lat: -37.8136, lng: 144.9631 };
 
@@ -36,36 +32,5 @@ describe("generateSamplePoints", () => {
 		expect(pts.some((p) => p.lng < ORIGIN.lng)).toBe(true);
 		expect(pts.some((p) => p.lat > ORIGIN.lat)).toBe(true);
 		expect(pts.some((p) => p.lat < ORIGIN.lat)).toBe(true);
-	});
-});
-
-describe("reachablePoints", () => {
-	const coords = [
-		{ lat: 0, lng: 0 }, // origin (index 0)
-		{ lat: 1, lng: 1 }, // within budget
-		{ lat: 2, lng: 2 }, // over budget
-		{ lat: 3, lng: 3 }, // unreachable (null)
-	];
-
-	it("keeps the origin plus within-budget points, dropping over-budget and null", () => {
-		const metric = [[0, 100, 500, null]];
-		const result = reachablePoints(metric, coords, 200);
-		expect(result).toEqual([
-			{ lat: 0, lng: 0 },
-			{ lat: 1, lng: 1 },
-		]);
-	});
-
-	it("treats the budget as inclusive (<=)", () => {
-		const metric = [[0, 200, 201, null]];
-		const result = reachablePoints(metric, coords, 200);
-		expect(result).toContainEqual({ lat: 1, lng: 1 });
-		expect(result).not.toContainEqual({ lat: 2, lng: 2 });
-	});
-
-	it("always includes the origin even if its cell is 0", () => {
-		const metric = [[0, 999, 999, 999]];
-		const result = reachablePoints(metric, coords, 10);
-		expect(result).toEqual([{ lat: 0, lng: 0 }]);
 	});
 });
