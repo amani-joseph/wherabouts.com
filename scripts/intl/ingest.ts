@@ -20,7 +20,7 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { runExtract } from "./adapters/overture";
 import { getCountryConfig, OVERTURE_RELEASE } from "./lib/source-registry";
 
@@ -221,6 +221,7 @@ function main(): void {
 
 	if (!args.keepStaging) {
 		psql(args.db, "DROP TABLE addresses_staging;");
+		rmSync(csvPath, { force: true }); // disk hygiene — big-country CSVs add up
 	}
 
 	// Manifest

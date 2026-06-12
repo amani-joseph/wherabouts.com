@@ -18,5 +18,15 @@
     "promoted": 138522,
     "targetHost": "ep-little-fog-a75wrltt.ap-southeast-2.aws.neon.tech",
     "finishedAt": "2026-06-11T21:53:12.135Z"
+  },
+  {
+    "country": "LU",
+    "adapter": "overture",
+    "release": "2026-05-20.0",
+    "extracted": 179062,
+    "staged": 179051,
+    "promoted": 179051,
+    "targetHost": "ep-muddy-cake-a72eh7us.ap-southeast-2.aws.neon.tech",
+    "finishedAt": "2026-06-12T07:52:19.512Z"
   }
 ]

@@ -24,8 +24,12 @@ export function buildExtractSql(
 	release: string,
 	outPath: string
 ): string {
+	// Overture lvl1 values are short region codes in 2-level countries (e.g. US
+	// "AZ", DE "SL"); guard length anyway — never let long names into varchar(10).
 	const stateExpr =
-		config.state === "none" ? "''" : "squash(address_levels[1].value)"; // mapped to codes by the orchestrator post-pass
+		config.state === "none"
+			? "''"
+			: "CASE WHEN length(squash(address_levels[1].value)) <= 10 THEN squash(address_levels[1].value) ELSE '' END";
 	return `
 -- squash: trim + collapse internal whitespace (source data sometimes has doubles)
 CREATE OR REPLACE MACRO squash(x) AS COALESCE(trim(regexp_replace(x, '\\s+', ' ', 'g')), '');
@@ -71,6 +75,9 @@ export function runExtract(
 		stdio: ["ignore", "inherit", "inherit"],
 	});
 	const wc = execFileSync("wc", ["-l", outPath], { encoding: "utf-8" });
-	const rowCount = Number.parseInt(wc.trim().split(WHITESPACE_RE)[0] ?? "0", 10);
+	const rowCount = Number.parseInt(
+		wc.trim().split(WHITESPACE_RE)[0] ?? "0",
+		10
+	);
 	return { csvPath: outPath, rowCount };
 }

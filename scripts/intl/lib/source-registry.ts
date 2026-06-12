@@ -26,8 +26,14 @@ export const COUNTRIES: Record<string, CountryConfig> = {
 		notes:
 			"Single address_level = municipality -> locality. Rural place-name addresses have no number (kept). Validated in smoke test 2026-06-12.",
 	},
-	// US: { adapter: "nad", ... }   — Tier 1, see spec §9.1
-	// CA: { adapter: "oda", ... }   — Tier 1
+	LU: {
+		adapter: "overture",
+		state: "none",
+		notes:
+			"Single address_level = commune (max 30 chars) -> locality. 0 null postcodes/streets in probe. Prod canary 2026-06-12.",
+	},
+	// US: { adapter: "nad", ... }   — Tier 1 (deferred phase), see spec §9.1
+	// CA: { adapter: "oda", ... }   — Tier 1, pending adapter build
 };
 
 export function getCountryConfig(country: string): CountryConfig {
