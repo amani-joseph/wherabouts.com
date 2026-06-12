@@ -217,7 +217,7 @@ Plans:
 Plans:
 - [x] 10-01-PLAN.md — Profile-aware OSRM client + `/matrix` (OSRM `/table`) + multi-profile `directions` + foot/bike OSRM infra (code-complete; OSRM rebuild+volume migration pending deploy window)
 - [x] 10-02-PLAN.md — `/isochrone` reachability polygons (sample → `/table` → PostGIS hull → optional ABS overlap) (code+tests complete; ST_ConcaveHull confirmed on Neon; live smoke pending OSRM deploy)
-- [ ] 10-03-PLAN.md — `/match` GPS map-matching (OSRM `/match`)
+- [x] 10-03-PLAN.md — `/match` GPS map-matching (OSRM `/match`) (code+tests complete; live smoke pending OSRM deploy)
 - [ ] 10-04-PLAN.md — `/optimize` TSP ordering (OSRM `/trip`; VROOM deferred)
 - [ ] 10-05-PLAN.md — SDK `routing` methods + types + tests for all four new endpoints
 
