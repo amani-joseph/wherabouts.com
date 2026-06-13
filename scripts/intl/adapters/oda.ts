@@ -123,7 +123,11 @@ COPY (
         round(TRY_CAST(longitude AS DOUBLE), 5),
         round(TRY_CAST(latitude AS DOUBLE), 5)
     ) AS rn
-  FROM read_csv([${fileList}], header=true, normalize_names=true, union_by_name=true, all_varchar=true)
+  -- quote/escape pinned: DuckDB auto-detects quote=empty on these files (most
+  -- rows are unquoted), then mis-splits the minority of rows with a quoted
+  -- field containing a comma, e.g. full_addr "103, 100 COOPERS CM SW" (AB).
+  FROM read_csv([${fileList}], header=true, normalize_names=true, union_by_name=true,
+                all_varchar=true, quote='"', escape='"')
   WHERE TRY_CAST(longitude AS DOUBLE) BETWEEN -180 AND 180
     AND TRY_CAST(latitude AS DOUBLE) BETWEEN -90 AND 90
     AND (NULLIF(street_no, '') IS NOT NULL
