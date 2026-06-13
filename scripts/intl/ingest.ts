@@ -114,7 +114,7 @@ TRUNCATE addresses_staging;`;
 const STAGING_COLUMNS =
 	"source,country,state,locality,postcode,street_name,street_type,street_suffix," +
 	"building_name,flat_type,flat_number,level_type,level_number,number_first," +
-	"number_last,longitude,latitude,confidence,source_id";
+	"number_last,longitude,latitude,confidence";
 
 // Dedup moved into the adapters' extract SQL (DuckDB window function) — the
 // Postgres ctid self-join went quadratic past ~6M staged rows.

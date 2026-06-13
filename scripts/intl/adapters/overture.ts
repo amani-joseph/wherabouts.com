@@ -56,7 +56,9 @@ COPY (
       round(ST_X(geometry), ${COORD_PRECISION}) AS longitude,
       round(ST_Y(geometry), ${COORD_PRECISION}) AS latitude,
       NULL AS confidence,
-      id AS source_id,
+      -- source_id (GERS id) intentionally dropped: it was staged but never
+      -- promoted to addresses, and at 36 chars/row it was ~31% of the CSV,
+      -- the dominant cost of the network-bound copy on big countries.
       row_number() OVER (
         PARTITION BY
           squash(address_levels[len(address_levels)].value),

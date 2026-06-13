@@ -198,5 +198,45 @@
     "promoted": 5595089,
     "targetHost": "ep-muddy-cake-a72eh7us.ap-southeast-2.aws.neon.tech",
     "finishedAt": "2026-06-12T21:03:25.912Z"
+  },
+  {
+    "country": "BE",
+    "adapter": "overture",
+    "release": "2026-05-20.0",
+    "extracted": 6696054,
+    "staged": 6696054,
+    "promoted": 6696054,
+    "targetHost": "ep-muddy-cake-a72eh7us.ap-southeast-2.aws.neon.tech",
+    "finishedAt": "2026-06-13T04:34:25.198Z"
+  },
+  {
+    "country": "PL",
+    "adapter": "overture",
+    "release": "2026-05-20.0",
+    "extracted": 8528566,
+    "staged": 8528566,
+    "promoted": 8528566,
+    "targetHost": "ep-muddy-cake-a72eh7us.ap-southeast-2.aws.neon.tech",
+    "finishedAt": "2026-06-13T05:42:30.386Z"
+  },
+  {
+    "country": "NL",
+    "adapter": "overture",
+    "release": "2026-05-20.0",
+    "extracted": 9888467,
+    "staged": 9888467,
+    "promoted": 9888467,
+    "targetHost": "ep-muddy-cake-a72eh7us.ap-southeast-2.aws.neon.tech",
+    "finishedAt": "2026-06-13T06:16:55.502Z"
+  },
+  {
+    "country": "ES",
+    "adapter": "overture",
+    "release": "2026-05-20.0",
+    "extracted": 15656293,
+    "staged": 15656293,
+    "promoted": 15656293,
+    "targetHost": "ep-muddy-cake-a72eh7us.ap-southeast-2.aws.neon.tech",
+    "finishedAt": "2026-06-13T07:06:58.118Z"
   }
 ]

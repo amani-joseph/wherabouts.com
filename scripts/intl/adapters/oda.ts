@@ -113,7 +113,7 @@ COPY (
     round(TRY_CAST(longitude AS DOUBLE), 7) AS longitude,
     round(TRY_CAST(latitude AS DOUBLE), 7) AS latitude,
     NULL AS confidence,
-    id AS source_id,
+    -- source_id dropped (staged but never promoted) — see overture.ts
     row_number() OVER (
       PARTITION BY
         squash(COALESCE(NULLIF(city_pcs, ''), NULLIF(city, ''), csdname)),
