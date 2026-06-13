@@ -124,9 +124,12 @@ async function main(): Promise<void> {
 			pendingPrefetch = null;
 		}
 
-		// Kick off the next country's extract while this one loads.
+		// Kick off the next country's extract while this one loads — unless
+		// PREFETCH=0. On a near-full disk, two concurrent DuckDB extracts spill
+		// sort/hash temp simultaneously and can exhaust the volume; disabling
+		// prefetch keeps at most one CSV (+ its temp) on disk at a time.
 		const next = queue[i + 1];
-		if (next && !pendingPrefetch) {
+		if (process.env.PREFETCH !== "0" && next && !pendingPrefetch) {
 			pendingPrefetch = { country: next, done: startPrefetch(next) };
 		}
 
