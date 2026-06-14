@@ -168,3 +168,24 @@ All reachable surfaces benchmarked: public `/api/v1/*` (API key), `/tiles/*`, `/
 
 ### Reproduction
 Production over HTTPS. API-key surface used the owner-supplied project-scoped key; session surface used the owner-supplied browser cookie. GETs/RPC reads: 1 cold + 10 warm samples, p50/p95 via nearest-rank; mutations single-shot; per-request abort 20–30 s. **Neither the API key nor the session token is recorded in this document.**
+
+---
+
+## Remediation results (branch `worktree-perf-api-latency-cost`)
+
+Fixes implemented per `docs/superpowers/specs/2026-06-14-api-latency-cost-design.md` and `docs/superpowers/plans/2026-06-14-api-latency-cost.md`. **These are verified by prod `EXPLAIN (ANALYZE)` and the test suite, NOT by live API latency — they are not yet deployed.** See the deployment note below.
+
+| Fix | Before | After | Evidence |
+|-----|--------|-------|----------|
+| **A1** `nearby`/`reverse` ordering | `ORDER BY ST_Distance(...)` → full Sort of bbox candidates → **>25s timeout** | `ORDER BY geom::geography <-> point` → index-ordered KNN: **Sydney r=2000 495ms, Melbourne r=1000 540ms, ocean/no-match 0.05ms** | prod EXPLAIN. **Already in master** (commit `7f1c3d1`, 2026-06-10) — code fix present, deploy pending |
+| **A2** forward geocode / autocomplete Tier-3 | unindexed `word_similarity`/`levenshtein`/`dmetaphone` over 173.8M rows → **>30s timeout** ("Sydney Opera House") | uppercase-btree prefix anchor bounds the candidate set: **Sydney Opera House 5ms, Bourke Street 0.8ms, Flinders Lane 64ms**, all `idx_addresses_search_text_btree`, no seq scan | prod EXPLAIN; 4 new `anchorToken` unit tests |
+| **A3** `projects.list` / `listApiKeyOptions` | two sequential `neon-http` round-trips (p95 3.2s tail) | two reads run concurrently via `Promise.all` | code; 111 api tests green |
+| **A4** geocode/autocomplete cost backstop | a runaway fuzzy query keeps running (and billing) on Neon after the Worker aborts | pooled `neon-serverless` client wraps the call in a tx holding `SET LOCAL statement_timeout = 3s` → cancelled server-side (spike: cancelled at ~1.6s) | spike + `statementTimeoutSql` unit tests; `wrangler deploy --dry-run` bundles the driver clean |
+
+**Intentional scope decisions:**
+- A1's geography index already existed and was sufficient once the ORDER BY used the `<->` KNN operator — **no new index / DDL** was needed (the audit's "missing index" hypotheses were all disproven; `idx_addresses_geom`, `idx_addresses_geom_geography`, `idx_addresses_search_text_trgm`, and `idx_addresses_search_text_btree` all already exist).
+- A4 wraps **only geocode + autocomplete**, not nearby/reverse — those are already hard-bounded by A1's spatial bbox `Index Cond`, so adding per-request WebSocket+tx overhead there would only slow them.
+- **A5 (`regions` empty `{}`):** confirmed a **data-ingestion gap** (the `regions` table has 0 rows), not a code/latency defect. Out of scope here — load region/boundary data, then re-test.
+
+### ⚠️ Deployment note (critical)
+The live prod audit above reflects a **stale deployment**: prod was running code older than master and still hangs on `nearby` even though A1 landed on master 2026-06-10. There is **no CI/CD** — the server is deployed manually via `pnpm --filter @wherabouts.com/server deploy` (`wrangler deploy`, needs Cloudflare auth). **A1 and A2 only reach users after a deploy.** A deploy fixes the `nearby` hang (A1, already on master) but the `geocode` hang fix (A2) ships with this branch's merge + deploy.
