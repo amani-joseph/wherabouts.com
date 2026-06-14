@@ -22,8 +22,15 @@ export function buildExtractSql(
 	country: string,
 	config: CountryConfig,
 	release: string,
-	outPath: string
+	outPath: string,
+	stateFilter?: string
 ): string {
+	// For huge countries (US, 126M rows) we load one state at a time so each
+	// chunk is European-sized and resumable. stateFilter matches the same
+	// expression we store in the `state` column (address_levels[1]).
+	const statePredicate = stateFilter
+		? `AND squash(address_levels[1].value) = '${stateFilter}'`
+		: "";
 	// Overture lvl1 values are short region codes in 2-level countries (e.g. US
 	// "AZ", DE "NW"). Guards: require >=2 levels (in 1-level rows lvl1 IS the
 	// locality, not a region) and length <=10 — never let long names into varchar(10).
@@ -72,6 +79,7 @@ COPY (
       's3://overturemaps-us-west-2/release/${release}/theme=addresses/type=address/*',
       filename=true, hive_partitioning=1)
     WHERE country = '${country}'
+      ${statePredicate}
       AND geometry IS NOT NULL
       AND (number IS NOT NULL OR street IS NOT NULL)
       AND ST_X(geometry) BETWEEN -180 AND 180
@@ -85,9 +93,10 @@ export function runExtract(
 	country: string,
 	config: CountryConfig,
 	release: string,
-	outPath: string
+	outPath: string,
+	stateFilter?: string
 ): ExtractResult {
-	const sql = buildExtractSql(country, config, release, outPath);
+	const sql = buildExtractSql(country, config, release, outPath, stateFilter);
 	execFileSync("duckdb", ["-c", sql], {
 		stdio: ["ignore", "inherit", "inherit"],
 	});

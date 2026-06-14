@@ -12,6 +12,10 @@
  *   --replace          DELETE existing rows for the country before promote (destructive;
  *                      refused unless given).
  *   --keep-staging     Keep addresses_staging after promote (default: drop).
+ *   --state <CODE>     Load only one state of a big country (e.g. US CA). The
+ *                      load is scoped to (country, state): pre-flight, --replace,
+ *                      and post-flight all key on both, so other states of the
+ *                      same country are untouched. Used by us-queue.ts.
  *
  * Safety invariants:
  *   - Only ever INSERTs rows for the target country; other countries are
@@ -43,6 +47,7 @@ interface Args {
 	keepStaging: boolean;
 	release: string;
 	replace: boolean;
+	state: string;
 	useCachedCsv: boolean;
 }
 
@@ -74,6 +79,7 @@ function parseArgs(argv: string[]): Args {
 		release: flag("release") ?? OVERTURE_RELEASE,
 		dryRun: has("dry-run"),
 		replace: has("replace"),
+		state: (flag("state") ?? "").toUpperCase(),
 		keepStaging: has("keep-staging"),
 		useCachedCsv: has("use-cached-csv"),
 	};
@@ -85,12 +91,22 @@ function psql(db: string, sql: string): string {
 	}).trim();
 }
 
-// Target-country count via idx_addresses_country. Full GROUP BY snapshots were
-// O(table) per country and ballooned post-flight time as the table grew past
-// 40M rows; promote/DELETE are already scoped to one country by construction.
-function countryCount(db: string, country: string): number {
+// SQL predicate scoping a load to a country (and, for big countries, one
+// state). Single-quotes are safe: country/state are validated uppercase codes.
+function scopeWhere(country: string, state: string): string {
+	const stateClause = state ? ` AND state = '${state}'` : "";
+	return `country = '${country}'${stateClause}`;
+}
+
+// Scoped count via idx_addresses_country / idx_addresses_state. Full GROUP BY
+// snapshots were O(table) and ballooned post-flight time as the table grew;
+// promote/DELETE are already scoped to (country[,state]) by construction.
+function scopeCount(db: string, country: string, state: string): number {
 	return Number(
-		psql(db, `SELECT count(*) FROM addresses WHERE country = '${country}';`)
+		psql(
+			db,
+			`SELECT count(*) FROM addresses WHERE ${scopeWhere(country, state)};`
+		)
 	);
 }
 
@@ -143,10 +159,17 @@ async function extract(
 	country: string,
 	config: CountryConfig,
 	release: string,
-	csvPath: string
+	csvPath: string,
+	state: string
 ): Promise<ExtractResult> {
 	if (config.adapter === "overture") {
-		return overtureExtract(country, config, release, csvPath);
+		return overtureExtract(
+			country,
+			config,
+			release,
+			csvPath,
+			state || undefined
+		);
 	}
 	if (config.adapter === "oda") {
 		return await odaExtract(csvPath);
@@ -157,10 +180,14 @@ async function extract(
 async function main(): Promise<void> {
 	const args = parseArgs(process.argv.slice(2));
 	const config = getCountryConfig(args.country);
-	const csvPath = `/tmp/${config.adapter}-${args.country.toLowerCase()}.csv`;
+	const scopeTag = args.state
+		? `${args.country.toLowerCase()}-${args.state.toLowerCase()}`
+		: args.country.toLowerCase();
+	const csvPath = `/tmp/${config.adapter}-${scopeTag}.csv`;
+	const label = args.state ? `${args.country}/${args.state}` : args.country;
 
 	console.log(
-		`country=${args.country} adapter=${config.adapter} release=${args.release}`
+		`country=${args.country}${args.state ? ` state=${args.state}` : ""} adapter=${config.adapter} release=${args.release}`
 	);
 	if (args.dryRun) {
 		console.log(
@@ -175,10 +202,10 @@ async function main(): Promise<void> {
 	console.log(`target host: ${host}`);
 
 	// Pre-flight: refuse silent re-ingest
-	const existing = countryCount(args.db, args.country);
+	const existing = scopeCount(args.db, args.country, args.state);
 	if (existing > 0 && !args.replace) {
 		throw new Error(
-			`${args.country} already has ${existing} rows. Re-run with --replace to delete+reload.`
+			`${label} already has ${existing} rows. Re-run with --replace to delete+reload.`
 		);
 	}
 
@@ -193,7 +220,13 @@ async function main(): Promise<void> {
 		}
 	} else {
 		console.log(`extracting via ${config.adapter} adapter…`);
-		({ rowCount } = await extract(args.country, config, args.release, csvPath));
+		({ rowCount } = await extract(
+			args.country,
+			config,
+			args.release,
+			csvPath,
+			args.state
+		));
 		console.log(`extracted ${rowCount} rows -> ${csvPath}`);
 	}
 
@@ -215,19 +248,20 @@ async function main(): Promise<void> {
 	);
 	console.log(`staged ${staged} rows (deduped at extract)`);
 
-	// Promote (with optional replace) — single transaction
+	// Promote (with optional replace) — single transaction. DELETE is scoped to
+	// (country[,state]) so re-loading one US state never touches the others.
 	const replaceSql = args.replace
-		? `DELETE FROM addresses WHERE country = '${args.country}';`
+		? `DELETE FROM addresses WHERE ${scopeWhere(args.country, args.state)};`
 		: "";
 	psql(args.db, `BEGIN; ${replaceSql} ${PROMOTE_SQL} COMMIT;`);
 
-	// Post-flight: one indexed pass — total + null geoms together. Sanity: the
-	// promote INSERT and optional DELETE are both scoped to the target country,
-	// so other countries cannot change by construction.
+	// Post-flight: one indexed pass — scoped total + null geoms together. The
+	// promote INSERT and optional DELETE are both scoped to (country[,state]),
+	// so rows outside this scope cannot change by construction.
 	const out = psql(
 		args.db,
 		`SELECT count(*) || '|' || count(*) FILTER (WHERE geom IS NULL)
-		 FROM addresses WHERE country = '${args.country}';`
+		 FROM addresses WHERE ${scopeWhere(args.country, args.state)};`
 	);
 	const [promoted, nullGeoms] = out.split("|").map(Number);
 	console.log(`promoted: ${promoted} rows (${nullGeoms} null geoms)`);
@@ -251,6 +285,7 @@ async function main(): Promise<void> {
 		: [];
 	manifest.push({
 		country: args.country,
+		state: args.state || undefined,
 		adapter: config.adapter,
 		release: args.release,
 		extracted: rowCount,
