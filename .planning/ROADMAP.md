@@ -179,7 +179,7 @@ follow in priority order. **P1 (client/mobile SDKs)** is multi-quarter native wo
 tracked as its own future milestone (below), not a phase here.
 
 - [ ] **Phase 9: Publish the TypeScript SDK to npm** (P0) — the built/hardened `@wherabouts/sdk` becomes installable
-- [x] **Phase 10: Advanced routing** (P2) — matrix, multi-profile, isochrones, map-matching, optimisation on existing OSRM (code+tests complete on feat/routing-multiprofile; OSRM 3-profile deploy + live smokes pending a deploy window)
+- [x] **Phase 10: Advanced routing** (P2) — matrix, multi-profile, isochrones, map-matching, optimisation on existing OSRM (code+tests complete on feat/routing-multiprofile; OSRM 3-profile car/bike/foot **deployed & verified** 2026-06-14 on wherabouts-osrm.fly.dev; remaining: API-key end-to-end smokes + SDK publish via Phase 9)
 - [ ] **Phase 11: Server-side DX completion** (P3) — error envelope, rate-limit headers, idempotency enforcement + Python SDK
 - [ ] **Phase 12: Places/POI + address validation** (P4) — AU POI search + G-NAF-canonical address validation
 

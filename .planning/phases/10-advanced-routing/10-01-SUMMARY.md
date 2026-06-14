@@ -19,8 +19,8 @@ date: 2026-06-12
 **Verification:** `pnpm -F @wherabouts.com/api test` → 90/90 green; `check-types` clean; ultracite clean.
 
 ## Success criteria status
-- **SC #1 (`/matrix`)** — ✅ met (unit-tested vs mocked OSRM `/table`). Live spot-check pending deploy.
-- **SC #2 (walking/cycling)** — 🟡 **code-complete**, not end-to-end until foot/bike graphs deploy (Task 5).
+- **SC #1 (`/matrix`)** — ✅ met (unit-tested vs mocked OSRM `/table`; OSRM `/table` backend live).
+- **SC #2 (walking/cycling)** — ✅ **OSRM side met** — foot/bike graphs deployed and serving (verified `/route/v1/{foot,bike}/` → 200 publicly). Worker→OSRM end-to-end via the public API pending a `wh_` key smoke.
 
 ## Deviations from plan
 1. **`driving` → `car` in the OSRM URL.** The existing `routing-queries.test.ts` asserted `/route/v1/driving/`; the plan's `must_haves` require the driving→car mapping (Caddy routes on the `car|foot|bike` segment). Updated that one assertion to `/route/v1/car/`. Safe on the current single-graph server (the profile segment is vestigial there) and required for the Task 5 multi-backend Caddy front.
@@ -36,10 +36,16 @@ date: 2026-06-12
 - `fly.toml` bumped to `performance-4x` / `16gb` (three graphs mmap ~10–12 GB).
 - `osrm-check.sh` / `smoke-test.sh` extended to all three profiles; `SELF-HOSTING.md` / `DEPLOY.md` sizing + paths updated.
 
-**⚠️ Deploy-time, NOT yet done (requires a deploy window + the sized host):**
-1. Re-run `build-graph.sh` (now ~30–60 min, builds 3 graphs) and re-populate the Fly volume with the `{car,bike,foot}/` subdir layout (the old volume has a flat `australia-latest.osrm*` — the new entrypoint looks under `/data/car/`, so **the app will crash-loop until the volume is migrated**).
-2. Resize the Fly volume to ~30–45 GB and the machine to 16 GB before deploy.
-3. Run `osrm-check.sh <token>` → expect 200 + `code:Ok` for car/bike/foot; `smoke-test.sh <key>` → walking route returns.
+**✅ DEPLOYED 2026-06-14 — all three profiles live on `wherabouts-osrm.fly.dev`.**
+- Volume extended 10→45 GB; machine scaled to `performance-4x`/16 GB.
+- Graphs built **on the Fly machine** (not locally): AU `osrm-extract` peaks >8 GB and the local 16 GB Mac caps Docker at 7.65 GB → bike/foot OOM-killed locally. Built car (reused existing flat files) + bike + foot into `/data/{car,bike,foot}` on the 16 GB Fly box instead. See [[osrm-build-needs-16gb-build-on-fly]].
+- Deployed the 3-profile image; **verified publicly**: car/bike/foot all route (HTTP 200 `code:Ok`) with auth; no-auth → 403.
+- Two issues hit + fixed during cutover:
+  1. **bike/foot appeared down right after deploy** — false alarm; the larger graphs (5 G/4.3 G) just take ~1–2 min to load before `osrm-routed` binds its port. No OOM (MemAvailable ~7.8 G steady).
+  2. **Caddy auth bypass** — the `handle @car/@bike/@foot` blocks let path routing pre-empt the bearer-token `respond` (no-auth returned 200). Fixed by wrapping the gate + profile proxies in a single `route {}` so the auth check evaluates first in file order (commit `46233e4`). See [[caddy-handle-blocks-bypass-auth]].
+- Old flat `/data/australia-latest.osrm*` kept as rollback (volume has space); helper scripts cleaned.
+
+**Remaining:** end-to-end smoke through the public API (`api.wherabouts.com/api/v1/routing/directions?profile=walking`) needs a `wh_` key — the OSRM service + contract are verified, so this just confirms the Worker→OSRM hop.
 
 ## Follow-ups
 - SDK `routing.matrix` method + types → plan **10-05**.
