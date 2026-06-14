@@ -52,7 +52,10 @@ COPY (
       '${country}' AS country,
       ${stateExpr} AS state,
       squash(address_levels[len(address_levels)].value) AS locality,
-      squash(postcode) AS postcode,
+      -- postcode is varchar(10); a few source rows carry malformed blobs in this
+      -- field (e.g. MS "WEST POINT, MS. 39773", 21 chars) that overflow it and
+      -- abort the whole COPY. >10 chars = not a real postcode -> empty it.
+      CASE WHEN length(squash(postcode)) <= 10 THEN squash(postcode) ELSE '' END AS postcode,
       squash(street) AS street_name,
       NULL AS street_type, NULL AS street_suffix, NULL AS building_name,
       NULL AS flat_type,

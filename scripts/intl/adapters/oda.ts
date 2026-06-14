@@ -100,7 +100,7 @@ COPY (
     'CA' AS country,
     ${PRUID_CASE} AS state,
     squash(COALESCE(NULLIF(city_pcs, ''), NULLIF(city, ''), csdname)) AS locality,
-    squash(upper(postal_code)) AS postcode,
+    CASE WHEN length(squash(postal_code)) <= 10 THEN squash(upper(postal_code)) ELSE '' END AS postcode,
     squash(COALESCE(NULLIF(str_name_pcs, ''), NULLIF(str_name, ''), street)) AS street_name,
     CASE WHEN length(squash(str_type_pcs)) BETWEEN 1 AND 20 THEN squash(str_type_pcs) END AS street_type,
     CASE WHEN length(squash(str_dir_pcs)) BETWEEN 1 AND 10 THEN squash(str_dir_pcs) END AS street_suffix,
