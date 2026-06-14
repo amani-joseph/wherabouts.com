@@ -1,3 +1,4 @@
+import { neonConfig } from "@neondatabase/serverless";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { ORPCError, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
@@ -11,12 +12,12 @@ import {
 	reportUsageToStripe,
 	stripeCryptoProvider,
 } from "@wherabouts.com/api";
-import type Stripe from "stripe";
 import { auth } from "@wherabouts.com/auth";
 import { serverEnv } from "@wherabouts.com/env/server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import type Stripe from "stripe";
 import {
 	type BatchGeocodeMessage,
 	processBatchGeocodeMessage,
@@ -26,6 +27,14 @@ import {
 	type WebhookDeliveryMessage,
 } from "./queues/webhook-delivery.ts";
 import { handleTileRequest } from "./tiles.ts";
+
+// Cloudflare Workers exposes a global WebSocket; bind it for the pooled Neon
+// driver (drizzle-orm/neon-serverless) used by the geocode/autocomplete
+// statement_timeout backstop. No-op if already configured.
+if (!neonConfig.webSocketConstructor) {
+	neonConfig.webSocketConstructor = (globalThis as { WebSocket?: unknown })
+		.WebSocket as never;
+}
 
 const app = new Hono();
 

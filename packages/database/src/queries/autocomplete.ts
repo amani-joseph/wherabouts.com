@@ -1,5 +1,5 @@
 import { type SQL, sql } from "drizzle-orm";
-import type { Database } from "../client.ts";
+import type { AnyDatabase } from "../index.ts";
 import {
 	type ParsedUnitAddress,
 	parseUnitAddress,
@@ -199,7 +199,7 @@ function mapRowToResult(row: RawAddressRow): AutocompleteResult {
 }
 
 export async function autocompleteAddresses(
-	db: Database,
+	db: AnyDatabase,
 	query: string,
 	options: {
 		country?: string;
@@ -288,7 +288,7 @@ export async function autocompleteAddresses(
 }
 
 async function parsedPathFallback(
-	db: Database,
+	db: AnyDatabase,
 	streetQuery: string,
 	filterClauses: SQL<unknown>[],
 	opts: { limit: number; latitude?: number; longitude?: number }
@@ -312,7 +312,7 @@ async function parsedPathFallback(
 }
 
 async function tieredSearch(
-	db: Database,
+	db: AnyDatabase,
 	trimmed: string,
 	len: number,
 	filterClauses: SQL<unknown>[],
@@ -472,7 +472,7 @@ async function tieredSearch(
  * to the bare `trimmed%` so non-slash flows are unaffected.
  */
 async function prefixSearch(
-	db: Database,
+	db: AnyDatabase,
 	trimmed: string,
 	filterClauses: SQL<unknown>[],
 	opts: {
@@ -535,7 +535,7 @@ async function prefixSearch(
  * remaining tokens with substring matching on the narrowed result set.
  */
 async function ilikeFallback(
-	db: Database,
+	db: AnyDatabase,
 	trimmed: string,
 	filterClauses: SQL<unknown>[],
 	opts: { limit: number }
