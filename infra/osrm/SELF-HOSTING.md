@@ -114,23 +114,20 @@ VPS-specific Caddyfile:
 
 ```caddyfile
 osrm.wherabouts.com {
-	@noauth not header Authorization "Bearer {$OSRM_AUTH_TOKEN}"
-	respond @noauth "Forbidden" 403
+	# `route` forces in-order evaluation so the token gate runs before the
+	# profile proxies. Do NOT use bare `handle` blocks here — path routing
+	# pre-empts the auth `respond` and silently bypasses the token.
+	route {
+		@noauth not header Authorization "Bearer {$OSRM_AUTH_TOKEN}"
+		respond @noauth "Forbidden" 403
 
-	@car path_regexp ^/[^/]+/v1/car/
-	@bike path_regexp ^/[^/]+/v1/bike/
-	@foot path_regexp ^/[^/]+/v1/foot/
+		@car path_regexp ^/[^/]+/v1/car/
+		reverse_proxy @car localhost:5001
+		@bike path_regexp ^/[^/]+/v1/bike/
+		reverse_proxy @bike localhost:5002
+		@foot path_regexp ^/[^/]+/v1/foot/
+		reverse_proxy @foot localhost:5003
 
-	handle @car {
-		reverse_proxy localhost:5001
-	}
-	handle @bike {
-		reverse_proxy localhost:5002
-	}
-	handle @foot {
-		reverse_proxy localhost:5003
-	}
-	handle {
 		reverse_proxy localhost:5001
 	}
 }
