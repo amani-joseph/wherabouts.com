@@ -179,7 +179,7 @@ follow in priority order. **P1 (client/mobile SDKs)** is multi-quarter native wo
 tracked as its own future milestone (below), not a phase here.
 
 - [ ] **Phase 9: Publish the TypeScript SDK to npm** (P0) — the built/hardened `@wherabouts/sdk` becomes installable
-- [ ] **Phase 10: Advanced routing** (P2) — matrix, multi-profile, isochrones, map-matching, optimisation on existing OSRM
+- [x] **Phase 10: Advanced routing** (P2) — matrix, multi-profile, isochrones, map-matching, optimisation on existing OSRM (code+tests complete on feat/routing-multiprofile; OSRM 3-profile deploy + live smokes pending a deploy window)
 - [ ] **Phase 11: Server-side DX completion** (P3) — error envelope, rate-limit headers, idempotency enforcement + Python SDK
 - [ ] **Phase 12: Places/POI + address validation** (P4) — AU POI search + G-NAF-canonical address validation
 
@@ -218,8 +218,8 @@ Plans:
 - [x] 10-01-PLAN.md — Profile-aware OSRM client + `/matrix` (OSRM `/table`) + multi-profile `directions` + foot/bike OSRM infra (code-complete; OSRM rebuild+volume migration pending deploy window)
 - [x] 10-02-PLAN.md — `/isochrone` reachability polygons (sample → `/table` → PostGIS hull → optional ABS overlap) (code+tests complete; ST_ConcaveHull confirmed on Neon; live smoke pending OSRM deploy)
 - [x] 10-03-PLAN.md — `/match` GPS map-matching (OSRM `/match`) (code+tests complete; live smoke pending OSRM deploy)
-- [ ] 10-04-PLAN.md — `/optimize` TSP ordering (OSRM `/trip`; VROOM deferred)
-- [ ] 10-05-PLAN.md — SDK `routing` methods + types + tests for all four new endpoints
+- [x] 10-04-PLAN.md — `/optimize` TSP ordering (OSRM `/trip`; VROOM deferred) (code+tests complete; D2 resolved OSRM Trip; live smoke pending OSRM deploy)
+- [x] 10-05-PLAN.md — SDK `routing` methods + types + tests for all four new endpoints (build + lint:pkg clean; no version bump — publishing deferred to Phase 9)
 
 ### Phase 11: Server-side DX completion (API contract enforcement + Python SDK)
 **Goal:** The server emits and enforces the resilience signals the TS SDK already sends, and a Python SDK mirrors the proven namespaced surface — completing the server-side developer story
