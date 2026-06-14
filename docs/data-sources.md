@@ -6,6 +6,28 @@
 
 ---
 
+## 0. Loaded state (campaign complete 2026-06-14)
+
+**Production `addresses` table: 175,257,723 rows · 27 countries · 86 GB.** Neon compute held at 4–8 CU steady-state (the 80 GB+ index working set exceeds the prior 2 CU cache; warm proximity latency ~58 ms post-load).
+
+Per-country actual loaded counts (after extract-stage dedup):
+
+| CC | Rows | CC | Rows | CC | Rows |
+|---|---|---|---|---|---|
+| AU | 16,841,097 | FR | 26,055,819 | NL | 9,888,467 |
+| DE | 19,259,591 | IT | 25,913,333 | PL | 8,528,566 |
+| ES | 15,656,293 | CA | 10,050,845 | BE | 6,696,054 |
+| PT | 5,595,089 | FI | 3,599,037 | NO | 3,579,905 |
+| DK | 3,933,282 | CH | 3,288,025 | CZ | 3,014,719 |
+| AT | 2,516,318 | RS | 2,672,273 | EE | 2,183,077 |
+| SK | 1,697,459 | HR | 1,679,224 | LT | 1,125,012 |
+| SI | 579,011 | LV | 548,408 | LU | 179,051 |
+| IS | 138,522 | FO | 26,300 | LI | 12,946 |
+
+Known follow-ups: ① Tier-1 upgrades pending for US (NAD) and FR/NL (BAN/BAG) — see §4. ② Enrichment stages (libpostal street-type, GeoNames populationScore) not yet run — §4. ③ CA gap: ODA v1 has no NL/YT/NU. ④ Neon password rotation pending (held by user).
+
+---
+
 ## 1. Live sources
 
 | Source | Countries | Loaded version | Cadence | Update check | License / attribution |
