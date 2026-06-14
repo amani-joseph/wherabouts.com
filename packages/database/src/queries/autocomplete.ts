@@ -4,6 +4,7 @@ import {
 	type ParsedUnitAddress,
 	parseUnitAddress,
 } from "./parse-unit-address.ts";
+import { anchorToken } from "./query-tokens.ts";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.3;
 const LEVENSHTEIN_SHORT_MAX_DISTANCE = 1;
@@ -206,12 +207,28 @@ export async function autocompleteAddresses(
 		limit?: number;
 		latitude?: number;
 		longitude?: number;
+		/**
+		 * Run the last-resort levenshtein (edit-distance) + dmetaphone (phonetic)
+		 * fallbacks when earlier tiers find nothing. These scan the anchored
+		 * btree range's heap and are the dominant COLD-cache cost on no-match
+		 * queries. Default true (typeahead typo tolerance); forward geocode sets
+		 * false — word_similarity already covers typos and phonetic matches
+		 * rarely yield a correct geocode. See A2 cold-cache follow-up.
+		 */
+		phoneticFallback?: boolean;
 	} = {}
 ): Promise<{
 	results: AutocompleteResult[];
 	parsedQuery: ParsedUnitAddress | null;
 }> {
-	const { country, state, limit = 10, latitude, longitude } = options;
+	const {
+		country,
+		state,
+		limit = 10,
+		latitude,
+		longitude,
+		phoneticFallback = true,
+	} = options;
 	const trimmed = query.trim();
 	if (!trimmed) {
 		return { results: [], parsedQuery: null };
@@ -266,6 +283,7 @@ export async function autocompleteAddresses(
 			limit,
 			latitude,
 			longitude,
+			phoneticFallback,
 		});
 	} catch {
 		results = await ilikeFallback(db, searchInput, filterClauses, { limit });
@@ -315,9 +333,14 @@ async function tieredSearch(
 	trimmed: string,
 	len: number,
 	filterClauses: SQL<unknown>[],
-	opts: { limit: number; latitude?: number; longitude?: number }
+	opts: {
+		limit: number;
+		latitude?: number;
+		longitude?: number;
+		phoneticFallback?: boolean;
+	}
 ): Promise<AutocompleteResult[]> {
-	const { limit, latitude, longitude } = opts;
+	const { limit, latitude, longitude, phoneticFallback = true } = opts;
 	const orderBy = buildOrderBy(latitude, longitude, "similarity_score");
 
 	// Tier 1 (3-4 chars): Prefix search only (uses B-tree text_pattern_ops index)
@@ -363,6 +386,12 @@ async function tieredSearch(
 			return rows.map(mapRowToResult);
 		}
 
+		// Last-resort edit-distance fallback — skipped when phoneticFallback is
+		// off (forward geocode) to avoid the cold-cache heap scan on no-match.
+		if (!phoneticFallback) {
+			return [];
+		}
+
 		// Levenshtein fallback (distance <= 1)
 		const levenshteinWhere = buildWhereClause(
 			sql`levenshtein(lower(left(search_text, ${len + 2})), lower(${trimmed})) <= ${LEVENSHTEIN_SHORT_MAX_DISTANCE}`,
@@ -382,12 +411,27 @@ async function tieredSearch(
 		);
 	}
 
-	// Tier 3 (8+ chars): Word similarity with wider fuzzy tolerance + phonetic fallback
+	// Tier 3 (8+ chars): Word similarity + levenshtein + phonetic.
+	// All three are unindexed over the full table, so AND a selective prefix
+	// anchor to bound the candidate set. If no anchor qualifies, skip Tier 3
+	// entirely (returns [] -> geocode maps to 404, autocomplete to no results).
+	// See docs/superpowers/specs/2026-06-14-api-latency-cost-design.md (A2).
+	const anchor = anchorToken(trimmed);
+	if (!anchor) {
+		return [];
+	}
+	// search_text is stored uppercase; a case-sensitive LIKE on the uppercased
+	// prefix uses idx_addresses_search_text_btree (text_pattern_ops) as a range
+	// scan (~5ms). ILIKE would fall back to the GIN trigram index → 100K-row
+	// bitmap + heap recheck (~11s cold). See design doc A2.
+	const anchorClause = sql`search_text LIKE ${`${anchor.toUpperCase()}%`}`;
+	const tier3Filters = [...filterClauses, anchorClause];
+
 	await db.execute(sql`SELECT set_limit(${TRIGRAM_SIMILARITY_THRESHOLD})`);
 
 	const tier3Where = buildWhereClause(
-		sql`search_text <%% ${trimmed}::text`,
-		filterClauses
+		sql`search_text <% ${trimmed}::text`,
+		tier3Filters
 	);
 
 	const result = await db.execute(sql`
@@ -405,10 +449,18 @@ async function tieredSearch(
 		return rows.map(mapRowToResult);
 	}
 
+	// Last-resort edit-distance + phonetic fallbacks — skipped when
+	// phoneticFallback is off (forward geocode). These scan the anchored btree
+	// range's heap and are the dominant cold-cache cost on no-match queries;
+	// word_similarity above already provides typo tolerance.
+	if (!phoneticFallback) {
+		return [];
+	}
+
 	// Levenshtein fallback (distance <= 2)
 	const levenshteinWhere = buildWhereClause(
 		sql`levenshtein(lower(left(search_text, ${len + 2})), lower(${trimmed})) <= ${LEVENSHTEIN_LONG_MAX_DISTANCE}`,
-		filterClauses
+		tier3Filters
 	);
 
 	const levenshteinResult = await db.execute(sql`
@@ -428,7 +480,7 @@ async function tieredSearch(
 	// Phonetic fallback (dmetaphone)
 	const phoneticWhere = buildWhereClause(
 		sql`dmetaphone(left(search_text, 20)) = dmetaphone(${trimmed})`,
-		filterClauses
+		tier3Filters
 	);
 
 	const phoneticResult = await db.execute(sql`
@@ -446,8 +498,11 @@ async function tieredSearch(
 
 /**
  * Fast prefix search that works without any extensions.
- * Uses `search_text ILIKE 'query%'` which can leverage a B-tree index
- * with text_pattern_ops or the default collation.
+ * Uses case-sensitive `search_text LIKE 'QUERY%'` on the UPPERCASED prefix so
+ * it uses idx_addresses_search_text_btree (text_pattern_ops). search_text is
+ * stored uppercase. NOTE: case-insensitive ILIKE does NOT use that btree — it
+ * falls back to a full trigram/seq scan (>30s on the 173M-row table), which was
+ * the forward-geocode/autocomplete hang. See design doc A2.
  *
  * When `parsed` carries a streetNumber (e.g. input was "5/120 Main St"),
  * search_text is stored as "120 Main St ..." so the bare streetQuery prefix
@@ -472,9 +527,10 @@ async function prefixSearch(
 	// search_text is stored: "120 Main St%".  This is the primary fix for the
 	// slash-unit input path ("5/120 Main St" → streetNumber="120", trimmed="Main St").
 	if (parsed?.streetNumber && trimmed) {
-		const numberFirstPattern = `${parsed.streetNumber} ${trimmed}%`;
+		const numberFirstPattern =
+			`${parsed.streetNumber} ${trimmed}%`.toUpperCase();
 		const whereClause = buildWhereClause(
-			sql`search_text ILIKE ${numberFirstPattern}`,
+			sql`search_text LIKE ${numberFirstPattern}`,
 			filterClauses
 		);
 		const result = await db.execute(sql`
@@ -496,9 +552,9 @@ async function prefixSearch(
 
 	// Default: bare prefix search — used for all non-slash inputs and as
 	// fallback when the number-first form returned nothing.
-	const prefixPattern = `${trimmed}%`;
+	const prefixPattern = `${trimmed}%`.toUpperCase();
 	const whereClause = buildWhereClause(
-		sql`search_text ILIKE ${prefixPattern}`,
+		sql`search_text LIKE ${prefixPattern}`,
 		filterClauses
 	);
 

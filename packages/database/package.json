@@ -9,6 +9,7 @@
     "./queries": "./src/queries/index.ts"
   },
   "scripts": {
+    "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -24,6 +25,7 @@
     "@types/node": "^20.19.39",
     "@wherabouts.com/config": "workspace:*",
     "drizzle-kit": "^0.31.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.4"
   }
 }

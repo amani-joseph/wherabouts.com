@@ -26,10 +26,12 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.10",
+    "@neondatabase/serverless": "^1.0.2",
     "@wherabouts.com/config": "workspace:*",
     "turbo": "^2.8.12",
     "typescript": "^5",
-    "ultracite": "7.4.4"
+    "ultracite": "7.4.4",
+    "ws": "^8.21.0"
   },
   "packageManager": "pnpm@10.12.4"
 }
