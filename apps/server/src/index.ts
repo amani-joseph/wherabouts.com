@@ -1,4 +1,3 @@
-import { neonConfig } from "@neondatabase/serverless";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { ORPCError, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
@@ -27,14 +26,6 @@ import {
 	type WebhookDeliveryMessage,
 } from "./queues/webhook-delivery.ts";
 import { handleTileRequest } from "./tiles.ts";
-
-// Cloudflare Workers exposes a global WebSocket; bind it for the pooled Neon
-// driver (drizzle-orm/neon-serverless) used by the geocode/autocomplete
-// statement_timeout backstop. No-op if already configured.
-if (!neonConfig.webSocketConstructor) {
-	neonConfig.webSocketConstructor = (globalThis as { WebSocket?: unknown })
-		.WebSocket as never;
-}
 
 const app = new Hono();
 

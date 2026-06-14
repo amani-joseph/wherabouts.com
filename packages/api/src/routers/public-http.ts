@@ -1,11 +1,9 @@
 import { ORPCError } from "@orpc/server";
-import { withStatementTimeout } from "@wherabouts.com/database";
 import { autocompleteAddresses } from "@wherabouts.com/database/queries";
 import { addresses } from "@wherabouts.com/database/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { o as baseBuilder } from "../builder.ts";
-import { pooledDb } from "../db.ts";
 import { getDeviceZones, pushDeviceLocation } from "./public/devices.ts";
 import {
 	batchGeocodePoll,
@@ -66,19 +64,17 @@ const autocomplete = baseBuilder
 				message: "Both 'lat' and 'lon' must be provided together.",
 			})
 	)
-	.handler(async ({ input }) => {
-		// Pooled session client + 3s statement_timeout backstop (see geocode).
-		const { results, parsedQuery } = await withStatementTimeout(
-			pooledDb,
-			3000,
-			(tx) =>
-				autocompleteAddresses(tx, input.q, {
-					country: input.country,
-					state: input.state,
-					limit: input.limit,
-					latitude: input.lat,
-					longitude: input.lon,
-				})
+	.handler(async ({ input, context }) => {
+		const { results, parsedQuery } = await autocompleteAddresses(
+			context.db,
+			input.q,
+			{
+				country: input.country,
+				state: input.state,
+				limit: input.limit,
+				latitude: input.lat,
+				longitude: input.lon,
+			}
 		);
 		return { results, count: results.length, parsedQuery };
 	});

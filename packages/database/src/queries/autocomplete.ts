@@ -1,5 +1,5 @@
 import { type SQL, sql } from "drizzle-orm";
-import type { AnyDatabase } from "../index.ts";
+import type { Database } from "../client.ts";
 import {
 	type ParsedUnitAddress,
 	parseUnitAddress,
@@ -199,7 +199,7 @@ function mapRowToResult(row: RawAddressRow): AutocompleteResult {
 }
 
 export async function autocompleteAddresses(
-	db: AnyDatabase,
+	db: Database,
 	query: string,
 	options: {
 		country?: string;
@@ -288,7 +288,7 @@ export async function autocompleteAddresses(
 }
 
 async function parsedPathFallback(
-	db: AnyDatabase,
+	db: Database,
 	streetQuery: string,
 	filterClauses: SQL<unknown>[],
 	opts: { limit: number; latitude?: number; longitude?: number }
@@ -312,7 +312,7 @@ async function parsedPathFallback(
 }
 
 async function tieredSearch(
-	db: AnyDatabase,
+	db: Database,
 	trimmed: string,
 	len: number,
 	filterClauses: SQL<unknown>[],
@@ -462,8 +462,11 @@ async function tieredSearch(
 
 /**
  * Fast prefix search that works without any extensions.
- * Uses `search_text ILIKE 'query%'` which can leverage a B-tree index
- * with text_pattern_ops or the default collation.
+ * Uses case-sensitive `search_text LIKE 'QUERY%'` on the UPPERCASED prefix so
+ * it uses idx_addresses_search_text_btree (text_pattern_ops). search_text is
+ * stored uppercase. NOTE: case-insensitive ILIKE does NOT use that btree — it
+ * falls back to a full trigram/seq scan (>30s on the 173M-row table), which was
+ * the forward-geocode/autocomplete hang. See design doc A2.
  *
  * When `parsed` carries a streetNumber (e.g. input was "5/120 Main St"),
  * search_text is stored as "120 Main St ..." so the bare streetQuery prefix
@@ -472,7 +475,7 @@ async function tieredSearch(
  * to the bare `trimmed%` so non-slash flows are unaffected.
  */
 async function prefixSearch(
-	db: AnyDatabase,
+	db: Database,
 	trimmed: string,
 	filterClauses: SQL<unknown>[],
 	opts: {
@@ -488,9 +491,10 @@ async function prefixSearch(
 	// search_text is stored: "120 Main St%".  This is the primary fix for the
 	// slash-unit input path ("5/120 Main St" → streetNumber="120", trimmed="Main St").
 	if (parsed?.streetNumber && trimmed) {
-		const numberFirstPattern = `${parsed.streetNumber} ${trimmed}%`;
+		const numberFirstPattern =
+			`${parsed.streetNumber} ${trimmed}%`.toUpperCase();
 		const whereClause = buildWhereClause(
-			sql`search_text ILIKE ${numberFirstPattern}`,
+			sql`search_text LIKE ${numberFirstPattern}`,
 			filterClauses
 		);
 		const result = await db.execute(sql`
@@ -512,9 +516,9 @@ async function prefixSearch(
 
 	// Default: bare prefix search — used for all non-slash inputs and as
 	// fallback when the number-first form returned nothing.
-	const prefixPattern = `${trimmed}%`;
+	const prefixPattern = `${trimmed}%`.toUpperCase();
 	const whereClause = buildWhereClause(
-		sql`search_text ILIKE ${prefixPattern}`,
+		sql`search_text LIKE ${prefixPattern}`,
 		filterClauses
 	);
 
@@ -535,7 +539,7 @@ async function prefixSearch(
  * remaining tokens with substring matching on the narrowed result set.
  */
 async function ilikeFallback(
-	db: AnyDatabase,
+	db: Database,
 	trimmed: string,
 	filterClauses: SQL<unknown>[],
 	opts: { limit: number }
