@@ -207,12 +207,28 @@ export async function autocompleteAddresses(
 		limit?: number;
 		latitude?: number;
 		longitude?: number;
+		/**
+		 * Run the last-resort levenshtein (edit-distance) + dmetaphone (phonetic)
+		 * fallbacks when earlier tiers find nothing. These scan the anchored
+		 * btree range's heap and are the dominant COLD-cache cost on no-match
+		 * queries. Default true (typeahead typo tolerance); forward geocode sets
+		 * false — word_similarity already covers typos and phonetic matches
+		 * rarely yield a correct geocode. See A2 cold-cache follow-up.
+		 */
+		phoneticFallback?: boolean;
 	} = {}
 ): Promise<{
 	results: AutocompleteResult[];
 	parsedQuery: ParsedUnitAddress | null;
 }> {
-	const { country, state, limit = 10, latitude, longitude } = options;
+	const {
+		country,
+		state,
+		limit = 10,
+		latitude,
+		longitude,
+		phoneticFallback = true,
+	} = options;
 	const trimmed = query.trim();
 	if (!trimmed) {
 		return { results: [], parsedQuery: null };
@@ -267,6 +283,7 @@ export async function autocompleteAddresses(
 			limit,
 			latitude,
 			longitude,
+			phoneticFallback,
 		});
 	} catch {
 		results = await ilikeFallback(db, searchInput, filterClauses, { limit });
@@ -316,9 +333,14 @@ async function tieredSearch(
 	trimmed: string,
 	len: number,
 	filterClauses: SQL<unknown>[],
-	opts: { limit: number; latitude?: number; longitude?: number }
+	opts: {
+		limit: number;
+		latitude?: number;
+		longitude?: number;
+		phoneticFallback?: boolean;
+	}
 ): Promise<AutocompleteResult[]> {
-	const { limit, latitude, longitude } = opts;
+	const { limit, latitude, longitude, phoneticFallback = true } = opts;
 	const orderBy = buildOrderBy(latitude, longitude, "similarity_score");
 
 	// Tier 1 (3-4 chars): Prefix search only (uses B-tree text_pattern_ops index)
@@ -364,6 +386,12 @@ async function tieredSearch(
 			return rows.map(mapRowToResult);
 		}
 
+		// Last-resort edit-distance fallback — skipped when phoneticFallback is
+		// off (forward geocode) to avoid the cold-cache heap scan on no-match.
+		if (!phoneticFallback) {
+			return [];
+		}
+
 		// Levenshtein fallback (distance <= 1)
 		const levenshteinWhere = buildWhereClause(
 			sql`levenshtein(lower(left(search_text, ${len + 2})), lower(${trimmed})) <= ${LEVENSHTEIN_SHORT_MAX_DISTANCE}`,
@@ -402,7 +430,7 @@ async function tieredSearch(
 	await db.execute(sql`SELECT set_limit(${TRIGRAM_SIMILARITY_THRESHOLD})`);
 
 	const tier3Where = buildWhereClause(
-		sql`search_text <%% ${trimmed}::text`,
+		sql`search_text <% ${trimmed}::text`,
 		tier3Filters
 	);
 
@@ -419,6 +447,14 @@ async function tieredSearch(
 
 	if (rows.length > 0) {
 		return rows.map(mapRowToResult);
+	}
+
+	// Last-resort edit-distance + phonetic fallbacks — skipped when
+	// phoneticFallback is off (forward geocode). These scan the anchored btree
+	// range's heap and are the dominant cold-cache cost on no-match queries;
+	// word_similarity above already provides typo tolerance.
+	if (!phoneticFallback) {
+		return [];
 	}
 
 	// Levenshtein fallback (distance <= 2)
