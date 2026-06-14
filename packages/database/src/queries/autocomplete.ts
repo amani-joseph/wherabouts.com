@@ -4,6 +4,7 @@ import {
 	type ParsedUnitAddress,
 	parseUnitAddress,
 } from "./parse-unit-address.ts";
+import { anchorToken } from "./query-tokens.ts";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.3;
 const LEVENSHTEIN_SHORT_MAX_DISTANCE = 1;
@@ -382,12 +383,27 @@ async function tieredSearch(
 		);
 	}
 
-	// Tier 3 (8+ chars): Word similarity with wider fuzzy tolerance + phonetic fallback
+	// Tier 3 (8+ chars): Word similarity + levenshtein + phonetic.
+	// All three are unindexed over the full table, so AND a selective prefix
+	// anchor to bound the candidate set. If no anchor qualifies, skip Tier 3
+	// entirely (returns [] -> geocode maps to 404, autocomplete to no results).
+	// See docs/superpowers/specs/2026-06-14-api-latency-cost-design.md (A2).
+	const anchor = anchorToken(trimmed);
+	if (!anchor) {
+		return [];
+	}
+	// search_text is stored uppercase; a case-sensitive LIKE on the uppercased
+	// prefix uses idx_addresses_search_text_btree (text_pattern_ops) as a range
+	// scan (~5ms). ILIKE would fall back to the GIN trigram index → 100K-row
+	// bitmap + heap recheck (~11s cold). See design doc A2.
+	const anchorClause = sql`search_text LIKE ${`${anchor.toUpperCase()}%`}`;
+	const tier3Filters = [...filterClauses, anchorClause];
+
 	await db.execute(sql`SELECT set_limit(${TRIGRAM_SIMILARITY_THRESHOLD})`);
 
 	const tier3Where = buildWhereClause(
 		sql`search_text <%% ${trimmed}::text`,
-		filterClauses
+		tier3Filters
 	);
 
 	const result = await db.execute(sql`
@@ -408,7 +424,7 @@ async function tieredSearch(
 	// Levenshtein fallback (distance <= 2)
 	const levenshteinWhere = buildWhereClause(
 		sql`levenshtein(lower(left(search_text, ${len + 2})), lower(${trimmed})) <= ${LEVENSHTEIN_LONG_MAX_DISTANCE}`,
-		filterClauses
+		tier3Filters
 	);
 
 	const levenshteinResult = await db.execute(sql`
@@ -428,7 +444,7 @@ async function tieredSearch(
 	// Phonetic fallback (dmetaphone)
 	const phoneticWhere = buildWhereClause(
 		sql`dmetaphone(left(search_text, 20)) = dmetaphone(${trimmed})`,
-		filterClauses
+		tier3Filters
 	);
 
 	const phoneticResult = await db.execute(sql`
