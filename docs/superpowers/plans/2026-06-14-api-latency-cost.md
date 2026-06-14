@@ -170,7 +170,41 @@ The Tier-3 path (reached by forward geocode and autocomplete for 8+ char queries
 
 **Files:**
 - Create: `packages/database/src/queries/query-tokens.ts`, `packages/database/src/queries/query-tokens.test.ts`
+- Create: `packages/database/vitest.config.ts`; Modify: `packages/database/package.json` (add vitest + `test` script)
 - Modify: `packages/database/src/queries/autocomplete.ts` (the `tieredSearch` Tier-3 block, lines ~385–442)
+
+> **Pre-req (test infra):** The `@wherabouts.com/database` package has **no vitest** (only `db:*` scripts) and an orphaned `parse-unit-address.test.ts` that nothing runs. Before Step 1, stand up vitest in this package — this also covers Task 3's `pooled-client.test.ts`.
+
+- [ ] **Step 0: Add vitest to the database package.**
+
+Add to `packages/database/package.json` devDependencies and scripts (match the version vitest resolves to in `packages/api`):
+
+```jsonc
+  "scripts": {
+    "test": "vitest run",
+    // ...existing db:* scripts unchanged
+  },
+  "devDependencies": {
+    "vitest": "^4.1.4",
+    // ...existing devDeps unchanged
+  }
+```
+
+Create `packages/database/vitest.config.ts` (pure-logic tests need no DB env, so keep it minimal):
+
+```ts
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    environment: "node",
+    include: ["src/**/*.test.ts"],
+  },
+});
+```
+
+Run: `pnpm install` then `pnpm --filter @wherabouts.com/database test`
+Expected: vitest runs and the pre-existing `parse-unit-address.test.ts` passes (confirms the harness works).
 
 - [ ] **Step 1: Write the failing test for the pure anchor-token helper.**
 
@@ -648,10 +682,12 @@ git commit -m "perf(dashboard): parallelize projects.list reads"
 
 ## Task 5: Final verification & audit refresh
 
-- [ ] **Step 1: Run the full workspace test + typecheck.**
+- [ ] **Step 1: Run the test suites + typecheck.**
 
-Run: `pnpm test && pnpm -r check-types`
-Expected: all packages green, `tsc --noEmit` clean across `apps/*` and `packages/*`.
+There is no root `test` script. Run the packages that have tests, plus the turbo typecheck pipeline:
+
+Run: `pnpm --filter @wherabouts.com/api test && pnpm --filter @wherabouts.com/database test && pnpm --filter @wherabouts.com/server test && pnpm check-types`
+Expected: all green; `turbo check-types` clean across the workspace.
 
 - [ ] **Step 2: Re-run the endpoint audit latency sweep against the changed endpoints (production or staging) and capture before/after.**
 
