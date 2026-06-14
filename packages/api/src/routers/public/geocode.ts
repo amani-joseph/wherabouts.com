@@ -1,8 +1,10 @@
 import { ORPCError } from "@orpc/server";
+import { withStatementTimeout } from "@wherabouts.com/database";
 import { autocompleteAddresses } from "@wherabouts.com/database/queries";
 import { z } from "zod";
 import type { ValidatedApiKey } from "../../api-key-auth.ts";
 import { o as baseBuilder } from "../../builder.ts";
+import { pooledDb } from "../../db.ts";
 import {
 	createBatchGeocodeJob,
 	getBatchGeocodeJob,
@@ -69,7 +71,7 @@ export const forwardGeocode = baseBuilder
 		tags: ["addresses"],
 	})
 	.input(geocodeInput)
-	.handler(async ({ input, context }) => {
+	.handler(async ({ input }) => {
 		const isStructured = input.structured === "true";
 
 		// Build the query string
@@ -92,11 +94,15 @@ export const forwardGeocode = baseBuilder
 			state = input.state;
 		}
 
-		const { results } = await autocompleteAddresses(context.db, query, {
-			country,
-			state,
-			limit: 1,
-		});
+		// Run on the pooled session client with a 3s statement_timeout backstop:
+		// a pathological fuzzy search is cancelled server-side instead of hanging.
+		const { results } = await withStatementTimeout(pooledDb, 3000, (tx) =>
+			autocompleteAddresses(tx, query, {
+				country,
+				state,
+				limit: 1,
+			})
+		);
 
 		if (results.length === 0) {
 			throw new ORPCError("NOT_FOUND", {
