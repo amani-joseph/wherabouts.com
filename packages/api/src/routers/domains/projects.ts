@@ -143,17 +143,23 @@ async function assignApiKeyToProject(
 export const projectsRouter = {
 	list: protectedProcedure.handler(async ({ context }) => {
 		const authUserId = context.session.user.id;
-		const projectRows = await context.db
-			.select({
-				id: projects.id,
-				name: projects.name,
-				slug: projects.slug,
-				createdAt: projects.createdAt,
-			})
-			.from(projects)
-			.where(and(eq(projects.userId, authUserId), isNull(projects.archivedAt)))
-			.orderBy(asc(projects.createdAt));
-		const keyRows = await listActiveApiKeyRowsForUser(context.db, authUserId);
+		// These two reads are independent — run them concurrently to avoid a
+		// second sequential neon-http round-trip (projects.list p95 tail).
+		const [projectRows, keyRows] = await Promise.all([
+			context.db
+				.select({
+					id: projects.id,
+					name: projects.name,
+					slug: projects.slug,
+					createdAt: projects.createdAt,
+				})
+				.from(projects)
+				.where(
+					and(eq(projects.userId, authUserId), isNull(projects.archivedAt))
+				)
+				.orderBy(asc(projects.createdAt)),
+			listActiveApiKeyRowsForUser(context.db, authUserId),
+		]);
 		const keyByProjectId = new Map(
 			keyRows
 				.filter((row) => row.projectId)
@@ -170,17 +176,20 @@ export const projectsRouter = {
 	}),
 	listApiKeyOptions: protectedProcedure.handler(async ({ context }) => {
 		const authUserId = context.session.user.id;
-		const projectRows = await context.db
-			.select({
-				id: projects.id,
-				name: projects.name,
-			})
-			.from(projects)
-			.where(eq(projects.userId, authUserId));
+		// Independent reads — run concurrently (see list handler above).
+		const [projectRows, keyRows] = await Promise.all([
+			context.db
+				.select({
+					id: projects.id,
+					name: projects.name,
+				})
+				.from(projects)
+				.where(eq(projects.userId, authUserId)),
+			listActiveApiKeyRowsForUser(context.db, authUserId),
+		]);
 		const projectNameById = new Map(
 			projectRows.map((project) => [project.id, project.name])
 		);
-		const keyRows = await listActiveApiKeyRowsForUser(context.db, authUserId);
 
 		return keyRows.map((row) =>
 			serializeApiKey(
