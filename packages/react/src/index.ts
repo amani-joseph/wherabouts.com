@@ -34,5 +34,12 @@ export type {
 } from "./use-reverse-geocode.ts";
 export { useReverseGeocode } from "./use-reverse-geocode.ts";
 
+export type { RoutingResourceResult } from "./use-routing.ts";
+export {
+	useDirections,
+	useIsochrone,
+	useMatrix,
+} from "./use-routing.ts";
+
 export type { UseZoneContainsResult } from "./use-zone-contains.ts";
 export { useZoneContains } from "./use-zone-contains.ts";
