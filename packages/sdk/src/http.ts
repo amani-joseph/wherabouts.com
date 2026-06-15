@@ -2,6 +2,7 @@ import { WheraboutsApiError } from "./errors.ts";
 import {
 	type HttpMethod,
 	type Requester,
+	type RequestLogEvent,
 	type RequestOptions,
 	WHERABOUTS_API_VERSION,
 	WHERABOUTS_SDK_VERSION,
@@ -157,6 +158,7 @@ export const createRequester = (config: WheraboutsClientConfig): Requester => {
 		// GET/PUT/DELETE are idempotent; POST is only retry-safe with a key (always
 		// set for writes above), so every request here is retryable by method.
 		const callerSignal = opts.signal;
+		const startTime = Date.now();
 
 		let attempt = 0;
 		// Retry loop: returns on success or non-retryable failure; otherwise waits
@@ -183,6 +185,15 @@ export const createRequester = (config: WheraboutsClientConfig): Requester => {
 					headers,
 					body,
 					signal: controller.signal,
+				});
+
+				const durationMs = Date.now() - startTime;
+				config.logger?.({
+					method: opts.method,
+					path: opts.path,
+					status: response.status,
+					durationMs,
+					requestId: readRequestId(response) ?? undefined,
 				});
 
 				if (!response.ok) {

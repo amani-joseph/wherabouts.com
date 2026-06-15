@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { WheraboutsApiError } from "./errors.ts";
 import { createRequester } from "./http.ts";
+import type { RequestLogEvent } from "./shared-types.ts";
 
 interface Captured {
 	body: string | null;
@@ -115,5 +116,35 @@ describe("createRequester", () => {
 		await expect(
 			request({ method: "GET", path: "/api/v1/zones/999" })
 		).rejects.toBeInstanceOf(WheraboutsApiError);
+	});
+
+	it("calls logger after each request with method, path, status, and durationMs", async () => {
+		const events: RequestLogEvent[] = [];
+		const fetchImpl = (async () =>
+			new Response(JSON.stringify({ count: 0, results: [] }), {
+				status: 200,
+				headers: { "content-type": "application/json" },
+			})) as typeof fetch;
+		const request = createRequester({
+			apiKey: "wh_test",
+			baseUrl: "http://localhost",
+			logger: (e) => events.push(e),
+			fetch: fetchImpl,
+		});
+		await request({
+			method: "GET",
+			path: "/api/v1/addresses/autocomplete",
+			query: { q: "34 Box" },
+		});
+		expect(events).toHaveLength(1);
+		expect(events[0]).toBeDefined();
+		if (!events[0]) {
+			throw new Error("No event");
+		}
+		expect(events[0].method).toBe("GET");
+		expect(events[0].path).toBe("/api/v1/addresses/autocomplete");
+		expect(events[0].status).toBe(200);
+		expect(typeof events[0].durationMs).toBe("number");
+		expect(events[0].durationMs).toBeGreaterThanOrEqual(0);
 	});
 });
