@@ -4,7 +4,6 @@ import { Button } from "@wherabouts.com/ui/components/button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ActiveProjectSelector } from "@/components/active-project-selector";
-import { pointInPolygon } from "@/components/zones/geometry";
 import {
 	type PointTestResult,
 	PointTestTool,
@@ -138,42 +137,26 @@ function RouteComponent() {
 		}
 	};
 
-	const runTest = useCallback(
-		async (lat: number, lng: number) => {
-			if (!activeId) {
-				toast.error("Select a project first.");
-				return;
-			}
-			if (Number.isNaN(lat) || Number.isNaN(lng)) {
-				toast.error("Enter valid coordinates.");
-				return;
-			}
-			setTesting(true);
-			setTestPoint({ lat, lng });
-			try {
-				const res = await orpcClient.zones.contains({
-					projectId: activeId,
-					lat,
-					lng,
-				});
-				const savedZones = res.zones.map((z) => ({ id: z.id, name: z.name }));
-				setMatchedZoneIds(savedZones.map((z) => z.id));
-				// Also test against the unsaved drawn zone, if any (client-side preview).
-				const drawnMatch = drawn
-					? pointInPolygon([lng, lat], drawn)
-					: undefined;
-				setTestResult({ zones: savedZones, drawnMatch });
-			} catch (err) {
-				toast.error(err instanceof Error ? err.message : "Point test failed.");
-			} finally {
-				setTesting(false);
-			}
-		},
-		[activeId, drawn]
-	);
-
-	const handleTest = () => {
-		runTest(Number(testLat), Number(testLng));
+	const handleTest = async (lat: number, lng: number) => {
+		if (!activeId || Number.isNaN(lat) || Number.isNaN(lng)) {
+			toast.error("Enter valid coordinates.");
+			return;
+		}
+		setTesting(true);
+		try {
+			const res = await orpcClient.zones.contains({
+				projectId: activeId,
+				lat,
+				lng,
+			});
+			setTestResult({
+				zones: res.zones.map((z) => ({ id: z.id, name: z.name })),
+			});
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Point test failed.");
+		} finally {
+			setTesting(false);
+		}
 	};
 
 	const handlePick = useCallback(
@@ -183,9 +166,9 @@ function RouteComponent() {
 			const roundedLng = Number(lng.toFixed(6));
 			setTestLat(String(roundedLat));
 			setTestLng(String(roundedLng));
-			runTest(roundedLat, roundedLng);
+			handleTest(roundedLat, roundedLng);
 		},
-		[runTest]
+		[handleTest]
 	);
 
 	const handleViewAddresses = async (id: number) => {
@@ -326,7 +309,7 @@ function RouteComponent() {
 						onLatChange={setTestLat}
 						onLngChange={setTestLng}
 						onPick={() => setPicking((p) => !p)}
-						onTest={handleTest}
+						onTest={() => handleTest(Number(testLat), Number(testLng))}
 						picking={picking}
 						result={testResult}
 						testing={testing}

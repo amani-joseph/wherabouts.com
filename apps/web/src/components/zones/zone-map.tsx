@@ -3,7 +3,6 @@ import type { ZoneWithGeometryRow } from "@wherabouts.com/api/shared/zone-querie
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import { MapCanvas } from "@/components/map/map-canvas";
-import { useAddressOverlay } from "./use-address-overlay.ts";
 import { type UseZoneDraw, useZoneDraw } from "./use-zone-draw.ts";
 
 const EXISTING_SRC = "existing-zones";
@@ -17,22 +16,12 @@ const EMPTY_FC = {
 };
 
 export interface ZoneMapProps {
-	/** Saved-zone ids to highlight as containing the test point. */
 	highlightZoneIds?: number[];
-	/**
-	 * Fires whenever the in-progress drawn/edited polygon changes (or clears).
-	 * This is the reactive channel for the drawn geometry — `onReady` only
-	 * delivers the stable control methods once and must not be relied on for
-	 * the polygon value.
-	 */
 	onDrawnPolygonChange?: (polygon: GeoJsonPolygon | null) => void;
 	onPick?: (lat: number, lng: number) => void;
-	/** Fires once when a brand-new polygon is fully drawn (not on vertex edits). */
 	onPolygonDrawn?: () => void;
 	onReady?: (controls: UseZoneDraw) => void;
-	/** When true, the next map click reports its coordinates via onPick. */
 	picking?: boolean;
-	/** Marker location for the point test ([lng,lat] rendered as a dot). */
 	testPoint?: { lat: number; lng: number } | null;
 	zones: ZoneWithGeometryRow[];
 }
@@ -49,7 +38,6 @@ export function ZoneMap({
 }: ZoneMapProps) {
 	const [map, setMap] = useState<MapLibreMap | null>(null);
 	const draw = useZoneDraw(map, { onPolygonDrawn });
-	useAddressOverlay(map);
 
 	const onReadyRef = useRef(onReady);
 	onReadyRef.current = onReady;

@@ -1,6 +1,21 @@
 :5000 {
-	@noauth not header Authorization "Bearer {$OSRM_AUTH_TOKEN}"
-	respond @noauth "Forbidden" 403
+	# `route` forces in-order evaluation so the bearer-token gate runs BEFORE the
+	# profile reverse_proxies. (Bare `handle` blocks let path routing pre-empt the
+	# auth `respond`, which silently bypassed the token — never use handle here.)
+	route {
+		@noauth not header Authorization "Bearer {$OSRM_AUTH_TOKEN}"
+		respond @noauth "Forbidden" 403
 
-	reverse_proxy localhost:5001
+		# Route by the OSRM `{profile}` path segment, e.g. /route/v1/foot/...,
+		# /table/v1/bike/..., /match/v1/car/.... Each profile is its own osrm-routed.
+		@car path_regexp ^/[^/]+/v1/car/
+		reverse_proxy @car localhost:5001
+		@bike path_regexp ^/[^/]+/v1/bike/
+		reverse_proxy @bike localhost:5002
+		@foot path_regexp ^/[^/]+/v1/foot/
+		reverse_proxy @foot localhost:5003
+
+		# Default (health checks / unprefixed paths) → car.
+		reverse_proxy localhost:5001
+	}
 }

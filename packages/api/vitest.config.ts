@@ -16,6 +16,9 @@ export default defineConfig({
 			KEY_ENC_KEY: "0".repeat(64),
 			OSRM_BASE_URL: "http://localhost:5000",
 			OSRM_AUTH_TOKEN: "test-token",
+			STRIPE_SECRET_KEY: "sk_test_placeholder",
+			STRIPE_WEBHOOK_SECRET: "whsec_test_placeholder",
+			STRIPE_PRICE_ID: "price_test_placeholder",
 		},
 	},
 });

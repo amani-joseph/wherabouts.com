@@ -163,3 +163,104 @@ Plans:
 - [ ] 08-05-PLAN.md — /invite/:id route, OneTimeKeyModal, TeamSwitcher component + sidebar integration
 - [ ] 08-06-PLAN.md — /team route rewrite with live data, InviteMemberDialog, RemoveMemberAlert, ?newKey reveal flow
 - [ ] 08-07-PLAN.md — Thread active teamId through /projects and /api-keys; owner-gated Reveal key; full phase UAT
+
+---
+
+# Milestone 2 — Platform Parity & Distribution
+
+> Source: competitive analysis vs Mapbox/Radar/Mappify (`docs/competitive-analysis-2026-06.md`,
+> `docs/analysis/mapbox-comparative-analysis.md`). Closes the developer-distribution and
+> routing-depth gaps that data-API buyers expect, while deliberately declining the
+> map-rendering arms race. Phase numbering continues from Milestone 1.
+
+**Sequencing rationale:** P0 (publish SDK) is the highest-ROI, hours-sized item and ships
+first. P2/P3/P4 are server-side, buildable on the existing OSRM + PostGIS + oRPC stack and
+follow in priority order. **P1 (client/mobile SDKs)** is multi-quarter native work and is
+tracked as its own future milestone (below), not a phase here.
+
+- [ ] **Phase 9: Publish the TypeScript SDK to npm** (P0) — the built/hardened `@wherabouts/sdk` becomes installable
+- [x] **Phase 10: Advanced routing** (P2) — matrix, multi-profile, isochrones, map-matching, optimisation on existing OSRM (code+tests complete on feat/routing-multiprofile; OSRM 3-profile car/bike/foot **deployed & verified** 2026-06-14 on wherabouts-osrm.fly.dev; remaining: API-key end-to-end smokes + SDK publish via Phase 9)
+- [ ] **Phase 11: Server-side DX completion** (P3) — error envelope, rate-limit headers, idempotency enforcement + Python SDK
+- [ ] **Phase 12: Places/POI + address validation** (P4) — AU POI search + G-NAF-canonical address validation
+
+## Phase Details
+
+### Phase 9: Publish the TypeScript SDK to npm
+**Goal:** The already-built, hardened `@wherabouts/sdk` is installable from npm — moving the SDK from "shipped as code" to "on the registry" so its value reaches buyers
+**Depends on:** Nothing (independent of Milestone 1; the SDK package already exists)
+**Requirements**: SDK-PUB-01..05 (added to REQUIREMENTS.md when this phase is finalised)
+**Decisions (locked 2026-06-11):** proprietary/custom license (published publicly, restricted terms via `license: "SEE LICENSE IN LICENSE"` + LICENSE file — NOT `private:true`); manual first publish via `prepublishOnly` gate, CI/changesets deferred to a follow-up
+**Success Criteria** (what must be TRUE):
+  1. `packages/sdk/LICENSE` exists with the proprietary terms and `package.json` `license` is `SEE LICENSE IN LICENSE` (no longer `UNLICENSED`)
+  2. `pnpm -F @wherabouts/sdk build && pnpm -F @wherabouts/sdk lint:pkg && pnpm -F @wherabouts/sdk smoke` all pass (dist builds, `publint` + `attw` clean, smoke imports resolve)
+  3. `npm publish --dry-run` (or `pnpm publish --dry-run`) shows the correct file set (dist + README + LICENSE + CHANGELOG) and the scoped public access config
+  4. `@wherabouts/sdk@0.2.0` is live on npm and `npm install @wherabouts/sdk` resolves in a clean external project
+  5. README install/quickstart verified against the published artifact (not the workspace source)
+**Plans:** 1 plan
+
+Plans:
+- [ ] 09-01-PLAN.md — License + publish-readiness gate + manual first publish of @wherabouts/sdk@0.2.0
+
+### Phase 10: Advanced routing (matrix · multi-profile · isochrones · map-matching · optimisation)
+**Goal:** Routing reaches Mappify/Mapbox parity beyond point-to-point driving directions — N×M matrices, walking/cycling profiles, reachability isochrones, GPS map-matching, and route optimisation, all on the existing self-hosted OSRM + PostGIS
+**Depends on:** Nothing hard (extends the live `/api/v1/routing/directions`); can run in parallel with Phase 9
+**Requirements**: ROUTE-* (TBD)
+**Success Criteria** (what must be TRUE):
+  1. `/api/v1/routing/matrix` returns N×M durations/distances via OSRM `/table`
+  2. `directions` accepts `profile=walking|cycling` (OSRM foot/bike profiles deployed)
+  3. `/api/v1/routing/isochrone` returns reachability polygons (PostGIS hull over sampled OSRM points); optional ABS-region overlap
+  4. `/api/v1/routing/match` snaps a GPS trace to roads via OSRM `/match`
+  5. `/api/v1/routing/optimize` solves a TSP/VRP ordering (OSRM Trip or VROOM sidecar)
+  6. Each new endpoint has an SDK method on the `routing` resource + tests
+**Plans:** 5 plans (wave 1: 01 → wave 2: 02/03/04 parallel → wave 3: 05)
+
+Plans:
+- [x] 10-01-PLAN.md — Profile-aware OSRM client + `/matrix` (OSRM `/table`) + multi-profile `directions` + foot/bike OSRM infra (code-complete; OSRM rebuild+volume migration pending deploy window)
+- [x] 10-02-PLAN.md — `/isochrone` reachability polygons (sample → `/table` → PostGIS hull → optional ABS overlap) (code+tests complete; ST_ConcaveHull confirmed on Neon; live smoke pending OSRM deploy)
+- [x] 10-03-PLAN.md — `/match` GPS map-matching (OSRM `/match`) (code+tests complete; live smoke pending OSRM deploy)
+- [x] 10-04-PLAN.md — `/optimize` TSP ordering (OSRM `/trip`; VROOM deferred) (code+tests complete; D2 resolved OSRM Trip; live smoke pending OSRM deploy)
+- [x] 10-05-PLAN.md — SDK `routing` methods + types + tests for all four new endpoints (build + lint:pkg clean; no version bump — publishing deferred to Phase 9)
+
+### Phase 11: Server-side DX completion (API contract enforcement + Python SDK)
+**Goal:** The server emits and enforces the resilience signals the TS SDK already sends, and a Python SDK mirrors the proven namespaced surface — completing the server-side developer story
+**Depends on:** Phase 9 (publish flow proven for TS before mirroring to Python)
+**Requirements**: DX-* (TBD)
+**Success Criteria** (what must be TRUE):
+  1. All API errors return a consistent typed envelope (`code`, `message`, `requestId`, `docUrl`, `fields`)
+  2. Responses carry rate-limit headers (`RateLimit-*` / `Retry-After`)
+  3. Idempotency-Key is enforced server-side (duplicate writes deduplicated, not just accepted)
+  4. A Python SDK mirrors the TS resource namespaces with retries/typed errors and is publishable to PyPI
+**Plans:** 4 plans (wave 1: 01 → wave 2: 02/03 parallel → wave 3: 04)
+
+Plans:
+- [ ] 11-01-PLAN.md — Unify all public errors into the typed envelope (`code`, `message`, `requestId`, `docUrl`, `fields`) + `X-Request-Id`
+- [ ] 11-02-PLAN.md — Live per-API-key rate limiter (Cloudflare KV) + IETF `RateLimit-*` / `Retry-After` headers
+- [ ] 11-03-PLAN.md — Server-side `Idempotency-Key` enforcement (Postgres `idempotency_keys`, `ON CONFLICT` — no transactions)
+- [ ] 11-04-PLAN.md — Python SDK mirroring the TS surface (httpx + hatchling) + manual PyPI publish
+
+### Phase 12: Places/POI + address validation
+**Goal:** Move beyond addresses — AU POI/category search (Radar Places parity) and a G-NAF-canonical address validation endpoint that Wherabouts can do better than Mapbox/Google for AU
+**Depends on:** Phase 5 (tiered search infra is reused for POI ranking)
+**Requirements**: PLACE-*, VALID-* (TBD)
+**Success Criteria** (what must be TRUE):
+  1. An AU POI dataset (OSM POIs or licensed) is ingested and queryable
+  2. `/api/v1/places/search` supports text + category filters with ranked results
+  3. `/api/v1/addresses/validate` returns a corrected/standardised G-NAF-canonical address + confidence score
+  4. Both endpoints have SDK methods + tests
+**Plans:** 4 plans (wave 1: 01 → wave 2: 02/03 parallel → wave 3: 04)
+
+Plans:
+- [ ] 12-01-PLAN.md — POI ingestion: `places` table (PostGIS + trigram) + category taxonomy/OSM tag map + idempotent importer
+- [ ] 12-02-PLAN.md — `GET /api/v1/places/search` reusing the Phase 5 tier engine (text + category + proximity ranking)
+- [ ] 12-03-PLAN.md — `GET /api/v1/addresses/validate` — canonical G-NAF resolution + confidence scorer
+- [ ] 12-04-PLAN.md — SDK `places` resource + `addresses.validate` + tests
+
+---
+
+## Future Milestone (scoped separately) — Client / Mobile SDKs (P1)
+
+**Not a phase in Milestone 2.** Drop-in iOS / Android / React Native SDKs handling background
+location, battery, permissions, and on-device geofence evaluation — the single largest
+strategic investment and Radar's core moat. Multi-quarter native effort requiring its own
+milestone discovery (`/gsd-new-milestone`) before any phase planning. Captured here so it is
+not lost; deliberately deferred until the server-side parity work (Phases 9–12) lands.

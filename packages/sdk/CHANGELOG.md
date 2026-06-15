@@ -4,6 +4,25 @@ All notable changes to `@wherabouts/sdk` are documented here. This project adher
 to [Semantic Versioning](https://semver.org/) and the
 [Keep a Changelog](https://keepachangelog.com/) format.
 
+## [Unreleased]
+
+### Added
+
+- **Advanced routing methods** on the `routing` resource:
+  - `matrix` — N×M duration/distance matrices (OSRM `/table`).
+  - `isochrone` — reachability polygons for a travel-time/distance budget, with
+    optional ABS-region overlap.
+  - `match` — GPS map-matching, snapping a noisy trace to the road network.
+  - `optimize` — near-optimal stop ordering (TSP via OSRM `/trip`).
+
+### Changed
+
+- `directions` (and all routing methods) now accept `profile: "driving" |
+  "walking" | "cycling"` — previously `directions` was driving-only.
+
+> These ship with the next published SDK version; the methods are available on
+> the workspace build now. Publishing follows the Phase 9 release path.
+
 ## [0.2.0] - 2026-06-08
 
 First publishable release. Renamed from the internal `@wherabouts.com/sdk`.

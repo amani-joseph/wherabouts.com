@@ -50,4 +50,25 @@ describe("buildSdkSnippet", () => {
 		const snippet = buildSdkSnippet("webhooks.list", {}, undefined);
 		expect(snippet).toContain("client.webhooks.list()");
 	});
+
+	it("appends a trailing comment to a matching param line", () => {
+		const snippet = buildSdkSnippet(
+			"routing.directions",
+			{ from: "-27.47,153.02", to: "-33.87,151.21" },
+			undefined,
+			{ from: "Brisbane QLD", to: "Sydney NSW" }
+		);
+		expect(snippet).toContain('from: "-27.47,153.02", // Brisbane QLD');
+		expect(snippet).toContain('to: "-33.87,151.21", // Sydney NSW');
+	});
+
+	it("omits comments when none are provided", () => {
+		const snippet = buildSdkSnippet(
+			"routing.directions",
+			{ from: "-27.47,153.02" },
+			undefined
+		);
+		expect(snippet).toContain('from: "-27.47,153.02"');
+		expect(snippet).not.toContain("//");
+	});
 });

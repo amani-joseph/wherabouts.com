@@ -12,7 +12,13 @@ import {
 	forwardGeocode,
 } from "./public/geocode.ts";
 import { regionsClassify } from "./public/regions.ts";
-import { routingDirections } from "./public/routing.ts";
+import {
+	routingDirections,
+	routingIsochrone,
+	routingMatch,
+	routingMatrix,
+	routingOptimize,
+} from "./public/routing.ts";
 import {
 	createWebhook,
 	deleteWebhook,
@@ -122,7 +128,12 @@ const nearby = baseBuilder
 			})
 			.from(addresses)
 			.where(and(...filters))
-			.orderBy(sql`ST_Distance(${geomGeo}, ${point})`)
+			// KNN ordering via the `<->` operator walks the geography GiST index
+			// nearest-first and stops at `limit`, instead of sorting every address
+			// inside the radius (which is tens of thousands of rows in dense areas
+			// like a CBD). `distance` above still reports accurate spheroidal
+			// ST_Distance; only the ordering uses the index-assisted operator.
+			.orderBy(sql`${geomGeo} <-> ${point}`)
 			.limit(limit);
 
 		return {
@@ -180,7 +191,9 @@ const reverse = baseBuilder
 			})
 			.from(addresses)
 			.where(sql`ST_DWithin(${geomGeo}, ${point}, 200)`)
-			.orderBy(sql`ST_Distance(${geomGeo}, ${point})`)
+			// KNN ordering via `<->` uses the geography GiST index to fetch the
+			// single nearest address directly (see addresses.nearby above).
+			.orderBy(sql`${geomGeo} <-> ${point}`)
 			.limit(1);
 
 		if (rows.length === 0) {
@@ -298,6 +311,10 @@ export const publicHttpRouter = {
 	},
 	routing: {
 		directions: routingDirections,
+		matrix: routingMatrix,
+		isochrone: routingIsochrone,
+		match: routingMatch,
+		optimize: routingOptimize,
 	},
 	devices: {
 		deviceLocation: pushDeviceLocation,

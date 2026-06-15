@@ -96,6 +96,10 @@ export const forwardGeocode = baseBuilder
 			country,
 			state,
 			limit: 1,
+			// Skip the levenshtein/dmetaphone last-resort fallbacks: they drive the
+			// cold-cache cost on unmatched queries and rarely yield a correct
+			// geocode. word_similarity still provides typo tolerance.
+			phoneticFallback: false,
 		});
 
 		if (results.length === 0) {
