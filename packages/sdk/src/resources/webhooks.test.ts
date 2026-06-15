@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createWebhooks } from "./webhooks.ts";
+import { createWebhooks, type WebhookEventPayload } from "./webhooks.ts";
 
 function fakeRequest() {
 	return vi.fn((_opts: unknown): Promise<unknown> => Promise.resolve({}));
@@ -48,5 +48,24 @@ describe("webhooks resource", () => {
 			method: "POST",
 			path: "/api/v1/webhooks/5/reactivate",
 		});
+	});
+
+	it("WebhookEventPayload discriminates on event field", () => {
+		const entry: WebhookEventPayload = {
+			event: "entry",
+			device: { id: "dev_abc123", lat: -33.8688, lng: 151.2093 },
+			zone: { id: 42, name: "Sydney CBD" },
+			timestamp: "2026-06-15T00:00:00Z",
+		};
+		if (entry.event === "entry") {
+			expect(entry.zone.id).toBe(42);
+		}
+		const exit: WebhookEventPayload = {
+			event: "exit",
+			device: { id: "dev_abc123", lat: -33.869, lng: 151.21 },
+			zone: { id: 42, name: "Sydney CBD" },
+			timestamp: "2026-06-15T00:00:01Z",
+		};
+		expect(exit.event).toBe("exit");
 	});
 });
