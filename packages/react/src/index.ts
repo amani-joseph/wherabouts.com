@@ -2,12 +2,30 @@
 
 export type { StorageLike } from "./autocomplete-cache.ts";
 export type {
+	ComboboxAction,
+	ComboboxInputProps,
+	ComboboxItemProps,
+	ComboboxListboxProps,
+	ComboboxState,
+	UseComboboxOptions,
+	UseComboboxResult,
+} from "./combobox.ts";
+// biome-ignore lint/performance/noBarrelFile: this is the package's public entry point — a single barrel is the intended module surface.
+export {
+	buildInputProps,
+	buildItemProps,
+	buildListboxProps,
+	comboboxReducer,
+	INITIAL_COMBOBOX_STATE,
+	keyToAction,
+	useCombobox,
+} from "./combobox.ts";
+export type {
 	AutocompleteCacheConfig,
 	AutocompleteStatus,
 	UseAutocompleteOptions,
 	UseAutocompleteResult,
 } from "./use-autocomplete.ts";
-// biome-ignore lint/performance/noBarrelFile: this is the package's public entry point — a single barrel is the intended module surface.
 export { deriveStatus, useAutocomplete } from "./use-autocomplete.ts";
 
 export type {
