@@ -67,8 +67,18 @@ export interface ReverseGeocodeAddress {
 
 export interface AutocompleteParams {
 	country?: string;
+	/** Latitude for proximity boosting (pair with `lng`). */
+	lat?: number;
 	limit?: number;
+	/** Longitude for proximity boosting (pair with `lat`). Sent to the API as `lon`. */
+	lng?: number;
 	q: string;
+	/**
+	 * Groups a run of keystrokes for one search into a single billable session.
+	 * Generate one stable token per search (e.g. on focus), reuse it across
+	 * keystrokes, and discard it after a result is selected. See `newSessionToken()`.
+	 */
+	sessionToken?: string;
 	state?: string;
 }
 
@@ -132,6 +142,10 @@ export const createAddresses = (request: Requester): AddressesResource => ({
 				country: params.country,
 				state: params.state,
 				limit: params.limit,
+				// API uses `lat`/`lon` for autocomplete proximity (nearby uses `lng`).
+				lat: params.lat,
+				lon: params.lng,
+				sessionToken: params.sessionToken,
 			},
 			...options,
 		}),

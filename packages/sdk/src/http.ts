@@ -2,7 +2,6 @@ import { WheraboutsApiError } from "./errors.ts";
 import {
 	type HttpMethod,
 	type Requester,
-	type RequestLogEvent,
 	type RequestOptions,
 	WHERABOUTS_API_VERSION,
 	WHERABOUTS_SDK_VERSION,
