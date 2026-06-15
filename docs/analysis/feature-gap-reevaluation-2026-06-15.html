@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, viewport-fit=cover"
+		>
+		<meta name="color-scheme" content="light dark">
+		<title>Wherabouts — Feature Gap Re-evaluation</title>
+		<style>
+		:root {
+			--bg: #0f1115;
+			--card: #181b22;
+			--card2: #1f232c;
+			--line: #2a2f3a;
+			--tx: #e8ebf0;
+			--mut: #9aa3b2;
+			--acc: #5b8cff;
+			--ok: #34d399;
+			--okbg: #0e2a22;
+			--warn: #fbbf24;
+			--warnbg: #2a230c;
+			--bad: #f87171;
+			--badbg: #2a1414;
+			--p0: #f87171;
+			--p1: #fb923c;
+			--p2: #fbbf24;
+			--p3: #5b8cff;
+			--p4: #9aa3b2;
+		}
+		* {
+			box-sizing: border-box;
+		}
+		html,
+		body {
+			padding: 0;
+			margin: 0;
+		}
+		body {
+			background: var(--bg);
+			color: var(--tx);
+			font:
+				16px / 1.55 -apple-system,
+				BlinkMacSystemFont,
+				"Segoe UI",
+				Roboto,
+				Helvetica,
+				Arial,
+				sans-serif;
+			-webkit-text-size-adjust: 100%;
+			padding: 0 0 64px;
+		}
+		header {
+			position: sticky;
+			top: 0;
+			z-index: 10;
+			padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0));
+			padding-top: max(14px, env(safe-area-inset-top, 0));
+			background: linear-gradient(180deg, #11141a, #11141aee);
+			border-bottom: 1px solid var(--line);
+			backdrop-filter: saturate(140%) blur(8px);
+		}
+		header h1 {
+			margin: 0;
+			font-size: 18px;
+			letter-spacing: -0.2px;
+		}
+		header .sub {
+			margin-top: 3px;
+			font-size: 12.5px;
+			color: var(--mut);
+		}
+		main {
+			max-width: 720px;
+			padding: 16px;
+			margin: 0 auto;
+		}
+		h2 {
+			margin: 26px 0 10px;
+			font-size: 15px;
+			color: var(--mut);
+			text-transform: uppercase;
+			letter-spacing: 0.6px;
+		}
+		.cards {
+			display: flex;
+			gap: 10px;
+			margin: 14px 0;
+		}
+		.stat {
+			flex: 1;
+			padding: 12px;
+			text-align: center;
+			background: var(--card);
+			border: 1px solid var(--line);
+			border-radius: 14px;
+		}
+		.stat b {
+			display: block;
+			font-size: 26px;
+			line-height: 1.1;
+		}
+		.stat span {
+			font-size: 11.5px;
+			color: var(--mut);
+		}
+		.stat.ok b {
+			color: var(--ok);
+		}
+		.stat.bad b {
+			color: var(--bad);
+		}
+		.stat.warn b {
+			color: var(--warn);
+		}
+		.item {
+			padding: 12px 13px;
+			margin: 9px 0;
+			background: var(--card);
+			border: 1px solid var(--line);
+			border-left-width: 4px;
+			border-radius: 12px;
+		}
+		.item.done {
+			border-left-color: var(--ok);
+		}
+		.item.open {
+			border-left-color: var(--bad);
+		}
+		.item.partial {
+			border-left-color: var(--warn);
+		}
+		.item .top {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			align-items: center;
+		}
+		.item .name {
+			font-size: 15px;
+			font-weight: 650;
+		}
+		.item .desc {
+			margin-top: 5px;
+			font-size: 13px;
+			color: var(--mut);
+		}
+		.chip {
+			padding: 2px 7px;
+			font-size: 10.5px;
+			font-weight: 700;
+			letter-spacing: 0.4px;
+			white-space: nowrap;
+			border-radius: 999px;
+		}
+		.c-done {
+			color: var(--ok);
+			background: var(--okbg);
+		}
+		.c-open {
+			color: var(--bad);
+			background: var(--badbg);
+		}
+		.c-partial {
+			color: var(--warn);
+			background: var(--warnbg);
+		}
+		.pri {
+			padding: 2px 7px;
+			font-size: 10.5px;
+			font-weight: 800;
+			color: #0f1115;
+			border-radius: 6px;
+		}
+		.P0 {
+			background: var(--p0);
+		}
+		.P1 {
+			background: var(--p1);
+		}
+		.P2 {
+			background: var(--p2);
+		}
+		.P3 {
+			color: #fff;
+			background: var(--p3);
+		}
+		.P4 {
+			background: var(--p4);
+		}
+		.src {
+			margin-left: auto;
+			font-size: 10.5px;
+			color: var(--mut);
+		}
+		.note {
+			padding: 12px 13px;
+			font-size: 13px;
+			color: var(--mut);
+			background: var(--card2);
+			border: 1px solid var(--line);
+			border-radius: 12px;
+		}
+		.note b {
+			color: var(--tx);
+		}
+		.matrix-wrap {
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+			border: 1px solid var(--line);
+			border-radius: 12px;
+		}
+		table {
+			width: 100%;
+			min-width: 560px;
+			font-size: 12.5px;
+			border-collapse: collapse;
+		}
+		th,
+		td {
+			padding: 8px 9px;
+			text-align: center;
+			white-space: nowrap;
+			border-bottom: 1px solid var(--line);
+		}
+		th {
+			position: sticky;
+			top: 0;
+			font-size: 11px;
+			color: var(--mut);
+			text-transform: uppercase;
+			letter-spacing: 0.4px;
+			background: var(--card2);
+		}
+		td:first-child,
+		th:first-child {
+			position: sticky;
+			left: 0;
+			z-index: 1;
+			min-width: 170px;
+			font-weight: 600;
+			text-align: left;
+			white-space: normal;
+			background: var(--card);
+		}
+		th:first-child {
+			z-index: 2;
+			background: var(--card2);
+		}
+		tr.changed td:first-child {
+			color: var(--ok);
+		}
+		.y {
+			font-weight: 700;
+			color: var(--ok);
+		}
+		.n {
+			color: var(--bad);
+		}
+		.p {
+			color: var(--warn);
+		}
+		.legend {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 14px;
+			margin: 8px 2px 0;
+			font-size: 11.5px;
+			color: var(--mut);
+		}
+		details {
+			margin: 9px 0;
+			overflow: hidden;
+			background: var(--card);
+			border: 1px solid var(--line);
+			border-radius: 12px;
+		}
+		summary {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			padding: 12px 13px;
+			font-size: 14px;
+			font-weight: 650;
+			cursor: pointer;
+			list-style: none;
+		}
+		summary::-webkit-details-marker {
+			display: none;
+		}
+		summary .arr {
+			margin-left: auto;
+			color: var(--mut);
+			transition: transform 0.2s;
+		}
+		details[open] summary .arr {
+			transform: rotate(90deg);
+		}
+		details .body {
+			padding: 0 13px 13px;
+			font-size: 13px;
+			color: var(--mut);
+		}
+		details .body li {
+			margin: 5px 0;
+		}
+		.foot {
+			margin-top: 28px;
+			font-size: 11.5px;
+			line-height: 1.7;
+			color: var(--mut);
+			text-align: center;
+		}
+		.hl {
+			color: var(--tx);
+		}
+		</style>
+	</head>
+	<body>
+		<header>
+			<h1>Feature Gap Re-evaluation</h1>
+			<div class="sub">
+				Wherabouts API vs competitor analysis · 15 Jun 2026 · prod
+				<span class="hl">e8a5b166</span>
+			</div>
+		</header>
+		<main>
+			<p style="color:var(--mut);font-size:13.5px;margin:4px 0 0">
+				Re-scoring the gaps from the competitive analyses (<span class="hl"
+					>Radar / Mappify / Google / HERE / Geoapify</span
+				>, 7–8 Jun &amp; the <span class="hl">Mapbox</span> roadmap, 10 Jun)
+				against what's <span class="hl">actually live in code today</span>. The
+				big shift since those docs: the
+				<b style="color:var(--ok)">routing suite shipped</b>.
+			</p>
+
+			<div class="cards">
+				<div class="stat ok"><b>7</b><span>gaps CLOSED</span></div>
+				<div class="stat bad"><b>6</b><span>still OPEN</span></div>
+				<div class="stat warn"><b>1</b><span>PARTIAL</span></div>
+			</div>
+
+			<h2>✅ Closed since the analyses</h2>
+
+			<div class="item done">
+				<div class="top">
+					<span class="name">Routing — directions</span
+					><span class="chip c-done">LIVE</span
+					><span class="src">P2 · Mappify parity</span>
+				</div>
+				<div class="desc">
+					Was the #2 priority &amp; the Mappify "second pillar" gap.
+					<span class="hl">/routing/directions</span>
+					live.
+				</div>
+			</div>
+			<div class="item done">
+				<div class="top">
+					<span class="name">Distance / time Matrix</span
+					><span class="chip c-done">LIVE</span
+					><span class="src">Mapbox G1</span>
+				</div>
+				<div class="desc">
+					N×M ETAs for logistics/dispatch — table stakes.
+					<span class="hl">/routing/matrix</span>
+					live.
+				</div>
+			</div>
+			<div class="item done">
+				<div class="top">
+					<span class="name">Isochrones / reachability</span
+					><span class="chip c-done">LIVE</span
+					><span class="src">Mapbox G2</span>
+				</div>
+				<div class="desc">
+					"What's within 15 min drive?" — catchment/site selection, pairs with
+					ABS regions. <span class="hl">/routing/isochrone</span>.
+				</div>
+			</div>
+			<div class="item done">
+				<div class="top">
+					<span class="name">Map Matching (GPS→road)</span
+					><span class="chip c-done">LIVE</span
+					><span class="src">Mapbox G3</span>
+				</div>
+				<div class="desc">
+					Snaps noisy device traces to roads — complements the device-tracking
+					product. <span class="hl">/routing/match</span>.
+				</div>
+			</div>
+			<div class="item done">
+				<div class="top">
+					<span class="name">Multi-profile routing</span
+					><span class="chip c-done">LIVE</span
+					><span class="src">Mapbox G4</span>
+				</div>
+				<div class="desc">
+					Was driving-only. Now
+					<span class="hl">driving · walking · cycling</span>.
+				</div>
+			</div>
+			<div class="item done">
+				<div class="top">
+					<span class="name">SDK published to npm</span
+					><span class="chip c-done">LIVE on npm</span
+					><span class="src">was P0</span>
+				</div>
+				<div class="desc">
+					<span class="hl">@wherabouts/sdk@0.2.0</span>
+					is now installable — full 22-method TS SDK, ESM+CJS, typed errors. Was
+					the #1 highest-ROI gap.
+					<span class="hl">Caveat: license is still UNLICENSED</span>
+					— set a real license before external promotion.
+				</div>
+			</div>
+
+			<div class="item done">
+				<div class="top">
+					<span class="name">Route optimisation (VRP/TSP)</span
+					><span class="chip c-done">LIVE</span
+					><span class="src">Mapbox G5</span>
+				</div>
+				<div class="desc">
+					Flagged as "premium tier, opportunistic later" in the analysis —
+					shipped anyway.
+					<span class="hl">/routing/optimize</span>
+					live on master (PR #14). Multi-stop trip optimisation.
+				</div>
+			</div>
+
+			<div class="note" style="margin-top:12px">
+				⚙️ <b>Also fixed this cycle (robustness = reliability):</b> the
+				<b>nearby</b>
+				hang (9–25s&nbsp;→&nbsp;~140ms), the
+				<b>forward-geocode</b>
+				hang (&gt;30s&nbsp;→&nbsp;~170ms incl. fresh no-match), and restored
+				fuzzy/typo matching. All endpoints now p50 ≈ 90–180ms. See the 15 Jun
+				endpoint audit.
+			</div>
+
+			<h2>❌ Still open — by priority</h2>
+			<div class="item open">
+				<div class="top">
+					<span class="pri P1">P1</span
+					><span class="name">Client / mobile SDKs (iOS/Android/RN)</span
+					><span class="chip c-open">ABSENT</span>
+				</div>
+				<div class="desc">
+					Radar's core moat: drop-in background location + on-device geofencing.
+					The defining gap for consumer/mobile geofencing. Multi-quarter; own
+					milestone.
+				</div>
+			</div>
+			<div class="item open">
+				<div class="top">
+					<span class="pri P3">P3</span
+					><span class="name">Server-side DX completion</span
+					><span class="chip c-open">SDK sends, server doesn't emit</span>
+				</div>
+				<div class="desc">
+					Verified live: error envelope is still bare
+					<span class="hl">{ code,message}</span>
+					— no
+					<span class="hl">requestId / docUrl / fields</span>;
+					<span class="hl">no rate-limit headers</span>; idempotency not
+					enforced. The SDK already <i>sends</i> these signals; the server must
+					<i>emit/enforce</i>
+					them to land the resilience story.
+				</div>
+			</div>
+			<div class="item open">
+				<div class="top">
+					<span class="pri P3">P3</span><span class="name">Python SDK</span
+					><span class="chip c-open">ABSENT</span>
+				</div>
+				<div class="desc">
+					Mirror the now-proven namespaced TS surface. Server/data buyer can be
+					won today without mobile SDKs.
+				</div>
+			</div>
+			<div class="item open">
+				<div class="top">
+					<span class="pri P4">P4</span
+					><span class="name">Address validation / standardisation</span
+					><span class="chip c-open">ABSENT</span>
+				</div>
+				<div class="desc">
+					Common buyer ask (Google/Smarty).
+					<span class="hl"
+						>Our G-NAF authority is a head-start we can do better than
+						Mapbox/Google for AU</span
+					>
+					— strongest data-moat play remaining.
+				</div>
+			</div>
+			<div class="item open">
+				<div class="top">
+					<span class="pri P4">P4</span
+					><span class="name">Places / POI category search</span
+					><span class="chip c-open">ABSENT</span>
+				</div>
+				<div class="desc">
+					Search is address-only. "Find cafes near X" (Radar Places / Mapbox
+					Search Box). Needs an AU POI dataset into the tiered-search infra.
+				</div>
+			</div>
+			<div class="item open">
+				<div class="top">
+					<span class="pri P4">P4</span
+					><span class="name">Static Images API</span
+					><span class="chip c-open">ABSENT</span>
+				</div>
+				<div class="desc">
+					Server-rendered map PNG (markers/paths) for
+					emails/reports/notifications — high utility with zero client SDK. Fits
+					the self-hosted Protomaps stack.
+				</div>
+			</div>
+			<div class="item open">
+				<div class="top">
+					<span class="pri P4">P4</span
+					><span class="name">Scoped / restricted API tokens</span
+					><span class="chip c-open">ABSENT</span>
+				</div>
+				<div class="desc">
+					URL/scope/IP restrictions + per-key usage breakdowns (Mapbox Tokens).
+					DX maturity; not present in api-key-auth.
+				</div>
+			</div>
+
+			<h2>⚠️ Partial · deliberately deferred</h2>
+			<div class="item partial">
+				<div class="top">
+					<span class="name">Tilequery (point→features)</span
+					><span class="chip c-partial">PARTIAL</span>
+				</div>
+				<div class="desc">
+					Covered indirectly by <span class="hl">zones/contains</span> +
+					<span class="hl">regions</span>; not generalised into one enrichment
+					endpoint.
+				</div>
+			</div>
+			<details>
+				<summary>
+					Deliberately NOT chasing (out of strategic scope)
+					<span class="arr">›</span>
+				</summary>
+				<div class="body">
+					<ul>
+						<li><b>Global coverage</b> — AU-only is the moat, not a bug.</li>
+						<li>
+							<b>IP geolocation</b>
+							— low fit for the data-API positioning.
+						</li>
+						<li><b>Fraud / spoof detection</b> — Radar-only niche.</li>
+						<li>
+							<b>Integrations marketplace</b>
+							— only once webhooks have traction.
+						</li>
+					</ul>
+				</div>
+			</details>
+
+			<h2>Updated feature matrix</h2>
+			<div class="legend">
+				<span><span class="y">●</span> native</span
+				><span><span class="p">●</span> partial</span
+				><span><span class="n">●</span> absent</span
+				><span style="color:var(--ok)">green row = changed since analysis</span>
+			</div>
+			<div class="matrix-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>Capability</th>
+							<th>Us</th>
+							<th>Radar</th>
+							<th>Mappify</th>
+							<th>Google</th>
+							<th>HERE</th>
+							<th>Geoapify</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>Forward/reverse geocode</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+						</tr>
+						<tr>
+							<td>Autocomplete</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+						</tr>
+						<tr>
+							<td>Batch geocoding</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+						</tr>
+						<tr>
+							<td>Nearby / radius</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+						</tr>
+						<tr>
+							<td>Admin-boundary (ASGS)</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+						</tr>
+						<tr>
+							<td>Custom geofencing (zones)</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+							<td class="n">●</td>
+							<td class="p">●</td>
+							<td class="n">●</td>
+						</tr>
+						<tr>
+							<td>Device tracking</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+							<td class="p">●</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+						</tr>
+						<tr>
+							<td>Geofence events / webhooks</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+							<td class="n">●</td>
+							<td class="p">●</td>
+							<td class="n">●</td>
+						</tr>
+						<tr class="changed">
+							<td>Routing / directions / matrix</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+						</tr>
+						<tr class="changed">
+							<td>Isolines / reachability</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+							<td class="n">●</td>
+							<td class="p">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+						</tr>
+						<tr class="changed">
+							<td>Map matching</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+						</tr>
+						<tr>
+							<td>Places / POI dataset</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+						</tr>
+						<tr>
+							<td>Address validation</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+						</tr>
+						<tr>
+							<td>IP geolocation</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+							<td class="y">●</td>
+						</tr>
+						<tr>
+							<td>Client / mobile SDKs</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+						</tr>
+						<tr class="changed">
+							<td>Server SDK (TS, hardened)</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="p">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+						</tr>
+						<tr>
+							<td>Static images API</td>
+							<td class="n">●</td>
+							<td class="p">●</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+						</tr>
+						<tr>
+							<td>Self-hosted base maps</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+						</tr>
+						<tr>
+							<td>AU-authoritative (G-NAF/ABS)</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+							<td class="n">●</td>
+							<td class="n">●</td>
+						</tr>
+						<tr>
+							<td>Global coverage</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="n">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+							<td class="y">●</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<h2>The take</h2>
+			<div class="note">
+				Routing was the biggest competitive hole and it's
+				<b style="color:var(--ok)">now closed</b>
+				— Wherabouts has reached
+				<b>geocoding + geofencing + routing</b>
+				parity on the AU-authoritative-data moat. The remaining gaps cluster
+				into two cheap, high-leverage moves and one big one:
+				<ul style="margin:8px 0 0;padding-left:18px">
+					<li>
+						<b style="color:var(--ok)">P0 — publish the SDK ✓ DONE</b>
+						(<span class="hl">@wherabouts/sdk@0.2.0</span>
+						live on npm; set a real license — still UNLICENSED).
+					</li>
+					<li>
+						<b style="color:var(--bad)">Now top priority — finish server DX</b>
+						(error envelope, rate-limit headers, idempotency) — the SDK already
+						speaks the protocol; the server must emit it.
+					</li>
+					<li>
+						<b>P4 — address validation</b>
+						— the play only our G-NAF authority can win.
+					</li>
+				</ul>
+				The defining strategic gap stays <b>client/mobile SDKs</b> (Radar's
+				moat) — still multi-quarter.
+			</div>
+
+			<div class="foot">
+				Sources: <span class="hl">competitive-analysis-2026-06.md</span> ·
+				<span class="hl">…-update-2026-06-08.md</span>
+				·
+				<span class="hl">mapbox-comparative-analysis.md</span><br>
+				Status re-verified against master code &amp; live prod, 15 Jun 2026.
+				Competitor columns carried from the analyses (not re-tested this pass).
+			</div>
+		</main>
+	</body>
+</html>
