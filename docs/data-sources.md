@@ -6,9 +6,14 @@
 
 ---
 
-## 0. Loaded state (campaign complete 2026-06-14)
+## 0. Loaded state (US complete 2026-06-15)
 
-**Production `addresses` table: 175,257,723 rows · 27 countries · 86 GB.** Neon compute held at 4–8 CU steady-state (the 80 GB+ index working set exceeds the prior 2 CU cache; warm proximity latency ~58 ms post-load).
+**Production `addresses` table: ~299.5M rows · 28 countries · 153 GB.** US added all 50 states + DC + VI (~124M rows, Overture) on top of the prior 28-country / 175M base. Neon compute raised to **8–16 CU** during the US giants (CA/TX/FL promotes were cache-bound at 130+ GB on 8 CU; CA took 2.5h+ before the bump, then committed on 16 CU). **Decide steady-state compute** now that the table is 153 GB.
+
+US load specifics: state-by-state via `us-queue.ts` (resumable, smallest-first). Findings fixed mid-load: postcode length-guard (MS had a 21-char malformed blob), and the giant-state promotes exposed that on 8 CU the index working set thrashes — the 16 CU bump (range capped at max−min ≤ 8, so 8–16) resolved CA.
+
+### Prior milestone (28 countries complete 2026-06-14)
+**175,257,723 rows · 27 non-US countries + AU · 86 GB.** Neon was at 4–8 CU; warm proximity latency ~58 ms post-load.
 
 Per-country actual loaded counts (after extract-stage dedup):
 
