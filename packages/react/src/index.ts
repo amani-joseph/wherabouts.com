@@ -11,3 +11,6 @@ export type {
 	UseReverseGeocodeResult,
 } from "./use-reverse-geocode.ts";
 export { useReverseGeocode } from "./use-reverse-geocode.ts";
+
+export type { UseZoneContainsResult } from "./use-zone-contains.ts";
+export { useZoneContains } from "./use-zone-contains.ts";
