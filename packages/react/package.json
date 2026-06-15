@@ -1,6 +1,6 @@
 {
   "name": "@wherabouts/react",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "React hooks for the Wherabouts location API",
   "type": "module",
   "license": "MIT",

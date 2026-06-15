@@ -36,14 +36,23 @@ yarn add @wherabouts/react @wherabouts/sdk
 All hooks accept a `WheraboutsClient` instance as their first argument. Create one with your publishable API key from the [Wherabouts dashboard](https://wherabouts.com/dashboard).
 
 ```ts
-import { WheraboutsClient } from "@wherabouts/sdk";
+import { createWheraboutsClient } from "@wherabouts/sdk";
 
-const client = new WheraboutsClient({
+const client = createWheraboutsClient({
   apiKey: "pk_live_...", // publishable key — safe in browser
 });
 ```
 
 > Use a **publishable key** (`pk_live_…`) in browser code. Secret keys must stay server-side only.
+
+> **Keep a stable client reference.** Create the client once — at module scope or
+> with `useMemo` — and reuse it. The hooks list `client` in their effect
+> dependencies, so passing a freshly-created client on every render restarts the
+> request (and debounce) each render.
+>
+> ```tsx
+> const client = useMemo(() => createWheraboutsClient({ apiKey }), [apiKey]);
+> ```
 
 ---
 
@@ -94,27 +103,81 @@ function useAutocomplete(
 
 #### `UseAutocompleteOptions`
 
-| Option        | Type     | Default | Description                                      |
-|---------------|----------|---------|--------------------------------------------------|
-| `debounceMs`  | `number` | `300`   | Milliseconds to wait after last keystroke        |
-| `limit`       | `number` | —       | Maximum number of suggestions to return          |
-| `country`     | `string` | —       | ISO 3166-1 alpha-2 country code filter (e.g. `"AU"`) |
-| `state`       | `string` | —       | State or region name filter                      |
+| Option             | Type                            | Default | Description                                          |
+|--------------------|---------------------------------|---------|------------------------------------------------------|
+| `debounceMs`       | `number`                        | `300`   | Milliseconds to wait after last keystroke            |
+| `minLength`        | `number`                        | `2`     | Minimum trimmed query length before a request fires (the API requires `q` ≥ 2) |
+| `limit`            | `number`                        | —       | Maximum number of suggestions to return              |
+| `country`          | `string`                        | —       | ISO 3166-1 alpha-2 country code filter (e.g. `"AU"`) |
+| `state`            | `string`                        | —       | State or region name filter                          |
+| `lat` / `lng`      | `number`                        | —       | Bias results toward a coordinate (proximity)         |
+| `sessionToken`     | `string`                        | —       | Groups a run of keystrokes into one billable search (see `newSessionToken()`) |
+| `keepPreviousData` | `boolean`                       | `false` | Keep previous results visible while the next search loads (avoids dropdown flicker) |
+| `cache`            | `{ storage; ttlMs?: number }`   | —       | Opt-in client cache, e.g. `{ storage: sessionStorage, ttlMs: 60_000 }` |
 
 #### `UseAutocompleteResult`
 
-| Field      | Type                   | Description                                       |
-|------------|------------------------|---------------------------------------------------|
-| `query`    | `string`               | Current search string                             |
-| `setQuery` | `(q: string) => void`  | Stable setter — safe to pass directly to `onChange` |
-| `results`  | `AddressSuggestion[]`  | Matching address suggestions                      |
-| `loading`  | `boolean`              | `true` while a request is in flight               |
-| `error`    | `Error \| null`        | Last error, or `null`                             |
+| Field         | Type                   | Description                                       |
+|---------------|------------------------|---------------------------------------------------|
+| `query`       | `string`               | Current search string                             |
+| `setQuery`    | `(q: string) => void`  | Stable setter — safe to pass directly to `onChange` |
+| `results`     | `AddressSuggestion[]`  | Matching address suggestions                      |
+| `status`      | `"idle" \| "loading" \| "success" \| "empty" \| "error"` | Coarse state machine for rendering |
+| `loading`     | `boolean`              | `true` while a request is in flight               |
+| `rateLimited` | `boolean`              | `true` when the last request was rejected with HTTP 429 |
+| `error`       | `Error \| null`        | Last error, or `null`                             |
+| `reset`       | `() => void`           | Clear the query, results, and any in-flight request |
 
 **Behaviour notes:**
+- Queries shorter than `minLength` (default 2) never fire a request.
 - Empty or whitespace-only query immediately clears results without firing a request.
 - Each new keystroke cancels the previous pending request via `AbortController`.
 - `setQuery` is memoised with `useCallback` — it will not cause unnecessary re-renders.
+
+---
+
+### `useCombobox`
+
+Headless [WAI-ARIA combobox](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/)
+helpers for an accessible autocomplete dropdown — keyboard navigation
+(↑/↓/Home/End/Enter/Esc, with wrapping) and ARIA wiring. Bring your own markup;
+pair it with `useAutocomplete`.
+
+```tsx
+import { useAutocomplete, useCombobox } from "@wherabouts/react";
+
+function AddressCombobox({ client }) {
+  const { query, setQuery, results } = useAutocomplete(client);
+  const { getInputProps, getListboxProps, getItemProps, activeIndex } =
+    useCombobox({
+      id: "address",
+      count: results.length,
+      onSelect: (i) => setQuery(results[i]?.formattedAddress ?? ""),
+    });
+
+  return (
+    <>
+      <input
+        {...getInputProps()}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      <ul {...getListboxProps()}>
+        {results.map((r, i) => (
+          <li key={r.id} {...getItemProps(i)} data-active={i === activeIndex}>
+            {r.formattedAddress}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+```
+
+`getInputProps()` / `getListboxProps()` / `getItemProps(index)` return the
+`role`, `aria-*`, and event handlers for each element. The pure building blocks
+(`comboboxReducer`, `keyToAction`, `buildInputProps`/`buildListboxProps`/`buildItemProps`)
+are also exported for advanced use.
 
 ---
 
@@ -226,6 +289,32 @@ function useZoneContains(
 - Passing `null` as `coords` immediately clears `zones` without firing a request.
 - Same coordinate-stability semantics as `useReverseGeocode` — object identity is ignored, only `lat`/`lng` values matter.
 - In-flight requests are cancelled on unmount or when `coords` changes.
+
+---
+
+### Routing hooks — `useDirections` / `useMatrix` / `useIsochrone`
+
+Fetch routing results that re-run when their params change and abort the previous
+request. Pass `null` params to stay idle. Each returns `{ data, loading, error }`.
+
+```tsx
+import { useDirections } from "@wherabouts/react";
+
+function Route({ client }) {
+  const { data, loading, error } = useDirections(client, {
+    from: "-33.865,151.209",
+    to: "-33.8,151.0",
+    profile: "driving", // "driving" | "walking" | "cycling"
+  });
+
+  if (loading) return <p>Routing…</p>;
+  if (error) return <p>Error: {error.message}</p>;
+  return <p>{data ? `${data.distance_m} m, ${data.duration_s} s` : null}</p>;
+}
+```
+
+- `useMatrix(client, { sources, destinations, profile? } | null)` — duration/distance matrix.
+- `useIsochrone(client, { origin, durationSeconds | distanceMeters, profile? } | null)` — reachability polygon.
 
 ---
 
