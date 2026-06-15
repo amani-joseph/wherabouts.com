@@ -5,3 +5,9 @@ export type {
 	UseAutocompleteResult,
 } from "./use-autocomplete.ts";
 export { useAutocomplete } from "./use-autocomplete.ts";
+
+export type {
+	LatLng,
+	UseReverseGeocodeResult,
+} from "./use-reverse-geocode.ts";
+export { useReverseGeocode } from "./use-reverse-geocode.ts";
