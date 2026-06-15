@@ -1,5 +1,58 @@
+import type { AddressSuggestion } from "@wherabouts/sdk";
 import { createWheraboutsClient } from "@wherabouts/sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { deriveStatus } from "./use-autocomplete.ts";
+
+const ONE_SUGGESTION: AddressSuggestion[] = [
+	{
+		id: 1,
+		formattedAddress: "34 Boxgrove Ave, Sydney NSW 2000",
+		streetAddress: "34 Boxgrove Ave",
+		locality: "Sydney",
+		state: "NSW",
+		postcode: "2000",
+		country: "AU",
+		latitude: -33.865,
+		longitude: 151.209,
+	},
+];
+
+describe("deriveStatus", () => {
+	const base = {
+		query: "george st",
+		minLength: 2,
+		loading: false,
+		error: null as Error | null,
+		results: [] as AddressSuggestion[],
+	};
+
+	it("is idle when the trimmed query is shorter than minLength", () => {
+		expect(deriveStatus({ ...base, query: "g" })).toBe("idle");
+		expect(deriveStatus({ ...base, query: "  " })).toBe("idle");
+	});
+
+	it("is loading while a request is in flight", () => {
+		expect(deriveStatus({ ...base, loading: true })).toBe("loading");
+	});
+
+	it("is error when an error is present", () => {
+		expect(deriveStatus({ ...base, error: new Error("boom") })).toBe("error");
+	});
+
+	it("is empty when a completed search returned no results", () => {
+		expect(deriveStatus(base)).toBe("empty");
+	});
+
+	it("is success when a completed search returned results", () => {
+		expect(deriveStatus({ ...base, results: ONE_SUGGESTION })).toBe("success");
+	});
+
+	it("prefers idle over a stale error once the query falls below minLength", () => {
+		expect(
+			deriveStatus({ ...base, query: "g", error: new Error("boom") })
+		).toBe("idle");
+	});
+});
 
 // Tests exercise the SDK client integration (autocomplete call/abort behaviour)
 // without DOM rendering. Hook logic (debounce + abort) is verified via
