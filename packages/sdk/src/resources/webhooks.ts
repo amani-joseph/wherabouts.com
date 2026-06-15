@@ -40,6 +40,25 @@ export interface ReactivateWebhookResponse {
 	reactivated: true;
 }
 
+/** Shape of the JSON body POSTed to your webhook endpoint when a device enters a zone. */
+export interface WebhookEntryPayload {
+	device: { id: string; lat: number; lng: number };
+	event: "entry";
+	timestamp: string;
+	zone: { id: number; name: string };
+}
+
+/** Shape of the JSON body POSTed to your webhook endpoint when a device exits a zone. */
+export interface WebhookExitPayload {
+	device: { id: string; lat: number; lng: number };
+	event: "exit";
+	timestamp: string;
+	zone: { id: number; name: string };
+}
+
+/** Discriminated union of all inbound webhook event payloads. */
+export type WebhookEventPayload = WebhookEntryPayload | WebhookExitPayload;
+
 export interface WebhooksResource {
 	create(
 		body: CreateWebhookBody,

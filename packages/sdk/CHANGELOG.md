@@ -4,24 +4,18 @@ All notable changes to `@wherabouts/sdk` are documented here. This project adher
 to [Semantic Versioning](https://semver.org/) and the
 [Keep a Changelog](https://keepachangelog.com/) format.
 
-## [Unreleased]
+## [0.4.0] - 2026-06-15
 
 ### Added
 
-- **Advanced routing methods** on the `routing` resource:
-  - `matrix` — N×M duration/distance matrices (OSRM `/table`).
-  - `isochrone` — reachability polygons for a travel-time/distance budget, with
-    optional ABS-region overlap.
-  - `match` — GPS map-matching, snapping a noisy trace to the road network.
-  - `optimize` — near-optimal stop ordering (TSP via OSRM `/trip`).
+- `GeocodeAddress` now includes `streetName`, `streetNumber`, `streetType` structured fields matching `AddressSuggestion`
+- Added `logger` option to `WheraboutsClientConfig` — called after every request with method, path, status, durationMs, and requestId
+- Added `zones.paginate()` async generator for cursor-free iteration over all zones (yields `ZoneRecord[]` per page)
+- Exported `WebhookEntryPayload`, `WebhookExitPayload`, and `WebhookEventPayload` discriminated union for typing inbound webhook POST bodies
 
-### Changed
+### Fixed
 
-- `directions` (and all routing methods) now accept `profile: "driving" |
-  "walking" | "cycling"` — previously `directions` was driving-only.
-
-> These ship with the next published SDK version; the methods are available on
-> the workspace build now. Publishing follows the Phase 9 release path.
+- `logger` now fires on error responses (4xx/5xx) as well as successful ones
 
 ## [0.2.0] - 2026-06-08
 
@@ -51,4 +45,5 @@ First publishable release. Renamed from the internal `@wherabouts.com/sdk`.
 - Client surface is now resource-namespaced (`client.zones.create(...)`), replacing
   the earlier flat methods.
 
+[0.4.0]: https://github.com/amani-joseph/wherabouts.com/releases/tag/sdk-v0.4.0
 [0.2.0]: https://github.com/amani-joseph/wherabouts.com/releases/tag/sdk-v0.2.0

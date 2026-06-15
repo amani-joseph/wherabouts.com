@@ -1,5 +1,5 @@
 export const WHERABOUTS_API_VERSION = "v1" as const;
-export const WHERABOUTS_SDK_VERSION = "0.2.0" as const;
+export const WHERABOUTS_SDK_VERSION = "0.4.0" as const;
 
 /**
  * Error codes the API may return. The server currently emits a subset; the full
@@ -22,6 +22,14 @@ export interface WheraboutsFieldError {
 	path: string;
 }
 
+export interface RequestLogEvent {
+	durationMs: number;
+	method: string;
+	path: string;
+	requestId?: string;
+	status: number;
+}
+
 export interface WheraboutsApiErrorPayload {
 	error: {
 		code: WheraboutsErrorCode;
@@ -40,6 +48,8 @@ export interface WheraboutsClientConfig {
 	baseUrl?: string;
 	fetch?: typeof fetch;
 	headers?: Record<string, string>;
+	/** Called after every request. Use for debugging or observability. */
+	logger?: (event: RequestLogEvent) => void;
 	/** Max automatic retries for transient failures. Default 2. */
 	maxRetries?: number;
 	/** Per-request timeout in milliseconds. Default 30000. */

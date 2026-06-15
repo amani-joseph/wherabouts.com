@@ -35,7 +35,14 @@ export interface GeocodeAddress {
 	longitude: number;
 	postcode: string;
 	state: string;
+	/** Combined street line, e.g. "34 BOXGROVE AVENUE". */
 	streetAddress: string;
+	/** G-NAF street name without type, e.g. "BOXGROVE". */
+	streetName: string | null;
+	/** Street number or "first-last" range, e.g. "34". */
+	streetNumber: string | null;
+	/** G-NAF street type, e.g. "AVENUE". */
+	streetType: string | null;
 }
 
 export interface ForwardGeocodeResponse {
