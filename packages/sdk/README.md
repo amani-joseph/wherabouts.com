@@ -133,6 +133,46 @@ try {
 }
 ```
 
+## Rate Limits
+
+| Plan       | Requests / minute | Requests / month |
+|------------|-------------------|-----------------|
+| Free       | 60                | 10,000          |
+| Starter    | 300               | 100,000         |
+| Pro        | 1,000             | 1,000,000       |
+| Enterprise | Custom            | Custom          |
+
+When you exceed the rate limit, the API returns `429 Too Many Requests` with error code `rate_limited`. The `Retry-After` response header contains the number of seconds to wait.
+
+```ts
+import { WheraboutsApiError } from "@wherabouts/sdk";
+
+try {
+  const result = await client.geocode.forward({ q: "Sydney Opera House" });
+} catch (e) {
+  if (e instanceof WheraboutsApiError && e.code === "rate_limited") {
+    const retryAfter = e.response?.headers.get("retry-after");
+    console.log(`Rate limited. Retry after ${retryAfter}s`);
+  }
+}
+```
+
+## Migrating from Google Places API
+
+| Google Places                                    | Wherabouts equivalent                               |
+|--------------------------------------------------|-----------------------------------------------------|
+| `PlacesService.findPlaceFromQuery()`             | `client.geocode.forward({ q })`                     |
+| `AutocompleteService.getPlacePredictions()`      | `client.addresses.autocomplete({ q })`              |
+| `Geocoder.geocode({ location })`                 | `client.addresses.reverse({ lat, lng })`            |
+| `places.nearbySearch()`                          | `client.addresses.nearby({ lat, lng, radius })`     |
+
+**Key differences:**
+
+- **Authoritative data:** Wherabouts uses G-NAF — Australia's official address register maintained by PSMA Australia. Addresses match what Australia Post, ABS, and government systems use.
+- **Structured components:** Every address includes `streetNumber`, `streetName`, `streetType`, `locality`, `state`, `postcode` as first-class fields — no parsing needed.
+- **No session tokens:** Autocomplete billing is per-call. No session token complexity.
+- **Unique identifiers:** Each address has a `gnafPid` (G-NAF Persistent Identifier) and `id` for stable cross-system referencing.
+
 ## License
 
 UNLICENSED — © Wherabouts. Contact the maintainers for usage terms.
