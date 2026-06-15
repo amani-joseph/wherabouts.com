@@ -1,9 +1,14 @@
 # Wherabouts.com — Competitive Assessment Report
 
-**Date:** 2026-06-07
+**Date:** 2026-06-07 · **Updated:** 2026-06-10 (added Mapbox)
 **Prepared for:** product/strategy review
-**Scope:** Feature & market comparison of wherabouts.com against 5 competitors —
-Radar, Mappify, Google Maps Platform, HERE Technologies, and Geoapify.
+**Scope:** Feature & market comparison of wherabouts.com against 6 competitors —
+Radar, Mappify, Google Maps Platform, HERE Technologies, Geoapify, and Mapbox.
+
+> **Mapbox deep-dive:** a dedicated, endpoint-by-endpoint Mapbox comparison and
+> roadmap lives in [`analysis/mapbox-comparative-analysis.md`](analysis/mapbox-comparative-analysis.md).
+> This report folds Mapbox into the multi-competitor view; the deep-dive carries the
+> full gap inventory and the "decline the map-rendering arms race" rationale.
 
 ---
 
@@ -18,13 +23,17 @@ device / webhook stack.* No single competitor sits in exactly that square:
   company, and not built on Australian authoritative data.
 - **Google / HERE / Geoapify** are global geocoding/maps platforms; geofencing is
   weak, SDK-side, or absent, and none specialise in G-NAF/ABS.
+- **Mapbox** is a global *map-rendering & developer-tooling* platform (GL JS, mobile
+  SDKs, Studio, routing depth) with **no hosted geofencing/device/webhook product** and
+  no AU-authoritative data — strong where we don't compete, absent where we win.
 
 The strategic one-liner the product can credibly own is **"Radar for Australia,
 built on authoritative government data."**
 
 The three biggest competitive gaps, in priority order, are: **(1) no client / mobile
-SDKs** (Radar's core moat), **(2) no routing** (table-stakes for Mappify parity), and
-**(3) no places/POI dataset.** A recently-shipped **region/boundary classification**
+SDKs** (Radar's core moat), **(2) shallow routing** — driving point-to-point directions
+have shipped, but matrix / multi-profile / optimisation / map-matching / isochrones are
+still missing for Mappify-class parity — and **(3) no places/POI dataset.** A recently-shipped **region/boundary classification**
 endpoint (ASGS) closed the most-cited prior gap and now matches Radar "Regions" and
 Mappify "area lookups."
 
@@ -52,9 +61,15 @@ Mappify "area lookups."
 **Data foundation:** G-NAF (Geoscape, authoritative AU address file) + ABS ASGS
 boundaries — both open/government data. **Geographic scope: Australia only.**
 
-**Not present:** client/mobile SDKs, routing/directions/distance-matrix, places/POI
-dataset, IP geolocation, postal address validation/standardisation, fraud/spoof
-detection, prebuilt integrations (Segment/Braze/etc.), trip tracking/ETAs.
+**Not present:** client/mobile SDKs, **advanced routing** (distance matrix, multi-profile,
+optimisation, map-matching, isochrones), places/POI dataset, IP geolocation, postal address
+validation/standardisation, fraud/spoof detection, prebuilt integrations (Segment/Braze/etc.),
+trip tracking/ETAs.
+
+> **Update 2026-06-10:** **basic driving directions have since shipped** —
+> `GET /api/v1/routing/directions` (point-to-point, driving-only, via self-hosted OSRM
+> `/route`; SDK `routing.directions`). The "advanced routing" items above remain the open
+> gap. Matrices in this report reflect the corrected status.
 
 ---
 
@@ -103,34 +118,59 @@ commercial free tier, transparent pricing, indie-developer friendly — the clos
 *positioning* analogue to wherabouts' likely go-to-market. **Gap:** no geofencing,
 device tracking, or webhooks; global open data rather than AU-authoritative.
 
+### 3.6 Mapbox (mapbox.com) — the global map-rendering & dev-tooling platform
+A different *category* of company: Mapbox monetises **map rendering and developer
+tooling**, not hosted location-data APIs. **Maps/rendering (its core):** Mapbox GL JS,
+native Maps SDKs (iOS/Android/Flutter/RN), Static Images API, Vector/Raster Tiles,
+**Studio + Styles API** (custom cartography), Tiling Service (MTS), Datasets/Uploads,
+Boundaries, Tilequery. **Navigation (deep):** Directions (driving/traffic/walking/
+cycling), **Matrix, Isochrone, Map Matching, Optimization (TSP/VRP)**, turn-by-turn
+Navigation SDK. **Search:** Geocoding v6 (forward/reverse/batch), Search Box (POI +
+category), Address Autofill. **Developer surface:** mature multi-language SDKs, scoped
+tokens, large ecosystem; global coverage. **Overlap with wherabouts:** moderate on
+geocoding/boundaries/basemap; **near-zero on the thing we sell** — Mapbox has **no
+hosted geofencing, no device-state tracking, and no enter/exit webhook product** (its
+"geofencing" is an on-device SDK primitive, not a hosted zone-state engine). **Where it
+beats us:** routing breadth, map rendering, POI/places, static images, cartography
+pipeline, global reach. **Where we beat it:** G-NAF/ABS authority, the entire
+geofencing/device/webhook stack, ASGS region classification. *Strategic read: Mapbox is
+formidable on map-rendering turf we deliberately decline, and absent on the geofencing/
+authoritative-data turf we own — the two products barely contest the same buyer.*
+
 ---
 
 ## 4. Feature matrix
 
 Legend: ✅ strong / native · ⚠️ partial or indirect · ❌ absent
 
-| Capability | Wherabouts | Radar | Mappify | Google | HERE | Geoapify |
-|---|---|---|---|---|---|---|
-| Forward/reverse geocoding | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Autocomplete | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Batch geocoding | ✅ | ⚠️ | ✅ | ⚠️ | ✅ | ✅ |
-| Nearby / radius search | ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ |
-| Admin-boundary classification | ✅ (ASGS) | ✅ | ✅ | ⚠️ | ✅ | ⚠️ |
-| Custom geofencing (zones) | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ |
-| Device location tracking | ✅ (server) | ✅ (SDK) | ❌ | ⚠️ | ✅ | ❌ |
-| Real-time geofence events / webhooks | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ |
-| Routing / directions / matrix | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Places / POI dataset | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ |
-| Address validation/standardisation | ❌ | ✅ | ⚠️ | ✅ | ✅ | ⚠️ |
-| IP geolocation | ❌ | ✅ | ❌ | ✅ | ⚠️ | ✅ |
-| Isolines / reachability | ❌ | ⚠️ | ❌ | ⚠️ | ✅ | ✅ |
-| Fraud / spoof detection | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Client / mobile SDKs | ❌ | ✅ | ❌ | ✅ | ✅ | ⚠️ |
-| Server SDK(s) | ⚠️ (TS, WIP) | ✅ | ⚠️ | ✅ | ✅ | ✅ |
-| Prebuilt integrations marketplace | ❌ | ✅ | ❌ | ⚠️ | ✅ | ❌ |
-| Self-hosted/base maps | ✅ (Protomaps) | ✅ | ❌ | ✅ | ✅ | ✅ |
-| AU-authoritative data (G-NAF/ABS) | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Global coverage | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Capability | Wherabouts | Radar | Mappify | Google | HERE | Geoapify | Mapbox |
+|---|---|---|---|---|---|---|---|
+| Forward/reverse geocoding | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Autocomplete | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Batch geocoding | ✅ | ⚠️ | ✅ | ⚠️ | ✅ | ✅ | ✅ |
+| Nearby / radius search | ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
+| Admin-boundary classification | ✅ (ASGS) | ✅ | ✅ | ⚠️ | ✅ | ⚠️ | ⚠️ (Boundaries) |
+| Custom geofencing (zones) | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ | ❌ |
+| Device location tracking | ✅ (server) | ✅ (SDK) | ❌ | ⚠️ | ✅ | ❌ | ❌ |
+| Real-time geofence events / webhooks | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ | ❌ |
+| Routing / directions | ⚠️ (driving only, p2p) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Distance matrix | ❌ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
+| Route optimisation (TSP/VRP) | ❌ | ⚠️ | ❌ | ⚠️ | ✅ | ⚠️ | ✅ |
+| Map matching | ❌ | ✅ | ❌ | ⚠️ | ✅ | ✅ | ✅ |
+| Places / POI dataset | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Address validation/standardisation | ❌ | ✅ | ⚠️ | ✅ | ✅ | ⚠️ | ⚠️ |
+| IP geolocation | ❌ | ✅ | ❌ | ✅ | ⚠️ | ✅ | ❌ |
+| Isolines / reachability | ❌ | ⚠️ | ❌ | ⚠️ | ✅ | ✅ | ✅ |
+| Fraud / spoof detection | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Static map images | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Map rendering SDK (GL/native) | ❌ | ⚠️ | ❌ | ✅ | ✅ | ⚠️ | ✅ |
+| Custom cartography / tileset hosting | ❌ | ❌ | ❌ | ⚠️ | ✅ | ⚠️ | ✅ (Studio/MTS) |
+| Client / mobile SDKs | ❌ | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ |
+| Server SDK(s) | ⚠️ (TS, WIP) | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
+| Prebuilt integrations marketplace | ❌ | ✅ | ❌ | ⚠️ | ✅ | ❌ | ⚠️ |
+| Self-hosted/base maps | ✅ (Protomaps) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| AU-authoritative data (G-NAF/ABS) | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Global coverage | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
@@ -143,6 +183,9 @@ and *(y) capability — pure geocoding ↔ full geofencing/real-time platform.*
   only).
 - **Radar** sits high-capability but global-generic.
 - **Google / HERE / Geoapify** cluster global-generic, mid-to-high capability.
+- **Mapbox** sits global-generic and high-capability, but on a *different capability
+  axis* — map rendering & dev tooling — not the geofencing/real-time axis that defines
+  our quadrant. It is strong in a direction orthogonal to ours.
 - **Wherabouts is the only player in the AU-authoritative + high-capability quadrant.**
 
 That quadrant is defensible because the two moats compound: the **G-NAF/ABS data
@@ -170,10 +213,12 @@ consumer-app/mobile use cases — the highest-value geofencing segment. *This is
 single most strategic investment.* (Large, multi-quarter native effort — scope as its
 own milestone.)
 
-**Priority 2 — Routing layer (Mappify parity).**
-Distance/driveStats + directions (and later a matrix). Mappify's entire second pillar;
-table stakes for logistics/delivery buyers. Fits the existing PostGIS/OSM-capable
-stack. Medium effort.
+**Priority 2 — Routing layer (Mappify parity).** *(Partially shipped as of 2026-06-10:
+point-to-point driving directions are live.)*
+Remaining for parity: distance matrix, multi-profile (walking/cycling), optimisation,
+map-matching, isochrones. Mappify's entire second pillar; table stakes for
+logistics/delivery buyers. Fits the existing self-hosted OSRM + PostGIS stack
+(`/table`, `/match`, foot/bike profiles). Medium effort.
 
 **Priority 3 — Finish & publish the TypeScript SDK, then add Python.**
 Currently being extended to full endpoint coverage. Publishing it (npm) + a Python
@@ -185,9 +230,16 @@ POI visit detection (Radar "Places") and postal address validation/standardisati
 (Google Address Validation, Smarty) are common buyer asks. G-NAF already gives a
 validation head start for AU.
 
-**Lower priority / watch:** isolines/reachability (Geoapify/HERE differentiator),
-fraud/spoof detection (Radar-only, niche), integrations marketplace (only once
-webhooks have traction).
+**Lower priority / watch:** isolines/reachability (Geoapify/HERE/**Mapbox**
+differentiator), fraud/spoof detection (Radar-only, niche), integrations marketplace
+(only once webhooks have traction), static map images (Mapbox/Google convenience
+feature — cheap to add on the Protomaps basemap).
+
+> **Mapbox-specific note:** Mapbox sets the bar for *routing depth* (matrix, isochrone,
+> map-matching, optimisation) and *map rendering*. The routing-depth gaps reinforce
+> Priority 2; the rendering gaps are **deliberately declined** (Mapbox's core business,
+> off our thesis). Full breakdown and a sequenced routing roadmap in
+> [`analysis/mapbox-comparative-analysis.md`](analysis/mapbox-comparative-analysis.md).
 
 **Defend now (cheap, high-leverage):**
 - Market the **G-NAF + ABS authority** explicitly — it's the moat global players

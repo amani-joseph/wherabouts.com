@@ -1,7 +1,8 @@
 # Wherabouts.com — Competitive Reassessment (Post-SDK-Hardening Update)
 
-**Date:** 2026-06-08
+**Date:** 2026-06-08 · **Amended:** 2026-06-10 (Mapbox column added to matrices)
 **Updates:** [`competitive-analysis-2026-06.md`](./competitive-analysis-2026-06.md) (2026-06-07 baseline)
+**See also:** [`analysis/mapbox-comparative-analysis.md`](./analysis/mapbox-comparative-analysis.md) — full Mapbox deep-dive & routing roadmap.
 **Trigger:** The TypeScript SDK moved from *addresses-only, work-in-progress* to
 **full 22-method coverage (Phase 0) + publishable & hardened (Phase 1)** this cycle.
 This re-scores the same feature framework — only the developer-surface dimensions
@@ -23,9 +24,15 @@ The prior report's §6 ranked the gaps: **P1 client/mobile SDKs**, **P2 routing*
   per-request timeouts + `AbortSignal`, idempotent writes, and typed errors carrying
   `requestId`/`docUrl`/`fields`.
 
-What did **not** change: no client/mobile SDKs (P1), no routing (P2), no Python SDK,
-no places/POI, no address validation. The strategic picture is the same; the
-**developer-surface gap narrowed materially.**
+What did **not** change: no client/mobile SDKs (P1), no Python SDK, no places/POI, no
+address validation. The strategic picture is the same; the **developer-surface gap
+narrowed materially.**
+
+> **2026-06-10 correction:** this line originally read "no routing (P2)." A code
+> cross-check shows **basic driving directions have shipped** (`/api/v1/routing/directions`,
+> point-to-point, driving only). P2 is therefore *partially* addressed — the *advanced*
+> routing surface (distance matrix, multi-profile, optimisation, map-matching, isochrones)
+> is what remains. See the §6 P2 update.
 
 ---
 
@@ -47,34 +54,44 @@ no places/POI, no address validation. The strategic picture is the same; the
 
 Legend: ✅ strong/native · ⚠️ partial/indirect · ❌ absent · 🔼 improved since baseline
 
-| Capability | Wherabouts | Radar | Mappify | Google | HERE | Geoapify |
-|---|---|---|---|---|---|---|
-| Forward/reverse geocoding | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Autocomplete | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Batch geocoding | ✅ | ⚠️ | ✅ | ⚠️ | ✅ | ✅ |
-| Nearby / radius search | ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ |
-| Admin-boundary classification | ✅ (ASGS) | ✅ | ✅ | ⚠️ | ✅ | ⚠️ |
-| Custom geofencing (zones) | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ |
-| Device location tracking | ✅ (server) | ✅ (SDK) | ❌ | ⚠️ | ✅ | ❌ |
-| Real-time geofence events / webhooks | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ |
-| Routing / directions / matrix | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Places / POI dataset | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ |
-| Address validation/standardisation | ❌ | ✅ | ⚠️ | ✅ | ✅ | ⚠️ |
-| IP geolocation | ❌ | ✅ | ❌ | ✅ | ⚠️ | ✅ |
-| Isolines / reachability | ❌ | ⚠️ | ❌ | ⚠️ | ✅ | ✅ |
-| Fraud / spoof detection | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Client / mobile SDKs | ❌ | ✅ | ❌ | ✅ | ✅ | ⚠️ |
-| **Server SDK(s)** | **🔼 ✅ (TS, full+hardened; npm pending)** | ✅ | ⚠️ | ✅ | ✅ | ✅ |
-| **SDK resilience (retry/idempotency/typed errors)** | **🔼 ✅** | ✅ | n/a (SDK-light) | ⚠️ | ⚠️ | ⚠️ |
-| Prebuilt integrations marketplace | ❌ | ✅ | ❌ | ⚠️ | ✅ | ❌ |
-| Self-hosted/base maps | ✅ (Protomaps) | ✅ | ❌ | ✅ | ✅ | ✅ |
-| AU-authoritative data (G-NAF/ABS) | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Global coverage | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Capability | Wherabouts | Radar | Mappify | Google | HERE | Geoapify | Mapbox |
+|---|---|---|---|---|---|---|---|
+| Forward/reverse geocoding | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Autocomplete | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Batch geocoding | ✅ | ⚠️ | ✅ | ⚠️ | ✅ | ✅ | ✅ |
+| Nearby / radius search | ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
+| Admin-boundary classification | ✅ (ASGS) | ✅ | ✅ | ⚠️ | ✅ | ⚠️ | ⚠️ |
+| Custom geofencing (zones) | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ | ❌ |
+| Device location tracking | ✅ (server) | ✅ (SDK) | ❌ | ⚠️ | ✅ | ❌ | ❌ |
+| Real-time geofence events / webhooks | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ | ❌ |
+| **Routing / directions (point-to-point)** | **🔼 ⚠️ (driving only)** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Distance matrix / optimisation / map-matching | ❌ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
+| Places / POI dataset | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Address validation/standardisation | ❌ | ✅ | ⚠️ | ✅ | ✅ | ⚠️ | ⚠️ |
+| IP geolocation | ❌ | ✅ | ❌ | ✅ | ⚠️ | ✅ | ❌ |
+| Isolines / reachability | ❌ | ⚠️ | ❌ | ⚠️ | ✅ | ✅ | ✅ |
+| Fraud / spoof detection | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Map rendering / cartography | ❌ | ⚠️ | ❌ | ✅ | ✅ | ⚠️ | ✅ |
+| Client / mobile SDKs | ❌ | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ |
+| **Server SDK(s)** | **🔼 ✅ (TS, full+hardened; npm pending)** | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
+| **SDK resilience (retry/idempotency/typed errors)** | **🔼 ✅** | ✅ | n/a (SDK-light) | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
+| Prebuilt integrations marketplace | ❌ | ✅ | ❌ | ⚠️ | ✅ | ❌ | ⚠️ |
+| Self-hosted/base maps | ✅ (Protomaps) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| AU-authoritative data (G-NAF/ABS) | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Global coverage | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 
 **Changes from baseline:** *Server SDK(s)* ⚠️→✅ (with publish caveat); added an explicit
 **SDK resilience** row — a depth dimension the original presence/absence matrix didn't capture,
 where Wherabouts now matches Radar and *exceeds* the geocoding-only players whose SDKs are thin
-wrappers.
+wrappers. **2026-06-10 (status correction):** *Routing / directions* ❌→**⚠️🔼** — a code
+cross-check confirmed `GET /api/v1/routing/directions` is **live** (point-to-point, **driving
+only**, OSRM `/route`, returns distance + duration + geometry; SDK `routing.directions`). It was
+mis-scored ❌ in the SDK-focused baseline. *Distance matrix, route optimisation, map-matching,
+isochrones remain genuinely absent* (OSRM `/table` and `/match` are not wired up). **2026-06-10:**
+added the **Mapbox** column (and a *map rendering / cartography* row) —
+Mapbox is strong on map-rendering/routing-depth dimensions and, like every non-Radar competitor,
+**absent on hosted geofencing/device/webhooks**. Its server SDK is mature but not idempotency-
+hardened, so it lands ⚠️ on the resilience row alongside the other geocoders.
 
 ---
 
@@ -83,14 +100,14 @@ wrappers.
 The original matrix scored SDK *presence*. Post-hardening, the more honest comparison is
 *quality*, which is where buyers actually feel friction:
 
-| SDK quality trait | Wherabouts | Radar | Google (services-js) | Mappify/Geoapify |
-|---|---|---|---|---|
-| Resource-namespaced surface | ✅ | ✅ | ⚠️ | ⚠️ |
-| Auto-retry + backoff | ✅ | ✅ | ✅ | ❌ |
-| Idempotent writes | ✅ | n/a | n/a | ❌ |
-| Typed errors + request id | ✅ | ✅ | ⚠️ | ❌ |
-| Dual ESM+CJS + shipped types | ✅ | ✅ | ✅ | ⚠️ |
-| Installable from npm today | ⚠️ (pending) | ✅ | ✅ | ✅ |
+| SDK quality trait | Wherabouts | Radar | Google (services-js) | Mapbox (sdk-js) | Mappify/Geoapify |
+|---|---|---|---|---|---|
+| Resource-namespaced surface | ✅ | ✅ | ⚠️ | ✅ | ⚠️ |
+| Auto-retry + backoff | ✅ | ✅ | ✅ | ⚠️ | ❌ |
+| Idempotent writes | ✅ | n/a | n/a | n/a | ❌ |
+| Typed errors + request id | ✅ | ✅ | ⚠️ | ⚠️ | ❌ |
+| Dual ESM+CJS + shipped types | ✅ | ✅ | ✅ | ✅ | ⚠️ |
+| Installable from npm today | ⚠️ (pending) | ✅ | ✅ | ✅ | ✅ |
 
 **Read:** on *server-SDK ergonomics* Wherabouts now sits at parity with Radar and ahead of the
 AU/open-data geocoders — a credible "Stripe-grade server SDK for AU location data" claim, **once
@@ -122,7 +139,11 @@ This is now the highest-ROI action in the whole roadmap — hours, not weeks.
 **P1 — Client/mobile SDKs (unchanged).** Still the defining gap vs Radar; multi-quarter; own
 milestone.
 
-**P2 — Routing (unchanged).** Mappify parity; table stakes for logistics buyers; medium effort.
+**P2 — Routing (partially shipped — re-scoped 2026-06-10).** Basic **point-to-point driving
+directions are now live** (`/api/v1/routing/directions`). What remains for full Mappify/Mapbox
+parity: **distance matrix**, **multi-profile** (walking/cycling), **route optimisation (TSP/VRP)**,
+**map-matching**, and **isochrones** — all buildable on the existing self-hosted OSRM (`/table`,
+`/match`, foot/bike profiles) plus PostGIS. Medium effort; the directions endpoint proves the path.
 
 **P3 — Server-side DX completion.** (a) **Phase 2 API-side DX** (error envelope, rate-limit
 headers, idempotency *enforcement*) — the SDK is already forward-compatible and *sends* the

@@ -12,6 +12,10 @@
  *   --replace          DELETE existing rows for the country before promote (destructive;
  *                      refused unless given).
  *   --keep-staging     Keep addresses_staging after promote (default: drop).
+ *   --state <CODE>     Load only one state of a big country (e.g. US CA). The
+ *                      load is scoped to (country, state): pre-flight, --replace,
+ *                      and post-flight all key on both, so other states of the
+ *                      same country are untouched. Used by us-queue.ts.
  *
  * Safety invariants:
  *   - Only ever INSERTs rows for the target country; other countries are
@@ -21,11 +25,20 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { runExtract } from "./adapters/overture";
-import { getCountryConfig, OVERTURE_RELEASE } from "./lib/source-registry";
+import { runExtract as odaExtract } from "./adapters/oda";
+import {
+	type ExtractResult,
+	runExtract as overtureExtract,
+} from "./adapters/overture";
+import {
+	type CountryConfig,
+	getCountryConfig,
+	OVERTURE_RELEASE,
+} from "./lib/source-registry";
 
 const MANIFEST_PATH = new URL("manifest.json", import.meta.url).pathname;
 const HOST_FROM_URL_RE = /.*@([^/:]+).*/;
+const WHITESPACE_RE = /\s+/;
 
 interface Args {
 	country: string;
@@ -34,6 +47,8 @@ interface Args {
 	keepStaging: boolean;
 	release: string;
 	replace: boolean;
+	state: string;
+	useCachedCsv: boolean;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -64,7 +79,9 @@ function parseArgs(argv: string[]): Args {
 		release: flag("release") ?? OVERTURE_RELEASE,
 		dryRun: has("dry-run"),
 		replace: has("replace"),
+		state: (flag("state") ?? "").toUpperCase(),
 		keepStaging: has("keep-staging"),
+		useCachedCsv: has("use-cached-csv"),
 	};
 }
 
@@ -74,17 +91,23 @@ function psql(db: string, sql: string): string {
 	}).trim();
 }
 
-function countsByCountry(db: string): Map<string, number> {
-	const out = psql(
-		db,
-		"SELECT country, count(*) FROM addresses GROUP BY country;"
+// SQL predicate scoping a load to a country (and, for big countries, one
+// state). Single-quotes are safe: country/state are validated uppercase codes.
+function scopeWhere(country: string, state: string): string {
+	const stateClause = state ? ` AND state = '${state}'` : "";
+	return `country = '${country}'${stateClause}`;
+}
+
+// Scoped count via idx_addresses_country / idx_addresses_state. Full GROUP BY
+// snapshots were O(table) and ballooned post-flight time as the table grew;
+// promote/DELETE are already scoped to (country[,state]) by construction.
+function scopeCount(db: string, country: string, state: string): number {
+	return Number(
+		psql(
+			db,
+			`SELECT count(*) FROM addresses WHERE ${scopeWhere(country, state)};`
+		)
 	);
-	const map = new Map<string, number>();
-	for (const line of out.split("\n").filter(Boolean)) {
-		const [c, n] = line.split("|");
-		map.set(c, Number(n));
-	}
-	return map;
 }
 
 const STAGING_DDL = `
@@ -107,17 +130,10 @@ TRUNCATE addresses_staging;`;
 const STAGING_COLUMNS =
 	"source,country,state,locality,postcode,street_name,street_type,street_suffix," +
 	"building_name,flat_type,flat_number,level_type,level_number,number_first," +
-	"number_last,longitude,latitude,confidence,source_id";
+	"number_last,longitude,latitude,confidence";
 
-const DEDUP_SQL = `
-DELETE FROM addresses_staging a USING addresses_staging b
-WHERE a.ctid < b.ctid
-  AND a.country = b.country AND a.locality = b.locality
-  AND a.street_name = b.street_name
-  AND a.number_first IS NOT DISTINCT FROM b.number_first
-  AND a.flat_number IS NOT DISTINCT FROM b.flat_number
-  AND round(a.latitude::numeric, 5) = round(b.latitude::numeric, 5)
-  AND round(a.longitude::numeric, 5) = round(b.longitude::numeric, 5);`;
+// Dedup moved into the adapters' extract SQL (DuckDB window function) — the
+// Postgres ctid self-join went quadratic past ~6M staged rows.
 
 // search_text mirrors drizzle/0004_autocomplete_search.sql, with NULLIF on
 // empty strings so single-level countries (state='') don't get double spaces
@@ -139,13 +155,39 @@ SELECT country, state, locality, postcode, street_name, street_type, street_suff
   0, 5
 FROM addresses_staging;`;
 
-function main(): void {
+async function extract(
+	country: string,
+	config: CountryConfig,
+	release: string,
+	csvPath: string,
+	state: string
+): Promise<ExtractResult> {
+	if (config.adapter === "overture") {
+		return overtureExtract(
+			country,
+			config,
+			release,
+			csvPath,
+			state || undefined
+		);
+	}
+	if (config.adapter === "oda") {
+		return await odaExtract(csvPath);
+	}
+	throw new Error(`adapter "${config.adapter}" not implemented yet`);
+}
+
+async function main(): Promise<void> {
 	const args = parseArgs(process.argv.slice(2));
 	const config = getCountryConfig(args.country);
-	const csvPath = `/tmp/overture-${args.country.toLowerCase()}.csv`;
+	const scopeTag = args.state
+		? `${args.country.toLowerCase()}-${args.state.toLowerCase()}`
+		: args.country.toLowerCase();
+	const csvPath = `/tmp/${config.adapter}-${scopeTag}.csv`;
+	const label = args.state ? `${args.country}/${args.state}` : args.country;
 
 	console.log(
-		`country=${args.country} adapter=${config.adapter} release=${args.release}`
+		`country=${args.country}${args.state ? ` state=${args.state}` : ""} adapter=${config.adapter} release=${args.release}`
 	);
 	if (args.dryRun) {
 		console.log(
@@ -159,19 +201,34 @@ function main(): void {
 	const host = args.db.replace(HOST_FROM_URL_RE, "$1");
 	console.log(`target host: ${host}`);
 
-	// Pre-flight: snapshot + refuse silent re-ingest
-	const before = countsByCountry(args.db);
-	const existing = before.get(args.country) ?? 0;
+	// Pre-flight: refuse silent re-ingest
+	const existing = scopeCount(args.db, args.country, args.state);
 	if (existing > 0 && !args.replace) {
 		throw new Error(
-			`${args.country} already has ${existing} rows. Re-run with --replace to delete+reload.`
+			`${label} already has ${existing} rows. Re-run with --replace to delete+reload.`
 		);
 	}
 
-	// Extract
-	console.log("extracting from Overture…");
-	const { rowCount } = runExtract(args.country, config, args.release, csvPath);
-	console.log(`extracted ${rowCount} rows -> ${csvPath}`);
+	// Extract (or reuse a prefetched CSV — see prefetch.ts)
+	let rowCount: number;
+	if (args.useCachedCsv && existsSync(csvPath)) {
+		const wc = execFileSync("wc", ["-l", csvPath], { encoding: "utf-8" });
+		rowCount = Number.parseInt(wc.trim().split(WHITESPACE_RE)[0] ?? "0", 10);
+		console.log(`using prefetched CSV: ${rowCount} rows at ${csvPath}`);
+		if (rowCount === 0) {
+			throw new Error(`cached CSV ${csvPath} is empty — delete it and re-run`);
+		}
+	} else {
+		console.log(`extracting via ${config.adapter} adapter…`);
+		({ rowCount } = await extract(
+			args.country,
+			config,
+			args.release,
+			csvPath,
+			args.state
+		));
+		console.log(`extracted ${rowCount} rows -> ${csvPath}`);
+	}
 
 	// Stage
 	psql(args.db, STAGING_DDL);
@@ -186,37 +243,35 @@ function main(): void {
 		],
 		{ stdio: ["ignore", "inherit", "inherit"] }
 	);
-	psql(args.db, DEDUP_SQL);
 	const staged = Number(
 		psql(args.db, "SELECT count(*) FROM addresses_staging;")
 	);
-	console.log(`staged ${staged} rows after dedup`);
+	console.log(`staged ${staged} rows (deduped at extract)`);
 
-	// Promote (with optional replace) — single transaction
+	// Promote (with optional replace) — single transaction. DELETE is scoped to
+	// (country[,state]) so re-loading one US state never touches the others.
 	const replaceSql = args.replace
-		? `DELETE FROM addresses WHERE country = '${args.country}';`
+		? `DELETE FROM addresses WHERE ${scopeWhere(args.country, args.state)};`
 		: "";
 	psql(args.db, `BEGIN; ${replaceSql} ${PROMOTE_SQL} COMMIT;`);
 
-	// Post-flight: only the target country may have changed
-	const after = countsByCountry(args.db);
-	for (const [c, n] of before) {
-		if (c !== args.country && after.get(c) !== n) {
-			throw new Error(
-				`INVARIANT VIOLATED: country ${c} changed ${n} -> ${after.get(c)}`
-			);
-		}
-	}
-	const promoted = after.get(args.country) ?? 0;
-	const nullGeoms = Number(
-		psql(
-			args.db,
-			`SELECT count(*) FROM addresses WHERE country='${args.country}' AND geom IS NULL;`
-		)
+	// Post-flight: one indexed pass — scoped total + null geoms together. The
+	// promote INSERT and optional DELETE are both scoped to (country[,state]),
+	// so rows outside this scope cannot change by construction.
+	const out = psql(
+		args.db,
+		`SELECT count(*) || '|' || count(*) FILTER (WHERE geom IS NULL)
+		 FROM addresses WHERE ${scopeWhere(args.country, args.state)};`
 	);
+	const [promoted, nullGeoms] = out.split("|").map(Number);
 	console.log(`promoted: ${promoted} rows (${nullGeoms} null geoms)`);
-	if (nullGeoms > 0) {
+	if ((nullGeoms ?? 0) > 0) {
 		throw new Error("null geoms detected after promote");
+	}
+	if ((promoted ?? 0) < staged) {
+		throw new Error(
+			`promoted ${promoted} < staged ${staged} — promote incomplete?`
+		);
 	}
 
 	if (!args.keepStaging) {
@@ -230,6 +285,7 @@ function main(): void {
 		: [];
 	manifest.push({
 		country: args.country,
+		state: args.state || undefined,
 		adapter: config.adapter,
 		release: args.release,
 		extracted: rowCount,
@@ -242,4 +298,4 @@ function main(): void {
 	console.log("done — manifest updated");
 }
 
-main();
+await main();

@@ -124,8 +124,22 @@ export const COUNTRIES: Record<string, CountryConfig> = {
 		state: "none",
 		notes: "3 lvls, last=municipality. nullst 55.5%.",
 	},
-	// US: { adapter: "nad", ... }   — Tier 1 (deferred phase), see spec §9.1
-	// CA: { adapter: "oda", ... }   — Tier 1, pending adapter build
+	CA: {
+		adapter: "oda",
+		state: "none", // state derived from PRUID inside the ODA adapter, not address_levels
+		notes:
+			"Tier-1 StatCan ODA (~10M rows, OGL-Canada). _pcs standardized fields used. " +
+			"GAP: ODA v1 has no NL/YT/NU — consider Overture backfill for those provinces later. " +
+			"Postcode coverage varies by provider (PE 100% null).",
+	},
+	US: {
+		adapter: "overture",
+		state: "address-level-1", // address_levels[1] = 2-letter state code (CA, TX…)
+		notes:
+			"126.5M rows — loaded state-by-state via us-queue.ts (--state) for resumability. " +
+			"Chose Overture over NAD Tier-1 2026-06-14 (proven path, NAD-derived + OpenAddresses). " +
+			"Coverage varies by state (NV/SC/GA sparse in Overture). NAD upgrade possible later via --replace.",
+	},
 };
 
 export function getCountryConfig(country: string): CountryConfig {
