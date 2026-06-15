@@ -1,5 +1,5 @@
 export const WHERABOUTS_API_VERSION = "v1" as const;
-export const WHERABOUTS_SDK_VERSION = "0.4.0" as const;
+export const WHERABOUTS_SDK_VERSION = "0.4.1" as const;
 
 /**
  * Error codes the API may return. The server currently emits a subset; the full
