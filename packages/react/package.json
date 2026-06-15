@@ -1,0 +1,49 @@
+{
+  "name": "@wherabouts/react",
+  "version": "0.1.0",
+  "description": "React hooks for the Wherabouts location API",
+  "type": "module",
+  "license": "UNLICENSED",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "react": ">=18",
+    "@wherabouts/sdk": ">=0.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@wherabouts.com/config": "workspace:*",
+    "react": "catalog:",
+    "@wherabouts/sdk": "workspace:*",
+    "tsup": "^8.5.1",
+    "typescript": "^5",
+    "vitest": "^4.1.4"
+  },
+  "scripts": {
+    "build": "tsup",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm build"
+  }
+}
