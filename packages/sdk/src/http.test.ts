@@ -147,4 +147,37 @@ describe("createRequester", () => {
 		expect(typeof events[0].durationMs).toBe("number");
 		expect(events[0].durationMs).toBeGreaterThanOrEqual(0);
 	});
+
+	it("calls logger even on error responses (4xx/5xx)", async () => {
+		const events: RequestLogEvent[] = [];
+		const fetchImpl = (async () =>
+			new Response(
+				JSON.stringify({ error: { code: "unauthorized", message: "bad key" } }),
+				{ status: 401, headers: { "content-type": "application/json" } }
+			)) as typeof fetch;
+		const request = createRequester({
+			apiKey: "wh_test_key",
+			baseUrl: "http://localhost",
+			maxRetries: 0,
+			logger: (e) => events.push(e),
+			fetch: fetchImpl,
+		});
+		try {
+			await request({
+				method: "GET",
+				path: "/api/v1/addresses/autocomplete",
+				query: { q: "34 Box" },
+			});
+		} catch {
+			// expected
+		}
+		expect(events).toHaveLength(1);
+		expect(events[0]).toBeDefined();
+		if (!events[0]) {
+			throw new Error("No event");
+		}
+		expect(events[0].status).toBe(401);
+		expect(events[0].method).toBe("GET");
+		expect(events[0].path).toBe("/api/v1/addresses/autocomplete");
+	});
 });
