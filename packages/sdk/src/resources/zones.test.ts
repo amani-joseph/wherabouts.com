@@ -96,4 +96,43 @@ describe("createZones", () => {
 			query: { page: 2, limit: undefined },
 		});
 	});
+
+	it("paginate — yields all pages and stops when page is smaller than limit", async () => {
+		const zone1 = { id: 1, name: "Zone 1" } as any;
+		const zone2 = { id: 2, name: "Zone 2" } as any;
+		const zone3 = { id: 3, name: "Zone 3" } as any;
+
+		const request = vi.fn(async (opts: unknown): Promise<any> => {
+			const req = opts as any;
+			if (req.query.page === 1) {
+				return { zones: [zone1, zone2] };
+			}
+			if (req.query.page === 2) {
+				return { zones: [zone3] };
+			}
+			return { zones: [] };
+		});
+
+		const zones = createZones(request as never);
+		const batches: any[] = [];
+
+		for await (const batch of zones.paginate({ limit: 2 })) {
+			batches.push(batch);
+		}
+
+		expect(batches).toHaveLength(2);
+		expect(batches[0]).toEqual([zone1, zone2]);
+		expect(batches[1]).toEqual([zone3]);
+		expect(request).toHaveBeenCalledTimes(2);
+		expect(request).toHaveBeenNthCalledWith(1, {
+			method: "GET",
+			path: "/api/v1/zones",
+			query: { page: 1, limit: 2 },
+		});
+		expect(request).toHaveBeenNthCalledWith(2, {
+			method: "GET",
+			path: "/api/v1/zones",
+			query: { page: 2, limit: 2 },
+		});
+	});
 });

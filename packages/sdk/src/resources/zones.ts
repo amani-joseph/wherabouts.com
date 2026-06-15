@@ -116,6 +116,10 @@ export interface ZonesResource {
 		params?: ZoneListParams,
 		options?: CallOptions
 	): Promise<ZoneListResponse>;
+	paginate(
+		params?: ZoneListParams,
+		options?: CallOptions
+	): AsyncGenerator<ZoneRecord[], void, unknown>;
 	update(
 		id: number,
 		body: ZoneUpdateBody,
@@ -141,6 +145,27 @@ export const createZones = (request: Requester): ZonesResource => ({
 			query: { page: params?.page, limit: params?.limit },
 			...options,
 		}),
+
+	async *paginate(params, options) {
+		let page = 1;
+		const limit = params?.limit ?? 50;
+		while (true) {
+			const res = await request<ZoneListResponse>({
+				method: "GET",
+				path: "/api/v1/zones",
+				query: { page, limit },
+				...options,
+			});
+			if (res.zones.length === 0) {
+				break;
+			}
+			yield res.zones;
+			if (res.zones.length < limit) {
+				break;
+			}
+			page++;
+		}
+	},
 
 	get: (id, options) =>
 		request<ZoneWithGeometry>({
