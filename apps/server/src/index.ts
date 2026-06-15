@@ -43,6 +43,25 @@ const isAllowedOrigin = (origin: string | undefined): boolean =>
 	typeof origin === "string" && allowedOrigins.has(origin);
 
 app.use(logger());
+
+// Public API routes use X-API-Key (not cookies) — allow any origin so
+// third-party apps can call the API directly from the browser.
+app.use(
+	"/api/v1/*",
+	cors({
+		origin: "*",
+		allowHeaders: [
+			"Authorization",
+			"Content-Type",
+			"X-API-Key",
+			"x-wherabouts-request-source",
+		],
+		allowMethods: ["GET", "POST", "OPTIONS"],
+		credentials: false,
+	})
+);
+
+// All other routes (auth, RPC, dashboard) stay restricted to known origins.
 app.use(
 	"/*",
 	cors({
