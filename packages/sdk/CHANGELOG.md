@@ -4,6 +4,21 @@ All notable changes to `@wherabouts/sdk` are documented here. This project adher
 to [Semantic Versioning](https://semver.org/) and the
 [Keep a Changelog](https://keepachangelog.com/) format.
 
+## [0.4.2] - 2026-06-16
+
+### Added
+
+- `addresses.autocomplete` now accepts `lat`/`lng` for proximity boosting (sent to the API as `lat`/`lon`) and a `sessionToken` to group a run of keystrokes into one billable search
+- `newSessionToken()` helper for generating per-search session tokens
+- Type guards `isWheraboutsApiError`, `isRateLimitError`, and `isClientError`
+- Geo helpers `getLatLng`, `toLngLat`, and `distanceMeters` (haversine)
+
+## [0.4.1] - 2026-06-15
+
+### Changed
+
+- Added MIT `LICENSE` and license metadata.
+
 ## [0.4.0] - 2026-06-15
 
 ### Added

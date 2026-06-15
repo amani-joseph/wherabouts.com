@@ -33,7 +33,7 @@
   ],
   "peerDependencies": {
     "react": ">=18",
-    "@wherabouts/sdk": ">=0.4.0"
+    "@wherabouts/sdk": ">=0.4.2"
   },
   "devDependencies": {
     "@types/react": "^19",
