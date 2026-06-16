@@ -70,9 +70,10 @@ type ReverseGeocodeInput = z.infer<typeof reverseGeocodeSchema>;
 // Demo client factory
 const createDemoClient = (): WheraboutsClient => {
 	const apiKey = env.VITE_DEMO_API_KEY || "pk_test_wherabouts_components_demo";
+	const serverUrl = env.VITE_SERVER_URL || "http://localhost:3003";
 	return createWheraboutsClient({
 		apiKey,
-		baseUrl: "https://api.wherabouts.com/api/v1",
+		baseUrl: `${serverUrl}/api/v1`,
 	});
 };
 
