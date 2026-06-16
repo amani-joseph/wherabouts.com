@@ -30,6 +30,7 @@ import {
 	TrashIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { orpcClient } from "@/lib/orpc";
 import { cn } from "@/lib/utils";
 
@@ -93,6 +94,55 @@ function CopyButton({
 	);
 }
 
+function RevealCopyButton({ keyId }: { keyId: string }) {
+	const [copied, setCopied] = useState(false);
+	const [loading, setLoading] = useState(false);
+
+	const handleCopy = async () => {
+		setLoading(true);
+		try {
+			const { key } = await orpcClient.apiKeys.reveal({ id: keyId });
+			if (!key) {
+				toast.error("This key can't be retrieved", {
+					description:
+						"It was created before key reveal was enabled. Revoke it and create a new key.",
+				});
+				return;
+			}
+			await navigator.clipboard.writeText(key);
+			setCopied(true);
+			setTimeout(() => setCopied(false), 2000);
+		} catch {
+			toast.error("Failed to copy API key");
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const renderIcon = () => {
+		if (loading) {
+			return <LoaderIcon className="size-4 animate-spin" />;
+		}
+		if (copied) {
+			return <CheckIcon className="size-4 text-green-500" />;
+		}
+		return <CopyIcon className="size-4" />;
+	};
+
+	return (
+		<Button
+			aria-label="Copy full API key"
+			className="size-8"
+			disabled={loading}
+			onClick={handleCopy}
+			size="icon"
+			variant="ghost"
+		>
+			{renderIcon()}
+		</Button>
+	);
+}
+
 function KeyRow({
 	apiKey,
 	onRevoke,
@@ -144,7 +194,7 @@ function KeyRow({
 				<span className="hidden text-muted-foreground text-xs sm:block">
 					Created {timeAgo(apiKey.createdAt)}
 				</span>
-				<CopyButton ariaLabel="Copy key preview" text={apiKey.displayLabel} />
+				<RevealCopyButton keyId={apiKey.id} />
 				<Button
 					className="size-8 text-destructive"
 					disabled={revoking}

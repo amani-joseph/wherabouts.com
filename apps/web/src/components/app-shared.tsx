@@ -80,6 +80,11 @@ export const navGroups: SidebarNavGroup[] = [
 				path: "/sdk-playground",
 				icon: <TerminalIcon />,
 			},
+			{
+				title: "Component Library",
+				path: "/components",
+				icon: <LayersIcon />,
+			},
 		],
 	},
 	{

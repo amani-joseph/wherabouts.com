@@ -26,6 +26,7 @@ import { Route as ProtectedIntegrationsRouteImport } from './routes/_protected/i
 import { Route as ProtectedHelpRouteImport } from './routes/_protected/help'
 import { Route as ProtectedDevicesRouteImport } from './routes/_protected/devices'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
+import { Route as ProtectedComponentsRouteImport } from './routes/_protected/components'
 import { Route as ProtectedBillingRouteImport } from './routes/_protected/billing'
 import { Route as ProtectedBatchRouteImport } from './routes/_protected/batch'
 import { Route as ProtectedApiKeysRouteImport } from './routes/_protected/api-keys'
@@ -127,6 +128,11 @@ const ProtectedDevicesRoute = ProtectedDevicesRouteImport.update({
 const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedComponentsRoute = ProtectedComponentsRouteImport.update({
+  id: '/components',
+  path: '/components',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedBillingRoute = ProtectedBillingRouteImport.update({
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/api-keys': typeof ProtectedApiKeysRoute
   '/batch': typeof ProtectedBatchRoute
   '/billing': typeof ProtectedBillingRoute
+  '/components': typeof ProtectedComponentsRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/devices': typeof ProtectedDevicesRoute
   '/help': typeof ProtectedHelpRoute
@@ -270,6 +277,7 @@ export interface FileRoutesByTo {
   '/api-keys': typeof ProtectedApiKeysRoute
   '/batch': typeof ProtectedBatchRoute
   '/billing': typeof ProtectedBillingRoute
+  '/components': typeof ProtectedComponentsRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/devices': typeof ProtectedDevicesRoute
   '/help': typeof ProtectedHelpRoute
@@ -308,6 +316,7 @@ export interface FileRoutesById {
   '/_protected/api-keys': typeof ProtectedApiKeysRoute
   '/_protected/batch': typeof ProtectedBatchRoute
   '/_protected/billing': typeof ProtectedBillingRoute
+  '/_protected/components': typeof ProtectedComponentsRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/_protected/devices': typeof ProtectedDevicesRoute
   '/_protected/help': typeof ProtectedHelpRoute
@@ -346,6 +355,7 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/batch'
     | '/billing'
+    | '/components'
     | '/dashboard'
     | '/devices'
     | '/help'
@@ -382,6 +392,7 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/batch'
     | '/billing'
+    | '/components'
     | '/dashboard'
     | '/devices'
     | '/help'
@@ -419,6 +430,7 @@ export interface FileRouteTypes {
     | '/_protected/api-keys'
     | '/_protected/batch'
     | '/_protected/billing'
+    | '/_protected/components'
     | '/_protected/dashboard'
     | '/_protected/devices'
     | '/_protected/help'
@@ -586,6 +598,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedDashboardRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/components': {
+      id: '/_protected/components'
+      path: '/components'
+      fullPath: '/components'
+      preLoaderRoute: typeof ProtectedComponentsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/billing': {
       id: '/_protected/billing'
       path: '/billing'
@@ -721,6 +740,7 @@ interface ProtectedRouteChildren {
   ProtectedApiKeysRoute: typeof ProtectedApiKeysRoute
   ProtectedBatchRoute: typeof ProtectedBatchRoute
   ProtectedBillingRoute: typeof ProtectedBillingRoute
+  ProtectedComponentsRoute: typeof ProtectedComponentsRoute
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
   ProtectedDevicesRoute: typeof ProtectedDevicesRoute
   ProtectedHelpRoute: typeof ProtectedHelpRoute
@@ -739,6 +759,7 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedApiKeysRoute: ProtectedApiKeysRoute,
   ProtectedBatchRoute: ProtectedBatchRoute,
   ProtectedBillingRoute: ProtectedBillingRoute,
+  ProtectedComponentsRoute: ProtectedComponentsRoute,
   ProtectedDashboardRoute: ProtectedDashboardRoute,
   ProtectedDevicesRoute: ProtectedDevicesRoute,
   ProtectedHelpRoute: ProtectedHelpRoute,

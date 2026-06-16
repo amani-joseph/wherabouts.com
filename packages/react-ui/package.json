@@ -1,0 +1,47 @@
+{
+  "name": "@wherabouts/react-ui",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Production-ready React components for Wherabouts SDK — address autocomplete, geocoding, and form fields with accessibility and customization.",
+  "license": "UNLICENSED",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup && node scripts/build-css.mjs",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "react": ">=19.0.0",
+    "@wherabouts/sdk": ">=0.4.2",
+    "@wherabouts/react": ">=0.2.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^15.0.0",
+    "@testing-library/user-event": "^14.5.1",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@wherabouts/react": "workspace:*",
+    "@wherabouts/sdk": "workspace:*",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "jsdom": "^23.0.1",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tailwind-merge": "^2.3.0",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.4",
+    "vitest": "^1.2.0"
+  }
+}

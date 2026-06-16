@@ -1,0 +1,288 @@
+/* ───────────────────────────────────────────────────────────────
+   Wherabouts React UI — Design Tokens & Component Styles
+   ─────────────────────────────────────────────────────────────── */
+
+/* ── Light theme (default) ──────────────────────────────────── */
+:root {
+	/* Colors — WCAG AA compliant (4.5:1+ contrast ratios) */
+	--wherabouts-color-border: hsl(214.3 31.8% 91.4%);
+	--wherabouts-color-input-bg: hsl(0 0% 100%);
+	--wherabouts-color-input-text: hsl(222.2 84% 4.9%);
+	--wherabouts-color-placeholder: hsl(215.4 16.3% 46.9%);
+	--wherabouts-color-focus-ring: hsl(221.2 83.2% 53.3%);
+	--wherabouts-color-dropdown-bg: hsl(0 0% 100%);
+	--wherabouts-color-dropdown-border: hsl(214.3 31.8% 91.4%);
+	--wherabouts-color-dropdown-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+	--wherabouts-color-item-bg: hsl(0 0% 100%);
+	--wherabouts-color-item-bg-hover: hsl(210 40% 96.1%);
+	--wherabouts-color-item-bg-active: hsl(221.2 83.2% 53.3% / 0.1);
+	--wherabouts-color-item-text: hsl(222.2 84% 4.9%);
+	--wherabouts-color-error: hsl(0 84.2% 60.2%);
+	--wherabouts-color-error-border: hsl(0 84.2% 60.2%);
+	--wherabouts-color-text-muted: hsl(215.4 16.3% 46.9%);
+
+	/* Spacing */
+	--wherabouts-spacing-xs: 0.25rem;
+	--wherabouts-spacing-sm: 0.5rem;
+	--wherabouts-spacing-md: 1rem;
+	--wherabouts-spacing-lg: 1.5rem;
+
+	/* Typography */
+	--wherabouts-font-size-xs: 0.75rem;
+	--wherabouts-font-size-sm: 0.875rem;
+	--wherabouts-font-size-base: 1rem;
+	--wherabouts-font-weight-normal: 400;
+	--wherabouts-font-weight-medium: 500;
+
+	/* Borders & Radius */
+	--wherabouts-border-radius: 0.5rem;
+	--wherabouts-border-radius-sm: 0.375rem;
+	--wherabouts-border-width: 1px;
+
+	/* Z-Index */
+	--wherabouts-z-dropdown: 50;
+
+	/* Transitions */
+	--wherabouts-transition-fast: 150ms ease-in-out;
+	--wherabouts-transition-base: 200ms ease-in-out;
+}
+
+/* ── Dark theme ─────────────────────────────────────────────── */
+.dark {
+	--wherabouts-color-border: hsl(217.2 32.6% 17.5%);
+	--wherabouts-color-input-bg: hsl(222.2 84% 4.9%);
+	--wherabouts-color-input-text: hsl(210 40% 98%);
+	--wherabouts-color-placeholder: hsl(215.4 16.3% 56.9%);
+	--wherabouts-color-focus-ring: hsl(221.2 83.2% 63.3%);
+	--wherabouts-color-dropdown-bg: hsl(222.2 84% 4.9%);
+	--wherabouts-color-dropdown-border: hsl(217.2 32.6% 17.5%);
+	--wherabouts-color-dropdown-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+	--wherabouts-color-item-bg: hsl(222.2 84% 4.9%);
+	--wherabouts-color-item-bg-hover: hsl(222.2 84% 10%);
+	--wherabouts-color-item-bg-active: hsl(221.2 83.2% 53.3% / 0.2);
+	--wherabouts-color-item-text: hsl(210 40% 98%);
+	--wherabouts-color-error: hsl(0 84.2% 70.2%);
+	--wherabouts-color-error-border: hsl(0 84.2% 70.2%);
+	--wherabouts-color-text-muted: hsl(215.4 16.3% 56.9%);
+}
+
+/* ── AddressAutocomplete & Input ────────────────────────────── */
+[data-slot="address-autocomplete"] {
+	position: relative;
+	width: 100%;
+}
+
+[data-slot="address-input"] {
+	display: block;
+	width: 100%;
+	padding: var(--wherabouts-spacing-sm) var(--wherabouts-spacing-md);
+	border: var(--wherabouts-border-width) solid
+		var(--wherabouts-color-border);
+	border-radius: var(--wherabouts-border-radius);
+	background-color: var(--wherabouts-color-input-bg);
+	color: var(--wherabouts-color-input-text);
+	font-size: var(--wherabouts-font-size-base);
+	font-weight: var(--wherabouts-font-weight-normal);
+	transition: border-color var(--wherabouts-transition-fast),
+		box-shadow var(--wherabouts-transition-fast);
+}
+
+[data-slot="address-input"]::placeholder {
+	color: var(--wherabouts-color-placeholder);
+}
+
+[data-slot="address-input"]:focus {
+	outline: none;
+	border-color: var(--wherabouts-color-focus-ring);
+	box-shadow: 0 0 0 3px
+		hsl(221.2 83.2% 53.3% / 0.1);
+}
+
+[data-slot="address-input"]:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	background-color: hsl(0 0% 95% / 0.5);
+}
+
+[data-slot="address-input"][aria-invalid="true"] {
+	border-color: var(--wherabouts-color-error);
+}
+
+[data-slot="address-input"][aria-invalid="true"]:focus {
+	box-shadow: 0 0 0 3px
+		hsl(0 84.2% 60.2% / 0.1);
+}
+
+/* ── Dropdown Listbox ──────────────────────────────────────── */
+[data-slot="address-listbox"] {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	margin-top: var(--wherabouts-spacing-xs);
+	max-height: 300px;
+	overflow-y: auto;
+	z-index: var(--wherabouts-z-dropdown);
+	list-style: none;
+	padding: var(--wherabouts-spacing-sm);
+	margin: var(--wherabouts-spacing-xs) 0 0 0;
+	border: var(--wherabouts-border-width) solid
+		var(--wherabouts-color-dropdown-border);
+	border-radius: var(--wherabouts-border-radius);
+	background-color: var(--wherabouts-color-dropdown-bg);
+	box-shadow: var(--wherabouts-color-dropdown-shadow);
+}
+
+[data-slot="address-listbox"]::-webkit-scrollbar {
+	width: 8px;
+}
+
+[data-slot="address-listbox"]::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+[data-slot="address-listbox"]::-webkit-scrollbar-thumb {
+	background: var(--wherabouts-color-border);
+	border-radius: 4px;
+}
+
+/* ── Suggestion Item ───────────────────────────────────────── */
+[data-slot="address-item"] {
+	padding: var(--wherabouts-spacing-sm) var(--wherabouts-spacing-md);
+	margin: 2px 0;
+	border-radius: var(--wherabouts-border-radius-sm);
+	background-color: var(--wherabouts-color-item-bg);
+	color: var(--wherabouts-color-item-text);
+	cursor: pointer;
+	font-size: var(--wherabouts-font-size-base);
+	transition: background-color var(--wherabouts-transition-fast);
+	min-height: 44px;
+	display: flex;
+	align-items: center;
+}
+
+[data-slot="address-item"]:hover {
+	background-color: var(--wherabouts-color-item-bg-hover);
+}
+
+[data-slot="address-item"][aria-selected="true"] {
+	background-color: var(--wherabouts-color-item-bg-active);
+}
+
+/* ── Loading / Error / Empty States ────────────────────────── */
+[data-slot="address-item"][data-status="loading"],
+[data-slot="address-item"][data-status="error"],
+[data-slot="address-item"][data-status="empty"] {
+	cursor: default;
+	justify-content: center;
+	font-size: var(--wherabouts-font-size-sm);
+	color: var(--wherabouts-color-text-muted);
+	min-height: 40px;
+}
+
+[data-slot="address-item"][data-status="error"] {
+	color: var(--wherabouts-color-error);
+}
+
+/* ── Form Field ────────────────────────────────────────────── */
+[data-slot="address-form-field"] {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wherabouts-spacing-sm);
+}
+
+[data-slot="address-form-field"] label {
+	display: block;
+	font-size: var(--wherabouts-font-size-sm);
+	font-weight: var(--wherabouts-font-weight-medium);
+	color: var(--wherabouts-color-input-text);
+}
+
+[data-slot="address-form-field"] label [aria-hidden="true"] {
+	color: var(--wherabouts-color-error);
+	margin-left: 2px;
+}
+
+[data-slot="address-form-field"] [role="alert"] {
+	display: block;
+	font-size: var(--wherabouts-font-size-sm);
+	color: var(--wherabouts-color-error);
+	margin-top: 2px;
+}
+
+/* ── Field Group ───────────────────────────────────────────── */
+[data-slot="address-field-group"] {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wherabouts-spacing-md);
+}
+
+[data-slot="address-field-group-inputs"] {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: var(--wherabouts-spacing-md);
+}
+
+[data-slot="address-field-group-inputs"] > div:nth-child(4) {
+	grid-column: 1 / 2;
+}
+
+@media (max-width: 640px) {
+	[data-slot="address-field-group-inputs"] {
+		grid-template-columns: 1fr;
+	}
+
+	[data-slot="address-listbox"] {
+		max-height: 250px;
+	}
+
+	[data-slot="address-item"] {
+		min-height: 56px;
+	}
+}
+
+/* ── Reverse/Forward Geocode Input ─────────────────────────── */
+[data-slot="geocode-input"] {
+	display: block;
+	width: 100%;
+	padding: var(--wherabouts-spacing-sm) var(--wherabouts-spacing-md);
+	border: var(--wherabouts-border-width) solid
+		var(--wherabouts-color-border);
+	border-radius: var(--wherabouts-border-radius);
+	background-color: hsl(0 0% 97%);
+	color: var(--wherabouts-color-input-text);
+	font-size: var(--wherabouts-font-size-base);
+	cursor: default;
+}
+
+.dark [data-slot="geocode-input"] {
+	background-color: hsl(222.2 84% 8%);
+}
+
+/* ── Accessibility & Focus Visibility ──────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+	[data-slot="address-input"],
+	[data-slot="address-item"] {
+		transition: none;
+	}
+}
+
+/* Ensure sufficient touch targets on mobile */
+@media (max-width: 768px) {
+	[data-slot="address-input"],
+	[data-slot="address-item"] {
+		min-height: 44px;
+	}
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+	[data-slot="address-input"],
+	[data-slot="address-listbox"] {
+		border-width: 2px;
+	}
+
+	[data-slot="address-item"][aria-selected="true"] {
+		text-decoration: underline;
+	}
+}

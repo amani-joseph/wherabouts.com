@@ -7,6 +7,8 @@ export const env = createEnv({
 		VITE_SERVER_URL: z.url(),
 		/** Base URL of the tile Worker, e.g. https://api.wherabouts.com . Tiles live under /tiles/v1. */
 		VITE_TILES_BASE_URL: z.url().optional(),
+		/** Demo API key for component library showcase (publishable key) */
+		VITE_DEMO_API_KEY: z.string().optional(),
 	},
 	runtimeEnv: import.meta.env,
 	emptyStringAsUndefined: true,

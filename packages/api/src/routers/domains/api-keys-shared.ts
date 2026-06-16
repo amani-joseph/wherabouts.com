@@ -9,6 +9,7 @@ import {
 	hashApiKeySecret,
 } from "../../api-key-auth.ts";
 import type { Context } from "../../context.ts";
+import { encryptSecret } from "../../secret-crypto.ts";
 
 type DatabaseLike = Context["db"];
 
@@ -87,6 +88,11 @@ export const createApiKeyRecord = async (
 	const secretDisplaySuffix = formatApiKeyDisplaySuffix(secretPart);
 	const plaintextKey = `${API_KEY_PREFIX}${id}_${secretPart}`;
 	const name = input.name.trim();
+	// Reversibly encrypt the full key (AES-256-GCM, keyed by KEY_ENC_KEY) so it can
+	// be re-revealed on demand. The combined iv:authTag:ciphertext string lives in a
+	// single column; the IV is embedded, so secretIv stays null. This is a deliberate
+	// security tradeoff: a DB + KEY_ENC_KEY compromise exposes every key.
+	const secretCiphertext = encryptSecret(plaintextKey);
 
 	await db.insert(apiKeys).values({
 		id,
@@ -96,6 +102,7 @@ export const createApiKeyRecord = async (
 		secretHash: hashB64,
 		secretSalt: saltB64,
 		secretDisplaySuffix,
+		secretCiphertext,
 	});
 
 	return {

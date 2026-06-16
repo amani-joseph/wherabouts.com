@@ -2,6 +2,7 @@ import { apiKeys, projects } from "@wherabouts.com/database";
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { protectedProcedure } from "../../procedures.ts";
+import { decryptSecret } from "../../secret-crypto.ts";
 import {
 	createApiKeyRecord,
 	listActiveApiKeyRowsForUser,
@@ -13,6 +14,10 @@ const createApiKeyInputSchema = z.object({
 });
 
 const revokeApiKeyInputSchema = z.object({
+	id: z.string().uuid(),
+});
+
+const revealApiKeyInputSchema = z.object({
 	id: z.string().uuid(),
 });
 
@@ -53,6 +58,32 @@ export const apiKeysRouter = {
 				name: input.name,
 				projectId: null,
 			});
+		}),
+	reveal: protectedProcedure
+		.input(revealApiKeyInputSchema)
+		.handler(async ({ context, input }): Promise<{ key: string | null }> => {
+			const authUserId = context.session.user.id;
+			const [row] = await context.db
+				.select({ secretCiphertext: apiKeys.secretCiphertext })
+				.from(apiKeys)
+				.where(
+					and(
+						eq(apiKeys.id, input.id),
+						eq(apiKeys.userId, authUserId),
+						isNull(apiKeys.revokedAt)
+					)
+				)
+				.limit(1);
+
+			if (!row) {
+				throw new Error("API key not found or revoked");
+			}
+			// Keys created before encryption-at-rest have no ciphertext and are not
+			// recoverable; signal that to the client so it can prompt a rotation.
+			if (!row.secretCiphertext) {
+				return { key: null };
+			}
+			return { key: decryptSecret(row.secretCiphertext) };
 		}),
 	revoke: protectedProcedure
 		.input(revokeApiKeyInputSchema)
