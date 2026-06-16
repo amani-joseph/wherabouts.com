@@ -69,13 +69,7 @@ type ReverseGeocodeInput = z.infer<typeof reverseGeocodeSchema>;
 
 // Demo client factory
 const createDemoClient = (): WheraboutsClient => {
-	const apiKey = env.VITE_DEMO_API_KEY;
-	if (!apiKey) {
-		throw new Error(
-			"VITE_DEMO_API_KEY not configured. " +
-			"Set a valid publishable API key (pk_live_...) in .env to enable the component demos."
-		);
-	}
+	const apiKey = env.VITE_DEMO_API_KEY || "demo-key-not-configured";
 	return createWheraboutsClient({
 		apiKey,
 		baseUrl: "https://api.wherabouts.com/api/v1",
