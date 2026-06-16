@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@wherabouts.com/ui/com
 import { Badge } from "@wherabouts.com/ui/components/badge";
 import { Button } from "@wherabouts.com/ui/components/button";
 import { Input } from "@wherabouts.com/ui/components/input";
-import { Label } from "@wherabouts.com/ui/components/label";
 import {
 	Form,
 	FormDescription,
@@ -26,13 +25,6 @@ import {
 } from "@wherabouts.com/ui/components/form";
 import { Skeleton } from "@wherabouts.com/ui/components/skeleton";
 import { AlertCircle, CheckCircle2, Loader2, MapPin } from "lucide-react";
-import {
-	AddressAutocomplete,
-	AddressFieldGroup,
-	AddressFormField,
-	ForwardGeocodeInput,
-	ReverseGeocodeInput,
-} from "@wherabouts/react-ui";
 import { createWheraboutsClient } from "@wherabouts/sdk";
 import type { WheraboutsClient } from "@wherabouts/sdk";
 import { env } from "@wherabouts.com/env/web";
@@ -225,17 +217,21 @@ function AddressAutocompleteDemo() {
 		error: null,
 	});
 
-	const client = createDemoClient();
+	const client = useMemo(() => createDemoClient(), []);
 
-	const onSubmit = useCallback(
-		async (data: AddressAutocompleteInput) => {
+	const fetchAddress = useCallback(
+		async (query: string) => {
+			if (!query.trim()) {
+				setResult({ data: null, isLoading: false, error: null });
+				return;
+			}
 			setResult({ data: null, isLoading: true, error: null });
 			try {
-				const response = await client.addresses.autocomplete(data.query);
+				const response = await client.addresses.autocomplete({ q: query });
 				setResult({
-					data: response.suggestions?.[0] || null,
+					data: response.results?.[0] || null,
 					isLoading: false,
-					error: response.suggestions?.length === 0 ? "No addresses found" : null,
+					error: response.count === 0 ? "No addresses found" : null,
 				});
 			} catch (err) {
 				setResult({
@@ -247,6 +243,22 @@ function AddressAutocompleteDemo() {
 		},
 		[client]
 	);
+
+	const onSubmit = useCallback(
+		async (data: AddressAutocompleteInput) => {
+			await fetchAddress(data.query);
+		},
+		[fetchAddress]
+	);
+
+	const queryValue = form.watch("query");
+	useEffect(() => {
+		if (!queryValue || queryValue.length < 3) return;
+		const timer = setTimeout(() => {
+			fetchAddress(queryValue);
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [queryValue, fetchAddress]);
 
 	return (
 		<>
@@ -329,17 +341,21 @@ function AddressFormFieldDemo() {
 		error: null,
 	});
 
-	const client = createDemoClient();
+	const client = useMemo(() => createDemoClient(), []);
 
-	const onSubmit = useCallback(
-		async (data: AddressFormFieldInput) => {
+	const fetchAddress = useCallback(
+		async (address: string) => {
+			if (!address.trim()) {
+				setResult({ data: null, isLoading: false, error: null });
+				return;
+			}
 			setResult({ data: null, isLoading: true, error: null });
 			try {
-				const response = await client.addresses.autocomplete(data.address);
+				const response = await client.addresses.autocomplete({ q: address });
 				setResult({
-					data: response.suggestions?.[0] || null,
+					data: response.results?.[0] || null,
 					isLoading: false,
-					error: response.suggestions?.length === 0 ? "No addresses found" : null,
+					error: response.count === 0 ? "No addresses found" : null,
 				});
 			} catch (err) {
 				setResult({
@@ -351,6 +367,22 @@ function AddressFormFieldDemo() {
 		},
 		[client]
 	);
+
+	const onSubmit = useCallback(
+		async (data: AddressFormFieldInput) => {
+			await fetchAddress(data.address);
+		},
+		[fetchAddress]
+	);
+
+	const addressValue = form.watch("address");
+	useEffect(() => {
+		if (!addressValue || addressValue.length < 3) return;
+		const timer = setTimeout(() => {
+			fetchAddress(addressValue);
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [addressValue, fetchAddress]);
 
 	return (
 		<>
@@ -573,18 +605,22 @@ function ForwardGeocodeDemo() {
 		error: null,
 	});
 
-	const client = createDemoClient();
+	const client = useMemo(() => createDemoClient(), []);
 
-	const onSubmit = useCallback(
-		async (data: ForwardGeocodeInput) => {
+	const fetchCoords = useCallback(
+		async (address: string) => {
+			if (!address.trim()) {
+				setResult({ data: null, isLoading: false, error: null });
+				return;
+			}
 			setResult({ data: null, isLoading: true, error: null });
 			try {
-				const response = await client.addresses.autocomplete(data.address);
-				const addr = response.suggestions?.[0];
+				const response = await client.addresses.autocomplete({ q: address });
+				const addr = response.results?.[0];
 				if (addr) {
 					const coords = {
-						lat: addr.location?.latitude || 0,
-						lng: addr.location?.longitude || 0,
+						lat: addr.latitude || 0,
+						lng: addr.longitude || 0,
 					};
 					setResult({
 						data: coords,
@@ -608,6 +644,22 @@ function ForwardGeocodeDemo() {
 		},
 		[client]
 	);
+
+	const onSubmit = useCallback(
+		async (data: ForwardGeocodeInput) => {
+			await fetchCoords(data.address);
+		},
+		[fetchCoords]
+	);
+
+	const addressValue = form.watch("address");
+	useEffect(() => {
+		if (!addressValue || addressValue.length < 3) return;
+		const timer = setTimeout(() => {
+			fetchCoords(addressValue);
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [addressValue, fetchCoords]);
 
 	return (
 		<>
@@ -689,15 +741,15 @@ function ReverseGeocodeDemo() {
 		error: null,
 	});
 
-	const client = createDemoClient();
+	const client = useMemo(() => createDemoClient(), []);
 
-	const onSubmit = useCallback(
-		async (data: ReverseGeocodeInput) => {
+	const fetchAddress = useCallback(
+		async (lat: number, lng: number) => {
 			setResult({ data: null, isLoading: true, error: null });
 			try {
 				const response = await client.addresses.reverse({
-					latitude: data.lat,
-					longitude: data.lng,
+					lat,
+					lng,
 				});
 				if (response.address) {
 					setResult({
@@ -722,6 +774,23 @@ function ReverseGeocodeDemo() {
 		},
 		[client]
 	);
+
+	const onSubmit = useCallback(
+		async (data: ReverseGeocodeInput) => {
+			await fetchAddress(data.lat, data.lng);
+		},
+		[fetchAddress]
+	);
+
+	const latValue = form.watch("lat");
+	const lngValue = form.watch("lng");
+	useEffect(() => {
+		if (typeof latValue !== "number" || typeof lngValue !== "number") return;
+		const timer = setTimeout(() => {
+			fetchAddress(latValue, lngValue);
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [latValue, lngValue, fetchAddress]);
 
 	return (
 		<>
