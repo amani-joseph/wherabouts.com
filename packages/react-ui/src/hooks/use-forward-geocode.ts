@@ -1,18 +1,30 @@
-import { useEffect, useState } from "react";
 import type { WheraboutsClient } from "@wherabouts/sdk";
+import { useEffect, useState } from "react";
 
 export interface GeocodeAddress {
-	id: number;
 	formattedAddress: string;
+	id: number;
 	latitude: number;
 	longitude: number;
 }
 
 export interface UseForwardGeocodeResult {
 	data: GeocodeAddress | null;
-	loading: boolean;
 	error: Error | null;
+	loading: boolean;
 }
+
+const toGeocodeAddress = (
+	address: GeocodeAddress | null | undefined
+): GeocodeAddress | null =>
+	address
+		? {
+				id: address.id,
+				formattedAddress: address.formattedAddress,
+				latitude: address.latitude,
+				longitude: address.longitude,
+			}
+		: null;
 
 export function useForwardGeocode(
 	client: WheraboutsClient,
@@ -40,23 +52,18 @@ export function useForwardGeocode(
 					{ q: query },
 					{ signal: controller.signal }
 				);
-
-				if (!controller.signal.aborted && response.results.length > 0) {
-					const first = response.results[0];
-					setData({
-						id: first.id,
-						formattedAddress: first.formattedAddress,
-						latitude: first.latitude,
-						longitude: first.longitude,
-					});
+				if (controller.signal.aborted) {
+					return;
 				}
+				// The forward geocode endpoint returns a single { address } object
+				// (matching the SDK's ForwardGeocodeResponse), not a results array.
+				setData(toGeocodeAddress(response.address));
 			} catch (err) {
-				if (!controller.signal.aborted) {
-					setError(
-						err instanceof Error ? err : new Error(String(err))
-					);
-					setData(null);
+				if (controller.signal.aborted) {
+					return;
 				}
+				setError(err instanceof Error ? err : new Error(String(err)));
+				setData(null);
 			} finally {
 				if (!controller.signal.aborted) {
 					setLoading(false);
