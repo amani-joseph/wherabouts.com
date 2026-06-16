@@ -54,6 +54,11 @@ app.use(
 			"Authorization",
 			"Content-Type",
 			"X-API-Key",
+			// The SDK tags every request with x-wherabouts-sdk and writes with
+			// idempotency-key. Without these in the allowlist, browser preflight
+			// fails and all SDK calls are blocked by CORS.
+			"x-wherabouts-sdk",
+			"idempotency-key",
 			"x-wherabouts-request-source",
 		],
 		allowMethods: ["GET", "POST", "OPTIONS"],
