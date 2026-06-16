@@ -67,12 +67,21 @@ type AddressFieldGroupInput = z.infer<typeof addressFieldGroupSchema>;
 type ForwardGeocodeInput = z.infer<typeof forwardGeocodeSchema>;
 type ReverseGeocodeInput = z.infer<typeof reverseGeocodeSchema>;
 
-// Demo client factory
+// Demo client factory.
+// Call the API same-origin so the in-dashboard demo never trips CORS: the web
+// app proxies /api/v1/* to the backend server-side (see api/v1/$.ts), so the
+// browser request stays same-origin and the proxy reaches the backend without
+// preflight. This works in both local dev and production. SDK resource paths
+// are absolute (/api/v1/...), so the origin alone is the correct baseUrl.
 const createDemoClient = (): WheraboutsClient => {
 	const apiKey = env.VITE_DEMO_API_KEY || "demo-key-not-configured";
+	const baseUrl =
+		typeof window === "undefined"
+			? "https://api.wherabouts.com"
+			: window.location.origin;
 	return createWheraboutsClient({
 		apiKey,
-		baseUrl: "https://api.wherabouts.com/api/v1",
+		baseUrl,
 	});
 };
 
