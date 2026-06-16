@@ -159,21 +159,57 @@ function ResultCard<T>({
 	);
 }
 
-function FormFieldInput({
-	field,
-	error,
-	formItemId,
-	formDescriptionId,
-	...props
-}: any) {
+function ComponentDocumentation({
+	name,
+	description,
+	features,
+	props,
+	usage,
+}: {
+	name: string;
+	description: string;
+	features: string[];
+	props: string;
+	usage: string;
+}) {
 	return (
-		<Input
-			id={formItemId}
-			aria-describedby={formDescriptionId}
-			aria-invalid={!!error}
-			{...field}
-			{...props}
-		/>
+		<Card>
+			<CardHeader>
+				<CardTitle className="text-lg">{name}</CardTitle>
+				<CardDescription>{description}</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-4">
+				<div>
+					<h4 className="font-semibold text-sm mb-2">Features</h4>
+					<div className="flex flex-wrap gap-2">
+						{features.map((feature) => (
+							<Badge key={feature} variant="outline" className="text-xs">
+								{feature}
+							</Badge>
+						))}
+					</div>
+				</div>
+
+				<div>
+					<h4 className="font-semibold text-sm mb-1">Props</h4>
+					<pre className="bg-muted p-3 rounded text-xs overflow-x-auto">
+						<code>{props}</code>
+					</pre>
+				</div>
+
+				<div>
+					<h4 className="font-semibold text-sm mb-1">Usage</h4>
+					<pre className="bg-muted p-3 rounded text-xs overflow-x-auto">
+						<code>{usage}</code>
+					</pre>
+				</div>
+
+				<p className="text-xs text-muted-foreground">
+					<strong>Package:</strong>{" "}
+					<code className="bg-black/20 px-1 rounded">@wherabouts/react-ui</code>
+				</p>
+			</CardContent>
+		</Card>
 	);
 }
 
@@ -213,13 +249,13 @@ function AddressAutocompleteDemo() {
 	);
 
 	return (
-		<div className="space-y-6">
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-base">AddressAutocomplete</CardTitle>
-					<CardDescription>Search and select addresses with autocomplete</CardDescription>
+		<>
+			<Card className="border-2 border-blue-200 dark:border-blue-900">
+				<CardHeader className="bg-blue-50 dark:bg-blue-950/30">
+					<CardTitle className="text-base">Live Demo</CardTitle>
+					<CardDescription>Interactive component — queries live database</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4">
+				<CardContent className="pt-6 space-y-4">
 					<Form {...form}>
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 							<FormField
@@ -277,7 +313,7 @@ function AddressAutocompleteDemo() {
 					</div>
 				)}
 			/>
-		</div>
+		</>
 	);
 }
 
@@ -317,13 +353,13 @@ function AddressFormFieldDemo() {
 	);
 
 	return (
-		<div className="space-y-6">
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-base">AddressFormField</CardTitle>
-					<CardDescription>Wrapped autocomplete with form integration</CardDescription>
+		<>
+			<Card className="border-2 border-blue-200 dark:border-blue-900">
+				<CardHeader className="bg-blue-50 dark:bg-blue-950/30">
+					<CardTitle className="text-base">Live Demo</CardTitle>
+					<CardDescription>Interactive component — queries live database</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4">
+				<CardContent className="pt-6 space-y-4">
 					<Form {...form}>
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 							<FormField
@@ -374,7 +410,7 @@ function AddressFormFieldDemo() {
 					</div>
 				)}
 			/>
-		</div>
+		</>
 	);
 }
 
@@ -400,13 +436,13 @@ function AddressFieldGroupDemo() {
 	}, []);
 
 	return (
-		<div className="space-y-6">
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-base">AddressFieldGroup</CardTitle>
-					<CardDescription>Multi-field form with parsed address components</CardDescription>
+		<>
+			<Card className="border-2 border-blue-200 dark:border-blue-900">
+				<CardHeader className="bg-blue-50 dark:bg-blue-950/30">
+					<CardTitle className="text-base">Live Demo</CardTitle>
+					<CardDescription>Interactive component — queries live database</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4">
+				<CardContent className="pt-6 space-y-4">
 					<Form {...form}>
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 							<FormField
@@ -521,7 +557,7 @@ function AddressFieldGroupDemo() {
 					</div>
 				)}
 			/>
-		</div>
+		</>
 	);
 }
 
@@ -574,13 +610,13 @@ function ForwardGeocodeDemo() {
 	);
 
 	return (
-		<div className="space-y-6">
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-base">ForwardGeocodeInput</CardTitle>
-					<CardDescription>Search address to get coordinates (lat/lng)</CardDescription>
+		<>
+			<Card className="border-2 border-blue-200 dark:border-blue-900">
+				<CardHeader className="bg-blue-50 dark:bg-blue-950/30">
+					<CardTitle className="text-base">Live Demo</CardTitle>
+					<CardDescription>Interactive component — queries live database</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4">
+				<CardContent className="pt-6 space-y-4">
 					<Form {...form}>
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 							<FormField
@@ -637,7 +673,7 @@ function ForwardGeocodeDemo() {
 					</div>
 				)}
 			/>
-		</div>
+		</>
 	);
 }
 
@@ -688,13 +724,13 @@ function ReverseGeocodeDemo() {
 	);
 
 	return (
-		<div className="space-y-6">
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-base">ReverseGeocodeInput</CardTitle>
-					<CardDescription>Search by coordinates to get address details</CardDescription>
+		<>
+			<Card className="border-2 border-blue-200 dark:border-blue-900">
+				<CardHeader className="bg-blue-50 dark:bg-blue-950/30">
+					<CardTitle className="text-base">Live Demo</CardTitle>
+					<CardDescription>Interactive component — queries live database</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4">
+				<CardContent className="pt-6 space-y-4">
 					<Form {...form}>
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 							<div className="grid grid-cols-2 gap-4">
@@ -774,7 +810,7 @@ function ReverseGeocodeDemo() {
 					</div>
 				)}
 			/>
-		</div>
+		</>
 	);
 }
 
@@ -825,11 +861,116 @@ function RouteComponent() {
 
 				<TabsContent value="react" className="space-y-10 mt-6">
 					<div className="space-y-8">
-						<AddressAutocompleteDemo />
-						<AddressFormFieldDemo />
-						<AddressFieldGroupDemo />
-						<ForwardGeocodeDemo />
-						<ReverseGeocodeDemo />
+						<div className="grid lg:grid-cols-2 gap-6 items-start">
+							<AddressAutocompleteDemo />
+							<ComponentDocumentation
+								name="AddressAutocomplete"
+								description="Search and select addresses with autocomplete suggestions"
+								features={["Geolocation", "Custom rendering", "i18n support", "Async validation"]}
+								props={`{
+  client: WheraboutsClient
+  onSelect?: (address: AddressWithParsed) => void
+  enableGeolocation?: boolean
+  placeholder?: string
+  debounceMs?: number
+  sessionToken?: string
+}`}
+								usage={`import { AddressAutocomplete } from '@wherabouts/react-ui';
+import { createWheraboutsClient } from '@wherabouts/sdk';
+
+const client = createWheraboutsClient({
+  apiKey: 'pk_...'
+});
+
+<AddressAutocomplete
+  client={client}
+  onSelect={(addr) => console.log(addr)}
+/>`}
+							/>
+						</div>
+
+						<div className="grid lg:grid-cols-2 gap-6 items-start">
+							<AddressFormFieldDemo />
+							<ComponentDocumentation
+								name="AddressFormField"
+								description="Wrapped autocomplete for form integration with labels"
+								features={["Label support", "Error styling", "Required field", "Disabled state"]}
+								props={`{
+  client: WheraboutsClient
+  onSelect?: (address: AddressWithParsed) => void
+  placeholder?: string
+  disabled?: boolean
+}`}
+								usage={`<AddressFormField
+  client={client}
+  placeholder="Enter your address"
+  onSelect={handleAddressSelect}
+/>`}
+							/>
+						</div>
+
+						<div className="grid lg:grid-cols-2 gap-6 items-start">
+							<AddressFieldGroupDemo />
+							<ComponentDocumentation
+								name="AddressFieldGroup"
+								description="Multi-field form with parsed address components"
+								features={["Parsed fields", "Autocomplete integration", "Customizable labels", "Controlled"]}
+								props={`{
+  client: WheraboutsClient
+  value: { street, suburb, state, postcode }
+  onChange: (value) => void
+  disabled?: boolean
+}`}
+								usage={`const [value, setValue] = useState({
+  street: '',
+  suburb: '',
+  state: '',
+  postcode: ''
+});
+
+<AddressFieldGroup
+  client={client}
+  value={value}
+  onChange={setValue}
+/>`}
+							/>
+						</div>
+
+						<div className="grid lg:grid-cols-2 gap-6 items-start">
+							<ForwardGeocodeDemo />
+							<ComponentDocumentation
+								name="ForwardGeocodeInput"
+								description="Search address to get coordinates (lat/lng)"
+								features={["Address search", "Coordinate output", "Error handling", "Loading state"]}
+								props={`{
+  client: WheraboutsClient
+  onSelect?: (coords: { lat, lng }) => void
+  placeholder?: string
+}`}
+								usage={`<ForwardGeocodeInput
+  client={client}
+  onSelect={(coords) => setLocation(coords)}
+/>`}
+							/>
+						</div>
+
+						<div className="grid lg:grid-cols-2 gap-6 items-start">
+							<ReverseGeocodeDemo />
+							<ComponentDocumentation
+								name="ReverseGeocodeInput"
+								description="Search by coordinates to get address details"
+								features={["Coordinate input", "Address lookup", "Error handling", "Loading state"]}
+								props={`{
+  client: WheraboutsClient
+  onSelect?: (address: AddressWithParsed) => void
+  placeholder?: string
+}`}
+								usage={`<ReverseGeocodeInput
+  client={client}
+  onSelect={(address) => setAddress(address)}
+/>`}
+							/>
+						</div>
 					</div>
 
 					<Card className="bg-muted/50 mt-12">
