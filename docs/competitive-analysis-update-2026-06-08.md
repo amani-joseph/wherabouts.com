@@ -1,12 +1,25 @@
 # Wherabouts.com — Competitive Reassessment (Post-SDK-Hardening Update)
 
-**Date:** 2026-06-08 · **Amended:** 2026-06-10 (Mapbox column added to matrices)
+**Date:** 2026-06-08 · **Amended:** 2026-06-10 (Mapbox column added to matrices) · **2026-06-16 (current-state refresh)**
 **Updates:** [`competitive-analysis-2026-06.md`](./competitive-analysis-2026-06.md) (2026-06-07 baseline)
 **See also:** [`analysis/mapbox-comparative-analysis.md`](./analysis/mapbox-comparative-analysis.md) — full Mapbox deep-dive & routing roadmap.
+**See also:** [`competitive-analysis-evaluation-2026-06-16.md`](./competitive-analysis-evaluation-2026-06-16.md) — critique of this report + the Overture-vs-moat strategic fork.
 **Trigger:** The TypeScript SDK moved from *addresses-only, work-in-progress* to
 **full 22-method coverage (Phase 0) + publishable & hardened (Phase 1)** this cycle.
 This re-scores the same feature framework — only the developer-surface dimensions
 moved; the competitor set and capability rows are unchanged.
+
+> **🔄 2026-06-16 current-state refresh.** Several gaps this report listed as open have since
+> shipped. Verified against npm + the live codebase: **(1)** `@wherabouts/sdk@0.4.2` and
+> `@wherabouts/react@0.2.0` are **published to npm (MIT)** — the P0 "publish it" blocker is
+> closed; **(2)** advanced routing shipped — **distance matrix, isochrones, map-matching, route
+> optimisation, multi-profile** (Phase 10 / PR#14), so those rows flip ❌→✅; **(3)** a **web
+> client SDK** (`@wherabouts/react` — hooks + WAI-ARIA combobox) now exists, so "client SDKs ❌"
+> becomes ⚠️; **(4)** **international address data is live** (Overture/ODA adapters, multiple
+> countries + US queued), so "AU-only / global ❌" is now ⚠️ and partly obsolete. Cells changed
+> in this refresh are marked 🆕; §6 priorities are updated in place. Full critique + the new
+> Overture-vs-moat strategic fork it introduces:
+> [`competitive-analysis-evaluation-2026-06-16.md`](./competitive-analysis-evaluation-2026-06-16.md).
 
 ---
 
@@ -33,6 +46,8 @@ narrowed materially.**
 > point-to-point, driving only). P2 is therefore *partially* addressed — the *advanced*
 > routing surface (distance matrix, multi-profile, optimisation, map-matching, isochrones)
 > is what remains. See the §6 P2 update.
+> **🆕 2026-06-16:** that advanced surface has since fully shipped (Phase 10 / PR#14); P2 is
+> now closed — the matrices and §6 below reflect this.
 
 ---
 
@@ -41,12 +56,12 @@ narrowed materially.**
 | Dimension | 2026-06-07 baseline | Now (2026-06-08) |
 |---|---|---|
 | TS server SDK coverage | addresses-only, WIP | **Full (22 methods)** |
-| Packaging / installability | private, raw source | **Publishable (ESM+CJS+types), publish pending** |
+| Packaging / installability | private, raw source | 🆕 **Published — `@wherabouts/sdk@0.4.2` on npm, MIT** |
 | SDK resilience (retries/timeouts) | none | **Built-in** |
 | Idempotent writes | none | **Auto `Idempotency-Key`** |
 | Typed errors w/ correlation id | basic (code+message) | **`requestId`/`docUrl`/`fields`** |
 | Python SDK | none | none (unchanged) |
-| Client / mobile SDKs | none | none (unchanged) |
+| Client / mobile SDKs | none | 🆕 **web client SDK shipped** (`@wherabouts/react` on npm); native mobile still none |
 
 ---
 
@@ -64,21 +79,21 @@ Legend: ✅ strong/native · ⚠️ partial/indirect · ❌ absent · 🔼 impro
 | Custom geofencing (zones) | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ | ❌ |
 | Device location tracking | ✅ (server) | ✅ (SDK) | ❌ | ⚠️ | ✅ | ❌ | ❌ |
 | Real-time geofence events / webhooks | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ | ❌ |
-| **Routing / directions (point-to-point)** | **🔼 ⚠️ (driving only)** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Distance matrix / optimisation / map-matching | ❌ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
+| **Routing / directions** | **🆕 ✅ (multi-profile)** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Distance matrix / optimisation / map-matching | 🆕 **✅** | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
 | Places / POI dataset | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 | Address validation/standardisation | ❌ | ✅ | ⚠️ | ✅ | ✅ | ⚠️ | ⚠️ |
 | IP geolocation | ❌ | ✅ | ❌ | ✅ | ⚠️ | ✅ | ❌ |
-| Isolines / reachability | ❌ | ⚠️ | ❌ | ⚠️ | ✅ | ✅ | ✅ |
+| Isolines / reachability | 🆕 **✅** | ⚠️ | ❌ | ⚠️ | ✅ | ✅ | ✅ |
 | Fraud / spoof detection | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Map rendering / cartography | ❌ | ⚠️ | ❌ | ✅ | ✅ | ⚠️ | ✅ |
-| Client / mobile SDKs | ❌ | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ |
-| **Server SDK(s)** | **🔼 ✅ (TS, full+hardened; npm pending)** | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
+| Client / mobile SDKs | 🆕 **⚠️ (web; native mobile pending)** | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ |
+| **Server SDK(s)** | **🆕 ✅ (TS on npm, MIT)** | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
 | **SDK resilience (retry/idempotency/typed errors)** | **🔼 ✅** | ✅ | n/a (SDK-light) | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
 | Prebuilt integrations marketplace | ❌ | ✅ | ❌ | ⚠️ | ✅ | ❌ | ⚠️ |
 | Self-hosted/base maps | ✅ (Protomaps) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 | AU-authoritative data (G-NAF/ABS) | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Global coverage | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Global coverage | 🆕 **⚠️ (multi-country via Overture, expanding)** | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 
 **Changes from baseline:** *Server SDK(s)* ⚠️→✅ (with publish caveat); added an explicit
 **SDK resilience** row — a depth dimension the original presence/absence matrix didn't capture,
@@ -107,7 +122,7 @@ The original matrix scored SDK *presence*. Post-hardening, the more honest compa
 | Idempotent writes | ✅ | n/a | n/a | n/a | ❌ |
 | Typed errors + request id | ✅ | ✅ | ⚠️ | ⚠️ | ❌ |
 | Dual ESM+CJS + shipped types | ✅ | ✅ | ✅ | ✅ | ⚠️ |
-| Installable from npm today | ⚠️ (pending) | ✅ | ✅ | ✅ | ✅ |
+| Installable from npm today | 🆕 ✅ (`@wherabouts/sdk@0.4.2`, MIT) | ✅ | ✅ | ✅ | ✅ |
 
 **Read:** on *server-SDK ergonomics* Wherabouts now sits at parity with Radar and ahead of the
 AU/open-data geocoders — a credible "Stripe-grade server SDK for AU location data" claim, **once
@@ -131,19 +146,19 @@ consumer-app/mobile-geofencing segment, and remains the single most strategic in
 
 ## 6. Re-prioritised gaps
 
-**P0 (new, trivial, blocking value) — actually publish the SDK.** The package is built,
-hardened, and verified; it is *not yet installable* (`@wherabouts` npm org + token + a license
-decision; currently `UNLICENSED`). Until it's on npm, none of the Phase 1 value reaches a buyer.
-This is now the highest-ROI action in the whole roadmap — hours, not weeks.
+**~~P0 — actually publish the SDK.~~ ✅ DONE (2026-06-16).** `@wherabouts/sdk@0.4.2` and
+`@wherabouts/react@0.2.0` are live on npm under **MIT**. The Phase 1 value now reaches buyers; this
+was the highest-ROI item and it is closed.
 
-**P1 — Client/mobile SDKs (unchanged).** Still the defining gap vs Radar; multi-quarter; own
+**P1 — Native mobile SDKs (re-scoped 2026-06-16).** A **web client SDK** (`@wherabouts/react` —
+hooks + WAI-ARIA combobox) has shipped, so the gap is now isolated to **native iOS/Android/RN/
+Flutter** — on-device background geofencing, the actual Radar moat. Still multi-quarter; own
 milestone.
 
-**P2 — Routing (partially shipped — re-scoped 2026-06-10).** Basic **point-to-point driving
-directions are now live** (`/api/v1/routing/directions`). What remains for full Mappify/Mapbox
-parity: **distance matrix**, **multi-profile** (walking/cycling), **route optimisation (TSP/VRP)**,
-**map-matching**, and **isochrones** — all buildable on the existing self-hosted OSRM (`/table`,
-`/match`, foot/bike profiles) plus PostGIS. Medium effort; the directions endpoint proves the path.
+**~~P2 — Routing.~~ ✅ DONE (2026-06-16).** Full surface shipped (Phase 10 / PR#14): multi-profile
+directions (driving/walking/cycling), **distance matrix**, **route optimisation (TSP/VRP)**,
+**map-matching**, and **isochrones** on self-hosted OSRM (`/route`, `/table`, `/match`, `/trip`) +
+PostGIS. *Caveat: depth/scale not yet validated against Mapbox/Google before sales claims.*
 
 **P3 — Server-side DX completion.** (a) **Phase 2 API-side DX** (error envelope, rate-limit
 headers, idempotency *enforcement*) — the SDK is already forward-compatible and *sends* the
@@ -167,3 +182,9 @@ player — but the **developer surface is no longer a soft spot on the server si
 converted the most-cited "SDK is WIP" gap into a publishable, Radar-grade server SDK. The
 competitive needle now turns on one cheap action (**publish it**) and one expensive one (**client
 SDKs**). Ship the former this week; scope the latter as its own milestone.
+
+> **2026-06-16:** the cheap action is **done** (SDK + React on npm, MIT) and routing has fully
+> shipped. The remaining frontier is two-fold: (1) **native mobile SDKs** (the expensive Radar
+> moat — web client SDK is only a down-payment), and (2) a strategic fork the Overture global
+> ingestion has opened — staying AU-authoritative vs competing global-generic. See
+> [`competitive-analysis-evaluation-2026-06-16.md`](./competitive-analysis-evaluation-2026-06-16.md) §5.

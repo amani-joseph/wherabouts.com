@@ -1,9 +1,19 @@
 # Wherabouts.com — Competitive Assessment Report
 
-**Date:** 2026-06-07 · **Updated:** 2026-06-10 (added Mapbox)
+**Date:** 2026-06-07 · **Updated:** 2026-06-10 (added Mapbox) · **2026-06-16 (current-state refresh)**
 **Prepared for:** product/strategy review
 **Scope:** Feature & market comparison of wherabouts.com against 6 competitors —
 Radar, Mappify, Google Maps Platform, HERE Technologies, Geoapify, and Mapbox.
+
+> **🔄 2026-06-16 current-state refresh.** Verified against npm + the live codebase, several
+> gaps in this baseline have closed: the **TypeScript server SDK is published**
+> (`@wherabouts/sdk@0.4.2`, MIT) and a **web client SDK** shipped (`@wherabouts/react@0.2.0` —
+> hooks + WAI-ARIA combobox); **advanced routing is live** (distance matrix, isochrones,
+> map-matching, optimisation, multi-profile — Phase 10 / PR#14); and **international address
+> data is being ingested** (Overture/ODA, multiple countries + US), softening the "AU-only"
+> framing. Matrix cells and §6 priorities are updated in place (🆕 marks 06-16 changes). Full
+> critique + the new Overture-vs-moat strategic fork:
+> [`competitive-analysis-evaluation-2026-06-16.md`](./competitive-analysis-evaluation-2026-06-16.md).
 
 > **Mapbox deep-dive:** a dedicated, endpoint-by-endpoint Mapbox comparison and
 > roadmap lives in [`analysis/mapbox-comparative-analysis.md`](analysis/mapbox-comparative-analysis.md).
@@ -30,12 +40,13 @@ device / webhook stack.* No single competitor sits in exactly that square:
 The strategic one-liner the product can credibly own is **"Radar for Australia,
 built on authoritative government data."**
 
-The three biggest competitive gaps, in priority order, are: **(1) no client / mobile
-SDKs** (Radar's core moat), **(2) shallow routing** — driving point-to-point directions
-have shipped, but matrix / multi-profile / optimisation / map-matching / isochrones are
-still missing for Mappify-class parity — and **(3) no places/POI dataset.** A recently-shipped **region/boundary classification**
-endpoint (ASGS) closed the most-cited prior gap and now matches Radar "Regions" and
-Mappify "area lookups."
+The three biggest competitive gaps, in priority order, are: **(1) no *native* mobile
+SDKs** (Radar's core moat — a web client SDK `@wherabouts/react` has since shipped, but native
+iOS/Android/RN/Flutter background geofencing has not), **(2) no places/POI dataset**, and **(3)
+no postal address validation/standardisation.** Two gaps this baseline listed have since closed:
+the **region/boundary classification** endpoint (ASGS) matched Radar "Regions"/Mappify "area
+lookups," and — as of 2026-06-16 — **routing is fully shipped** (matrix / multi-profile /
+optimisation / map-matching / isochrones), reaching Mappify/Mapbox routing-feature parity.
 
 ---
 
@@ -55,21 +66,28 @@ Mappify "area lookups."
   block).
 - **Platform:** API explorer, projects/teams, analytics, billing, dashboard,
   self-hosted Protomaps basemap.
-- **Developer surface:** OpenAPI 3.1 spec; a **TypeScript server SDK** (being
-  extended from addresses-only to full coverage — resource-namespaced, hand-written).
+- **Developer surface:** OpenAPI 3.1 spec; a **TypeScript server SDK**
+  (`@wherabouts/sdk@0.4.2` — published to npm, MIT, full resource-namespaced coverage, hardened
+  with retries/idempotency/typed errors); a **web client SDK** (`@wherabouts/react@0.2.0` —
+  hooks + WAI-ARIA combobox, autocomplete session tokens + proximity). *🆕 2026-06-16.*
 
 **Data foundation:** G-NAF (Geoscape, authoritative AU address file) + ABS ASGS
-boundaries — both open/government data. **Geographic scope: Australia only.**
+boundaries — both open/government data. **Geographic scope: AU-authoritative, now expanding to
+multi-country via Overture/ODA open data (🆕 2026-06-16 — see the evaluation §5 on the strategic
+tension this creates with the AU-authoritative moat).**
 
-**Not present:** client/mobile SDKs, **advanced routing** (distance matrix, multi-profile,
-optimisation, map-matching, isochrones), places/POI dataset, IP geolocation, postal address
-validation/standardisation, fraud/spoof detection, prebuilt integrations (Segment/Braze/etc.),
-trip tracking/ETAs.
+**Not present:** **native mobile SDKs** (iOS/Android/RN/Flutter — a *web* client SDK has shipped),
+places/POI dataset, IP geolocation, postal address validation/standardisation, fraud/spoof
+detection, prebuilt integrations (Segment/Braze/etc.), trip tracking/ETAs.
+*(🆕 2026-06-16: "advanced routing" removed from this list — distance matrix, multi-profile,
+optimisation, map-matching and isochrones have all shipped.)*
 
-> **Update 2026-06-10:** **basic driving directions have since shipped** —
-> `GET /api/v1/routing/directions` (point-to-point, driving-only, via self-hosted OSRM
-> `/route`; SDK `routing.directions`). The "advanced routing" items above remain the open
-> gap. Matrices in this report reflect the corrected status.
+> **Update 2026-06-10:** basic driving directions shipped (`GET /api/v1/routing/directions`).
+> **Update 2026-06-16:** the **full routing surface** has since shipped (Phase 10 / PR#14) —
+> multi-profile directions (driving/walking/cycling), **distance matrix**, **route optimisation
+> (TSP/VRP)**, **map-matching**, and **isochrones** on self-hosted OSRM (`/route`, `/table`,
+> `/match`, `/trip`) + PostGIS, all exposed via the SDK `routing` namespace. Routing is no longer
+> an open gap. Matrices below reflect the corrected status.
 
 ---
 
@@ -153,24 +171,24 @@ Legend: ✅ strong / native · ⚠️ partial or indirect · ❌ absent
 | Custom geofencing (zones) | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ | ❌ |
 | Device location tracking | ✅ (server) | ✅ (SDK) | ❌ | ⚠️ | ✅ | ❌ | ❌ |
 | Real-time geofence events / webhooks | ✅ | ✅ | ❌ | ❌ | ⚠️ | ❌ | ❌ |
-| Routing / directions | ⚠️ (driving only, p2p) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Distance matrix | ❌ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
-| Route optimisation (TSP/VRP) | ❌ | ⚠️ | ❌ | ⚠️ | ✅ | ⚠️ | ✅ |
-| Map matching | ❌ | ✅ | ❌ | ⚠️ | ✅ | ✅ | ✅ |
+| Routing / directions | 🆕 ✅ (multi-profile) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Distance matrix | 🆕 ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
+| Route optimisation (TSP/VRP) | 🆕 ✅ | ⚠️ | ❌ | ⚠️ | ✅ | ⚠️ | ✅ |
+| Map matching | 🆕 ✅ | ✅ | ❌ | ⚠️ | ✅ | ✅ | ✅ |
 | Places / POI dataset | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 | Address validation/standardisation | ❌ | ✅ | ⚠️ | ✅ | ✅ | ⚠️ | ⚠️ |
 | IP geolocation | ❌ | ✅ | ❌ | ✅ | ⚠️ | ✅ | ❌ |
-| Isolines / reachability | ❌ | ⚠️ | ❌ | ⚠️ | ✅ | ✅ | ✅ |
+| Isolines / reachability | 🆕 ✅ | ⚠️ | ❌ | ⚠️ | ✅ | ✅ | ✅ |
 | Fraud / spoof detection | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Static map images | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 | Map rendering SDK (GL/native) | ❌ | ⚠️ | ❌ | ✅ | ✅ | ⚠️ | ✅ |
 | Custom cartography / tileset hosting | ❌ | ❌ | ❌ | ⚠️ | ✅ | ⚠️ | ✅ (Studio/MTS) |
-| Client / mobile SDKs | ❌ | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ |
-| Server SDK(s) | ⚠️ (TS, WIP) | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
+| Client / mobile SDKs | 🆕 ⚠️ (web; native mobile pending) | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ |
+| Server SDK(s) | 🆕 ✅ (TS on npm, MIT) | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
 | Prebuilt integrations marketplace | ❌ | ✅ | ❌ | ⚠️ | ✅ | ❌ | ⚠️ |
 | Self-hosted/base maps | ✅ (Protomaps) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 | AU-authoritative data (G-NAF/ABS) | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Global coverage | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Global coverage | 🆕 ⚠️ (multi-country via Overture, expanding) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
@@ -200,30 +218,36 @@ strategy.
   is the most direct flanking move.
 - **Single-market ceiling:** AU-only caps TAM. The data-authority moat doesn't
   translate to other geographies without equivalent national datasets.
+  > **🆕 2026-06-16:** the project has begun ingesting **Overture/ODA open data** for other
+  > countries to lift this ceiling — but that is the *same open-data class Geoapify already
+  > ships*, which trades the AU-authoritative moat for a crowded global-generic fight. This is
+  > now the central strategic fork; see
+  > [`competitive-analysis-evaluation-2026-06-16.md`](./competitive-analysis-evaluation-2026-06-16.md) §5
+  > before treating intl coverage as pure upside.
 
 ---
 
 ## 6. Gap assessment & recommendations
 
-**Priority 1 — Client/mobile SDKs (closes Radar's core moat).**
+**Priority 1 — *Native* mobile SDKs (closes Radar's core moat). (Re-scoped 2026-06-16.)**
 Radar's defensibility is a drop-in iOS/Android/RN SDK handling background location,
-battery, permissions, and on-device geofence evaluation. Wherabouts is API-only
-(server pushes device locations). Without a client SDK, wherabouts cannot win
-consumer-app/mobile use cases — the highest-value geofencing segment. *This is the
-single most strategic investment.* (Large, multi-quarter native effort — scope as its
-own milestone.)
+battery, permissions, and on-device geofence evaluation. A **web client SDK**
+(`@wherabouts/react`) has now shipped — useful, but *not* a substitute for on-device
+background geofencing. The isolated remaining gap is **native iOS/Android/RN/Flutter**;
+without it, wherabouts cannot win consumer-app/mobile use cases — the highest-value
+geofencing segment. *This is the single most strategic investment.* (Large, multi-quarter
+native effort — scope as its own milestone.)
 
-**Priority 2 — Routing layer (Mappify parity).** *(Partially shipped as of 2026-06-10:
-point-to-point driving directions are live.)*
-Remaining for parity: distance matrix, multi-profile (walking/cycling), optimisation,
-map-matching, isochrones. Mappify's entire second pillar; table stakes for
-logistics/delivery buyers. Fits the existing self-hosted OSRM + PostGIS stack
-(`/table`, `/match`, foot/bike profiles). Medium effort.
+**~~Priority 2 — Routing layer.~~ ✅ DONE (2026-06-16).** Full Mappify/Mapbox routing-feature
+parity has shipped (Phase 10 / PR#14): multi-profile directions, distance matrix, optimisation
+(TSP/VRP), map-matching, and isochrones on the self-hosted OSRM (`/route`, `/table`, `/match`,
+`/trip`) + PostGIS stack. *Caveat: depth/scale not yet benchmarked against Mapbox/Google.*
 
-**Priority 3 — Finish & publish the TypeScript SDK, then add Python.**
-Currently being extended to full endpoint coverage. Publishing it (npm) + a Python
-SDK materially lowers integration friction for the server-side/data buyer — the
-segment wherabouts can win *today* without mobile SDKs.
+**Priority 3 — ~~Publish the TypeScript SDK~~ ✅ DONE; then add Python.**
+`@wherabouts/sdk@0.4.2` is **live on npm under MIT** (full coverage, hardened). The remaining
+half is a **Python SDK** mirroring the namespaced surface — still materially lowers integration
+friction for the server-side/data buyer, the segment wherabouts can win *today* without native
+mobile SDKs.
 
 **Priority 4 — Places/POI + address validation.**
 POI visit detection (Radar "Places") and postal address validation/standardisation
