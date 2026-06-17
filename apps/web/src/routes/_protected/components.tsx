@@ -199,7 +199,7 @@ function AddressAutocompleteDemo() {
 				</CardHeader>
 				<CardContent className="space-y-2 pt-6">
 					<Label htmlFor="autocomplete-demo">Address Search</Label>
-					<div className="rounded-lg bg-white p-4">
+					<div className="contents">
 						<AddressAutocomplete
 							client={client}
 							id="autocomplete-demo"
@@ -256,7 +256,7 @@ function AddressFormFieldDemo() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="pt-6">
-					<div className="rounded-lg bg-white p-4">
+					<div className="contents">
 						<AddressFormField
 							client={client}
 							label="Address"
@@ -314,7 +314,7 @@ function AddressFieldGroupDemo() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-2 pt-6">
-					<div className="rounded-lg bg-white p-4">
+					<div className="contents">
 						<AddressFieldGroup
 							client={client}
 							onChange={setValue}
@@ -404,7 +404,7 @@ function ForwardGeocodeDemo() {
 							Coordinates resolve as you type — the field never blocks input.
 						</p>
 					</div>
-					<div className="rounded-lg bg-white p-4">
+					<div className="contents">
 						<ForwardGeocodeInput
 							client={client}
 							onResult={setCoords}
@@ -502,7 +502,7 @@ function ReverseGeocodeDemo() {
 							/>
 						</div>
 					</div>
-					<div className="rounded-lg bg-white p-4">
+					<div className="contents">
 						<ReverseGeocodeInput
 							client={client}
 							latitude={latitude}

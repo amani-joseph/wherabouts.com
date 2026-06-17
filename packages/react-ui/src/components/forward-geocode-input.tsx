@@ -50,7 +50,7 @@ export function ForwardGeocodeInput({
 			value={displayText}
 			placeholder={placeholder}
 			className={cn(
-				"block w-full rounded border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900 cursor-default",
+				"block h-8 w-full cursor-default rounded-none border border-input bg-muted/40 px-2.5 py-1 text-foreground text-xs",
 				className
 			)}
 		/>

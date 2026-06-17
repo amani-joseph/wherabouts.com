@@ -141,13 +141,13 @@ export function AddressAutocomplete({
 					onQueryChange?.(e.target.value);
 				}}
 				onKeyDown={handleKeyDown}
-				className="block w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50"
+				className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:bg-input/30"
 			/>
 
 			{isOpen && (
 				<div
 					data-slot="address-dropdown"
-					className="absolute left-0 right-0 top-full z-50 mt-1 rounded border border-gray-300 bg-white shadow-lg overflow-hidden"
+					className="absolute top-full right-0 left-0 z-50 mt-1 overflow-hidden rounded-none border border-border bg-popover text-popover-foreground shadow-md"
 				>
 					<ul
 						{...getListboxProps()}
@@ -158,7 +158,7 @@ export function AddressAutocomplete({
 							<li
 								data-slot="address-item"
 								data-status="loading"
-								className="flex items-center justify-center px-3 py-2 text-sm text-gray-500"
+								className="flex items-center justify-center px-3 py-2 text-muted-foreground text-sm"
 							>
 								{renderLoading?.() ?? "Loading..."}
 							</li>
@@ -168,7 +168,7 @@ export function AddressAutocomplete({
 							<li
 								data-slot="address-item"
 								data-status="error"
-								className="flex items-center justify-center px-3 py-2 text-sm text-red-600"
+								className="flex items-center justify-center px-3 py-2 text-destructive text-sm"
 							>
 								{renderError?.(error instanceof Error ? error : null) ?? i18n.errorRetry}
 							</li>
@@ -178,7 +178,7 @@ export function AddressAutocomplete({
 							<li
 								data-slot="address-item"
 								data-status="empty"
-								className="flex items-center justify-center px-3 py-2 text-sm text-gray-500"
+								className="flex items-center justify-center px-3 py-2 text-muted-foreground text-sm"
 							>
 								{renderEmpty?.() ?? i18n.noResults}
 							</li>
@@ -201,7 +201,7 @@ export function AddressAutocomplete({
 										key={result.id}
 										{...itemProps}
 										data-slot="address-item"
-										className="flex cursor-pointer items-center rounded px-3 py-2 transition-colors hover:bg-gray-100 aria-selected:bg-blue-50"
+										className="flex cursor-pointer items-center rounded-none px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
 										onClick={() => {
 											onSelect?.(parsed);
 											setQuery("");
@@ -214,10 +214,10 @@ export function AddressAutocomplete({
 											renderSuggestion(parsed, isActive)
 										) : (
 											<div className="flex-1">
-												<div className="text-sm font-medium text-gray-900">
+												<div className="font-medium text-foreground text-sm">
 													{parsed.streetAddress}
 												</div>
-												<div className="text-xs text-gray-500">
+												<div className="text-muted-foreground text-xs">
 													{parsed.suburb}, {parsed.state}{" "}
 													{parsed.postcode}
 												</div>
@@ -232,15 +232,15 @@ export function AddressAutocomplete({
 					{status === "success" && results.length > 0 && (
 						<div
 							data-slot="address-powered-by"
-							className="border-t border-gray-200 bg-gray-50 px-3 py-2"
+							className="border-t border-border bg-muted/40 px-3 py-2"
 						>
-							<p className="text-xs text-gray-600">
+							<p className="text-muted-foreground text-xs">
 								Suggestions powered by{" "}
 								<a
 									href="https://wherabouts.com"
 									target="_blank"
 									rel="noopener noreferrer"
-									className="font-semibold text-gray-900 hover:underline"
+									className="font-semibold text-foreground hover:underline"
 								>
 									Wherabouts
 								</a>

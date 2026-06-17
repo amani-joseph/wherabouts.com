@@ -72,7 +72,7 @@ export function AddressFieldGroup({
 				<div className="col-span-2">
 					<label
 						htmlFor="field-street"
-						className="block text-sm font-medium text-gray-900 mb-1"
+						className="mb-1 block font-medium text-foreground text-sm"
 					>
 						{streetLabel}
 					</label>
@@ -82,7 +82,7 @@ export function AddressFieldGroup({
 						disabled={disabled}
 						value={value.street}
 						onChange={(e) => handleFieldChange("street", e.target.value)}
-						className="block w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-500 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50"
+						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
 						placeholder="Street address"
 					/>
 				</div>
@@ -90,7 +90,7 @@ export function AddressFieldGroup({
 				<div>
 					<label
 						htmlFor="field-suburb"
-						className="block text-sm font-medium text-gray-900 mb-1"
+						className="mb-1 block font-medium text-foreground text-sm"
 					>
 						{suburbLabel}
 					</label>
@@ -100,7 +100,7 @@ export function AddressFieldGroup({
 						disabled={disabled}
 						value={value.suburb}
 						onChange={(e) => handleFieldChange("suburb", e.target.value)}
-						className="block w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-500 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50"
+						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
 						placeholder="Suburb"
 					/>
 				</div>
@@ -108,7 +108,7 @@ export function AddressFieldGroup({
 				<div>
 					<label
 						htmlFor="field-state"
-						className="block text-sm font-medium text-gray-900 mb-1"
+						className="mb-1 block font-medium text-foreground text-sm"
 					>
 						{stateLabel}
 					</label>
@@ -118,7 +118,7 @@ export function AddressFieldGroup({
 						disabled={disabled}
 						value={value.state}
 						onChange={(e) => handleFieldChange("state", e.target.value)}
-						className="block w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-500 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50"
+						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
 						placeholder="State"
 					/>
 				</div>
@@ -126,7 +126,7 @@ export function AddressFieldGroup({
 				<div>
 					<label
 						htmlFor="field-postcode"
-						className="block text-sm font-medium text-gray-900 mb-1"
+						className="mb-1 block font-medium text-foreground text-sm"
 					>
 						{postcodeLabel}
 					</label>
@@ -136,7 +136,7 @@ export function AddressFieldGroup({
 						disabled={disabled}
 						value={value.postcode}
 						onChange={(e) => handleFieldChange("postcode", e.target.value)}
-						className="block w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-500 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50"
+						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
 						placeholder="Postcode"
 					/>
 				</div>
