@@ -12,6 +12,11 @@ export function getStripeClient(): Stripe {
 	if (cached) {
 		return cached;
 	}
+	if (!serverEnv.STRIPE_SECRET_KEY) {
+		throw new Error(
+			"Billing is not configured: STRIPE_SECRET_KEY is missing on the server."
+		);
+	}
 	cached = new Stripe(serverEnv.STRIPE_SECRET_KEY, {
 		httpClient: Stripe.createFetchHttpClient(),
 	});

@@ -9,35 +9,107 @@ import {
 	CardTitle,
 } from "@wherabouts.com/ui/components/card";
 import { Progress } from "@wherabouts.com/ui/components/progress";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@wherabouts.com/ui/components/select";
 import { CreditCardIcon, SparklesIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { orpcClient } from "@/lib/orpc";
 
+interface CheckoutSearch {
+	checkout?: "success" | "cancel";
+}
+
 export const Route = createFileRoute("/_protected/billing")({
+	validateSearch: (search: Record<string, unknown>): CheckoutSearch => {
+		if (search.checkout === "success" || search.checkout === "cancel") {
+			return { checkout: search.checkout };
+		}
+		return {};
+	},
 	component: RouteComponent,
 });
 
 type Account = Awaited<ReturnType<typeof orpcClient.billing.getAccount>>;
 type Summary = Awaited<ReturnType<typeof orpcClient.billing.getUsageSummary>>;
+type Contexts = Awaited<ReturnType<typeof orpcClient.billing.listContexts>>;
+
+/** Sentinel <Select> value for personal (non-team) billing, which has teamId=null. */
+const PERSONAL_VALUE = "personal";
+/** Stripe webhook can lag the redirect back; re-fetch once to catch the flip. */
+const WEBHOOK_SETTLE_MS = 2500;
+
+function errorMessage(err: unknown): string {
+	return err instanceof Error
+		? err.message
+		: "Something went wrong. Please try again.";
+}
 
 function RouteComponent() {
-	const [teamId] = useState<string | null>(null);
+	const { checkout } = Route.useSearch();
+	const navigate = Route.useNavigate();
+	const [teamId, setTeamId] = useState<string | null>(null);
+	const [contexts, setContexts] = useState<Contexts | null>(null);
 	const [account, setAccount] = useState<Account | null>(null);
 	const [summary, setSummary] = useState<Summary | null>(null);
+	const [loadError, setLoadError] = useState(false);
 	const [busy, setBusy] = useState(false);
+	const [justPaid, setJustPaid] = useState(false);
 
 	const load = useCallback(async () => {
-		const [acc, sum] = await Promise.all([
-			orpcClient.billing.getAccount({ teamId }),
-			orpcClient.billing.getUsageSummary({ teamId }),
-		]);
-		setAccount(acc);
-		setSummary(sum);
+		try {
+			const [acc, sum] = await Promise.all([
+				orpcClient.billing.getAccount({ teamId }),
+				orpcClient.billing.getUsageSummary({ teamId }),
+			]);
+			setAccount(acc);
+			setSummary(sum);
+			setLoadError(false);
+		} catch {
+			setLoadError(true);
+		}
 	}, [teamId]);
 
 	useEffect(() => {
 		load();
 	}, [load]);
+
+	useEffect(() => {
+		orpcClient.billing
+			.listContexts()
+			.then(setContexts)
+			.catch(() => undefined);
+	}, []);
+
+	// Surface the result of the Stripe-hosted checkout redirect, then clean the URL.
+	useEffect(() => {
+		if (checkout === "success") {
+			setJustPaid(true);
+			toast.success("Payment method added — API usage will be billed monthly.");
+			navigate({ replace: true, search: {} });
+		} else if (checkout === "cancel") {
+			toast.info("Checkout canceled — no payment method was added.");
+			navigate({ replace: true, search: {} });
+		}
+	}, [checkout, navigate]);
+
+	// After a successful checkout the webhook flips hasPaymentMethod asynchronously,
+	// so reload immediately and once more after it has had time to settle.
+	useEffect(() => {
+		if (!justPaid) {
+			return;
+		}
+		load();
+		const timer = setTimeout(() => {
+			load();
+		}, WEBHOOK_SETTLE_MS);
+		return () => clearTimeout(timer);
+	}, [justPaid, load]);
 
 	const startCheckout = useCallback(async () => {
 		setBusy(true);
@@ -46,7 +118,8 @@ function RouteComponent() {
 				teamId,
 			});
 			window.location.href = url;
-		} finally {
+		} catch (err) {
+			toast.error(errorMessage(err));
 			setBusy(false);
 		}
 	}, [teamId]);
@@ -56,7 +129,8 @@ function RouteComponent() {
 		try {
 			const { url } = await orpcClient.billing.createPortalSession({ teamId });
 			window.location.href = url;
-		} finally {
+		} catch (err) {
+			toast.error(errorMessage(err));
 			setBusy(false);
 		}
 	}, [teamId]);
@@ -70,16 +144,60 @@ function RouteComponent() {
 			)
 		: 0;
 	const estimate = summary ? (summary.estimatedCents / 100).toFixed(2) : "0.00";
+	const teams = contexts?.teams ?? [];
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div>
-				<h1 className="font-semibold text-2xl tracking-tight">Billing</h1>
-				<p className="text-muted-foreground text-sm">
-					Pay-as-you-go — 10,000 requests/month free, then $1.00 per 1,000
-					requests.
-				</p>
+			<div className="flex flex-wrap items-start justify-between gap-4">
+				<div>
+					<h1 className="font-semibold text-2xl tracking-tight">Billing</h1>
+					<p className="text-muted-foreground text-sm">
+						Pay-as-you-go — 10,000 requests/month free, then $1.00 per 1,000
+						requests.
+					</p>
+				</div>
+				{teams.length > 0 ? (
+					<Select
+						onValueChange={(value) =>
+							setTeamId(value === PERSONAL_VALUE ? null : value)
+						}
+						value={teamId ?? PERSONAL_VALUE}
+					>
+						<SelectTrigger className="w-56">
+							<SelectValue>
+								{(value: string | null) =>
+									value === PERSONAL_VALUE || value === null
+										? (contexts?.personal.label ?? "Personal")
+										: (teams.find((t) => t.teamId === value)?.label ?? "Team")
+								}
+							</SelectValue>
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value={PERSONAL_VALUE}>
+								{contexts?.personal.label ?? "Personal"}
+							</SelectItem>
+							{teams.map((t) => (
+								<SelectItem key={t.teamId} value={t.teamId as string}>
+									{t.label}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				) : null}
 			</div>
+
+			{loadError ? (
+				<Card>
+					<CardContent className="flex flex-col items-start gap-3 pt-6">
+						<p className="text-destructive text-sm">
+							Couldn't load billing details.
+						</p>
+						<Button onClick={() => load()} size="sm" variant="outline">
+							Retry
+						</Button>
+					</CardContent>
+				</Card>
+			) : null}
 
 			<Card>
 				<CardHeader>
