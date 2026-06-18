@@ -1,36 +1,37 @@
-import { useMemo, useRef, type ReactNode } from "react";
-import type { WheraboutsClient } from "@wherabouts/sdk";
 import { useAutocomplete, useCombobox } from "@wherabouts/react";
+import type { WheraboutsClient } from "@wherabouts/sdk";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useAddressGeolocation } from "../hooks/use-address-geolocation";
 import type { AddressI18nStrings, AddressWithParsed } from "../types";
 import { cn } from "../utils/cn";
 import { toAddressWithParsed } from "../utils/parse-address";
-import { useAddressGeolocation } from "../hooks/use-address-geolocation";
 
 export interface AddressAutocompleteProps {
+	className?: string;
 	client: WheraboutsClient;
+	debounceMs?: number;
+	disabled?: boolean;
+	enableGeolocation?: boolean;
+	error?: string;
+	i18nStrings?: Partial<AddressI18nStrings>;
+	id?: string;
+	maxSuggestions?: number;
+	minCharsToSearch?: number;
 	onQueryChange?: (query: string) => void;
 	onSelect?: (address: AddressWithParsed) => void;
-	error?: string;
-	required?: boolean;
-	disabled?: boolean;
-	debounceMs?: number;
-	minCharsToSearch?: number;
-	maxSuggestions?: number;
-	enableGeolocation?: boolean;
-	userLat?: number;
-	userLng?: number;
-	sessionToken?: string;
-	className?: string;
 	placeholder?: string;
+	renderEmpty?: () => ReactNode;
+	renderError?: (error: Error | null) => ReactNode;
+	renderLoading?: () => ReactNode;
 	renderSuggestion?: (
 		address: AddressWithParsed,
 		isActive: boolean
 	) => ReactNode;
-	renderEmpty?: () => ReactNode;
-	renderError?: (error: Error | null) => ReactNode;
-	renderLoading?: () => ReactNode;
-	i18nStrings?: Partial<AddressI18nStrings>;
-	id?: string;
+	required?: boolean;
+	sessionToken?: string;
+	userLat?: number;
+	userLng?: number;
 }
 
 const DEFAULT_I18N: AddressI18nStrings = {
@@ -39,6 +40,29 @@ const DEFAULT_I18N: AddressI18nStrings = {
 	errorRetry: "Try again",
 	geolocationError: "Location access denied",
 };
+
+export interface DropdownPosition {
+	left: number;
+	top: number;
+	width: number;
+}
+
+// Gap (px) between the input and the dropdown, matching the previous mt-1.
+const DROPDOWN_GAP_PX = 4;
+
+// Anchor the dropdown directly below the input using viewport (fixed) coordinates.
+// Kept pure so it can be unit-tested without a DOM.
+export function computeDropdownPosition(rect: {
+	bottom: number;
+	left: number;
+	width: number;
+}): DropdownPosition {
+	return {
+		top: rect.bottom + DROPDOWN_GAP_PX,
+		left: rect.left,
+		width: rect.width,
+	};
+}
 
 export function AddressAutocomplete({
 	client,
@@ -64,7 +88,10 @@ export function AddressAutocomplete({
 	id: customId,
 }: AddressAutocompleteProps) {
 	const id = customId ?? "wherabouts-autocomplete";
-	const i18n = useMemo(() => ({ ...DEFAULT_I18N, ...customI18n }), [customI18n]);
+	const i18n = useMemo(
+		() => ({ ...DEFAULT_I18N, ...customI18n }),
+		[customI18n]
+	);
 
 	// Geolocation
 	const { lat: geoLat, lng: geoLng } = useAddressGeolocation(
@@ -74,7 +101,13 @@ export function AddressAutocomplete({
 	const effectiveLng = userLng ?? geoLng;
 
 	// Autocomplete hook
-	const { query, setQuery, results, error: autocompleteError, status } = useAutocomplete(client, {
+	const {
+		query,
+		setQuery,
+		results,
+		error: autocompleteError,
+		status,
+	} = useAutocomplete(client, {
 		debounceMs,
 		minLength: minCharsToSearch,
 		limit: maxSuggestions,
@@ -99,6 +132,33 @@ export function AddressAutocomplete({
 	});
 
 	const inputRef = useRef<HTMLInputElement>(null);
+	const [dropdownPosition, setDropdownPosition] =
+		useState<DropdownPosition | null>(null);
+
+	// The dropdown is portaled to <body> so no ancestor's overflow can clip it.
+	// Track the input's viewport position while open so the portaled dropdown
+	// stays anchored to it through scroll and resize.
+	useEffect(() => {
+		if (!isOpen) {
+			return;
+		}
+		const updatePosition = () => {
+			const el = inputRef.current;
+			if (el) {
+				setDropdownPosition(
+					computeDropdownPosition(el.getBoundingClientRect())
+				);
+			}
+		};
+		updatePosition();
+		// Capture phase catches scrolling in any ancestor, not just the window.
+		window.addEventListener("scroll", updatePosition, true);
+		window.addEventListener("resize", updatePosition);
+		return () => {
+			window.removeEventListener("scroll", updatePosition, true);
+			window.removeEventListener("resize", updatePosition);
+		};
+	}, [isOpen]);
 
 	// Sync external value prop to internal query (only on mount)
 	// This allows controlled initial value without fighting the hook's internal state
@@ -109,7 +169,8 @@ export function AddressAutocomplete({
 	//   }
 	// }, []);
 
-	const error = externalError || (status === "error" ? autocompleteError : null);
+	const error =
+		externalError || (status === "error" ? autocompleteError : null);
 	const inputProps = getInputProps();
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -123,132 +184,141 @@ export function AddressAutocomplete({
 
 	return (
 		<div
-			data-slot="address-autocomplete"
 			className={cn("relative w-full", className)}
+			data-slot="address-autocomplete"
 		>
 			<input
 				{...inputProps}
-				ref={inputRef}
-				data-slot="address-input"
-				type="text"
-				value={query}
-				placeholder={placeholder ?? i18n.noResults}
-				disabled={disabled}
-				required={required}
 				aria-invalid={error ? "true" : "false"}
+				className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:bg-input/30"
+				data-slot="address-input"
+				disabled={disabled}
 				onChange={(e) => {
 					setQuery(e.target.value);
 					onQueryChange?.(e.target.value);
 				}}
 				onKeyDown={handleKeyDown}
-				className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:bg-input/30"
+				placeholder={placeholder ?? i18n.noResults}
+				ref={inputRef}
+				required={required}
+				type="text"
+				value={query}
 			/>
 
-			{isOpen && (
-				<div
-					data-slot="address-dropdown"
-					className="absolute top-full right-0 left-0 z-50 mt-1 overflow-hidden rounded-none border border-border bg-popover text-popover-foreground shadow-md"
-				>
-					<ul
-						{...getListboxProps()}
-						data-slot="address-listbox"
-						className="max-h-80 overflow-y-auto"
+			{isOpen &&
+				dropdownPosition &&
+				typeof document !== "undefined" &&
+				createPortal(
+					<div
+						className="z-50 overflow-hidden rounded-none border border-border bg-popover text-popover-foreground shadow-md"
+						data-slot="address-dropdown"
+						style={{
+							position: "fixed",
+							top: dropdownPosition.top,
+							left: dropdownPosition.left,
+							width: dropdownPosition.width,
+						}}
 					>
-						{status === "loading" && (
-							<li
-								data-slot="address-item"
-								data-status="loading"
-								className="flex items-center justify-center px-3 py-2 text-muted-foreground text-sm"
-							>
-								{renderLoading?.() ?? "Loading..."}
-							</li>
-						)}
-
-						{status === "error" && (
-							<li
-								data-slot="address-item"
-								data-status="error"
-								className="flex items-center justify-center px-3 py-2 text-destructive text-sm"
-							>
-								{renderError?.(error instanceof Error ? error : null) ?? i18n.errorRetry}
-							</li>
-						)}
-
-						{status === "empty" && (
-							<li
-								data-slot="address-item"
-								data-status="empty"
-								className="flex items-center justify-center px-3 py-2 text-muted-foreground text-sm"
-							>
-								{renderEmpty?.() ?? i18n.noResults}
-							</li>
-						)}
-
-						{status === "success" &&
-							results.map((result, index) => {
-								const itemProps = getItemProps(index);
-								const ariaSelected = itemProps["aria-selected"] as
-									| boolean
-									| string
-									| undefined;
-								const isActive =
-									ariaSelected === true ||
-									ariaSelected === "true";
-								const parsed = toAddressWithParsed(result);
-
-								return (
-									<li
-										key={result.id}
-										{...itemProps}
-										data-slot="address-item"
-										className="flex cursor-pointer items-center rounded-none px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
-										onClick={() => {
-											onSelect?.(parsed);
-											setQuery("");
-										}}
-										onMouseDown={(e) => {
-											e.preventDefault();
-										}}
-									>
-										{renderSuggestion ? (
-											renderSuggestion(parsed, isActive)
-										) : (
-											<div className="flex-1">
-												<div className="font-medium text-foreground text-sm">
-													{parsed.streetAddress}
-												</div>
-												<div className="text-muted-foreground text-xs">
-													{parsed.suburb}, {parsed.state}{" "}
-													{parsed.postcode}
-												</div>
-											</div>
-										)}
-									</li>
-								);
-							})}
-					</ul>
-
-					{/* Wherabouts branding footer */}
-					{status === "success" && results.length > 0 && (
-						<div
-							data-slot="address-powered-by"
-							className="border-t border-border bg-muted/40 px-3 py-2"
+						<ul
+							{...getListboxProps()}
+							className="max-h-80 overflow-y-auto"
+							data-slot="address-listbox"
 						>
-							<p className="text-muted-foreground text-xs">
-								Suggestions powered by{" "}
-								<a
-									href="https://wherabouts.com"
-									target="_blank"
-									rel="noopener noreferrer"
-									className="font-semibold text-foreground hover:underline"
+							{status === "loading" && (
+								<li
+									className="flex items-center justify-center px-3 py-2 text-muted-foreground text-sm"
+									data-slot="address-item"
+									data-status="loading"
 								>
-									Wherabouts
-								</a>
-							</p>
-						</div>
-					)}
-				</div>
-			)}
+									{renderLoading?.() ?? "Loading..."}
+								</li>
+							)}
+
+							{status === "error" && (
+								<li
+									className="flex items-center justify-center px-3 py-2 text-destructive text-sm"
+									data-slot="address-item"
+									data-status="error"
+								>
+									{renderError?.(error instanceof Error ? error : null) ??
+										i18n.errorRetry}
+								</li>
+							)}
+
+							{status === "empty" && (
+								<li
+									className="flex items-center justify-center px-3 py-2 text-muted-foreground text-sm"
+									data-slot="address-item"
+									data-status="empty"
+								>
+									{renderEmpty?.() ?? i18n.noResults}
+								</li>
+							)}
+
+							{status === "success" &&
+								results.map((result, index) => {
+									const itemProps = getItemProps(index);
+									const ariaSelected = itemProps["aria-selected"] as
+										| boolean
+										| string
+										| undefined;
+									const isActive =
+										ariaSelected === true || ariaSelected === "true";
+									const parsed = toAddressWithParsed(result);
+
+									return (
+										<li
+											key={result.id}
+											{...itemProps}
+											className="flex cursor-pointer items-center rounded-none px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
+											data-slot="address-item"
+											onClick={() => {
+												onSelect?.(parsed);
+												setQuery("");
+											}}
+											onMouseDown={(e) => {
+												e.preventDefault();
+											}}
+										>
+											{renderSuggestion ? (
+												renderSuggestion(parsed, isActive)
+											) : (
+												<div className="flex-1">
+													<div className="font-medium text-foreground text-sm">
+														{parsed.streetAddress}
+													</div>
+													<div className="text-muted-foreground text-xs">
+														{parsed.suburb}, {parsed.state} {parsed.postcode}
+													</div>
+												</div>
+											)}
+										</li>
+									);
+								})}
+						</ul>
+
+						{/* Wherabouts branding footer */}
+						{status === "success" && results.length > 0 && (
+							<div
+								className="border-border border-t bg-muted/40 px-3 py-2"
+								data-slot="address-powered-by"
+							>
+								<p className="text-muted-foreground text-xs">
+									Suggestions powered by{" "}
+									<a
+										className="font-semibold text-foreground hover:underline"
+										href="https://wherabouts.com"
+										rel="noopener noreferrer"
+										target="_blank"
+									>
+										Wherabouts
+									</a>
+								</p>
+							</div>
+						)}
+					</div>,
+					document.body
+				)}
 		</div>
 	);
 }

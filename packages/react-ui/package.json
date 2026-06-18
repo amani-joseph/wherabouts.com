@@ -23,6 +23,7 @@
   },
   "peerDependencies": {
     "react": ">=19.0.0",
+    "react-dom": ">=19.0.0",
     "@wherabouts/sdk": ">=0.4.2",
     "@wherabouts/react": ">=0.2.0"
   },
