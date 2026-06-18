@@ -13,24 +13,20 @@ const navigationData: NavigationSection[] = [
 		isActive: true,
 	},
 	{
+		name: "Capabilities",
+		href: "#capabilities",
+	},
+	{
+		name: "API",
+		href: "#api",
+	},
+	{
 		name: "Docs",
 		href: "/docs",
 	},
 	{
 		name: "Pricing",
 		href: "/pricing",
-	},
-	{
-		name: "Features",
-		href: "#features",
-	},
-	{
-		name: "Example outcomes",
-		href: "#developers",
-	},
-	{
-		name: "Updates",
-		href: "#newsletter",
 	},
 ];
 

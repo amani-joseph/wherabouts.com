@@ -1,4 +1,5 @@
 "use client";
+import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check, MapPin, Search } from "lucide-react";
 import {
 	AnimatePresence,
@@ -8,6 +9,7 @@ import {
 } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { GlobeDemo } from "@/components/globe-demo";
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -568,11 +570,6 @@ function AddressDemoInput() {
 	);
 }
 
-export interface BrandList {
-	image: string;
-	name: string;
-}
-
 const HeroSection = () => {
 	const sectionRef = useRef<HTMLElement>(null);
 	const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
@@ -642,7 +639,7 @@ const HeroSection = () => {
 					>
 						<div className="h-1 w-1 rounded-full bg-teal-400" />
 						<p className="font-normal text-foreground text-sm">
-							Locations API — public beta
+							Location &amp; geocoding API — US, Australia &amp; expanding
 						</p>
 						<ArrowRight className="text-foreground" size={16} />
 					</motion.div>
@@ -666,8 +663,9 @@ const HeroSection = () => {
 							className="max-w-2xl text-pretty font-normal text-foreground text-sm sm:text-base md:text-lg"
 							variants={itemVariants}
 						>
-							Address autocomplete and geocoding API. Ship location features
-							without the complexity.
+							Address autocomplete, geocoding, geofencing, routing, device
+							tracking, and webhooks — ship location features without the
+							complexity.
 						</motion.p>
 					</div>
 					<motion.div
@@ -677,55 +675,30 @@ const HeroSection = () => {
 						<AddressDemoInput />
 					</motion.div>
 				</div>
-				{/* <motion.div
-						className="flex flex-wrap justify-center gap-2"
-						variants={itemVariants}
-					>
-						<a
-							className={cn(
-								buttonVariants({ variant: "default" }),
-								"h-auto cursor-pointer rounded-full px-5 py-2.5 md:px-6 md:py-3.5"
-							)}
-							href="#features"
-						>
-							Explore the API
-						</a>
-						<a
-							className={cn(
-								buttonVariants({ variant: "outline" }),
-								"inline-flex h-auto cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-foreground md:px-6 md:py-3.5"
-							)}
-							href="#pricing"
-						>
-							Get API access
-							<ArrowRight className="text-foreground" size={16} />
-						</a>
-					</motion.div> */}
-				{/* <motion.div
-					className="relative z-10 flex flex-col items-center justify-center gap-2 overflow-hidden text-center md:mx-auto md:max-w-2xl md:gap-4"
+				<motion.div
+					className="flex flex-wrap justify-center gap-2 pt-2"
 					variants={itemVariants}
 				>
-					<p className="font-normal text-muted-foreground text-sm">
-						Built for teams shipping location in:
-					</p>
-					{brandList && brandList.length > 0 && (
-						<div className="py-4">
-							<Marquee className="p-0 [--duration:20s]" pauseOnHover>
-								{brandList.map((brand) => (
-									<div key={`${brand.name}-${brand.image}`}>
-										<img
-											alt={brand.name}
-											className="mr-6 h-8 w-36"
-											height={32}
-											src={brand.image}
-											width={144}
-										/>
-									</div>
-								))}
-							</Marquee>
-						</div>
-					)}
-				</motion.div> */}
+					<Link
+						className={cn(
+							buttonVariants({ variant: "default" }),
+							"h-auto cursor-pointer rounded-full px-5 py-2.5 md:px-6 md:py-3.5"
+						)}
+						to="/sign-up"
+					>
+						Get API access
+					</Link>
+					<Link
+						className={cn(
+							buttonVariants({ variant: "outline" }),
+							"inline-flex h-auto cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-foreground md:px-6 md:py-3.5"
+						)}
+						to="/docs"
+					>
+						Read the docs
+						<ArrowRight className="text-foreground" size={16} />
+					</Link>
+				</motion.div>
 				<div className="pointer-events-none absolute inset-x-0 -bottom-32 z-0 flex justify-center overflow-hidden opacity-85">
 					<GlobeDemo
 						className="-translate-x-8 md:-translate-x-12"

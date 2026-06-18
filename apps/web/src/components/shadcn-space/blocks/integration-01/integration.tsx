@@ -1,4 +1,12 @@
 "use client";
+import {
+	Atom,
+	Component,
+	FileJson,
+	Package,
+	Terminal,
+	Webhook,
+} from "lucide-react";
 import { motion } from "motion/react";
 import ParticleSphereAnimation from "@/components/shadcn-space/blocks/integration-01/particalsphear";
 
@@ -32,8 +40,9 @@ const Integration = () => {
 						<p className="max-w-xl font-normal text-base text-muted-foreground">
 							Call Wherabouts from your backend or edge with plain REST—no
 							embedded map SDK required to validate an address, power
-							autocomplete, or geocode a signup. Unlike consumer-maps APIs built
-							for ads and maps apps, Wherabouts is API-first for your product.
+							autocomplete, or geocode a signup. US and Australia are at the
+							core, with coverage expanding across Europe, South America,
+							Africa, and Asia.
 						</p>
 					</div>
 					<a
@@ -75,58 +84,26 @@ const Integration = () => {
 						size: "w-110 h-110 md:w-180 md:h-180",
 						duration: 18,
 						icons: [
-							{
-								src: "https://images.shadcnspace.com/assets/svgs/supabase.svg",
-								alt: "Supabase",
-								angle: -60,
-							},
-							{
-								src: "https://images.shadcnspace.com/assets/svgs/vercel.svg",
-								alt: "Vercel",
-								angle: 0,
-							},
-							{
-								src: "https://images.shadcnspace.com/assets/svgs/make.svg",
-								alt: "Make",
-								angle: 60,
-							},
+							{ icon: Terminal, alt: "REST API", angle: -60 },
+							{ icon: Package, alt: "@wherabouts/sdk", angle: 0 },
+							{ icon: Webhook, alt: "Webhooks", angle: 60 },
 						],
 					},
 					{
 						size: "w-150 h-150 md:w-220 md:h-220",
 						duration: 24,
 						icons: [
-							{
-								src: "https://images.shadcnspace.com/assets/svgs/figma.svg",
-								alt: "Figma",
-								angle: 0,
-							},
-							{
-								src: "https://images.shadcnspace.com/assets/svgs/slack.svg",
-								alt: "Slack",
-								angle: -90,
-							},
+							{ icon: Atom, alt: "React UI", angle: 0 },
+							{ icon: Component, alt: "Vue UI", angle: -90 },
 						],
 					},
 					{
 						size: "w-180 h-180 md:w-265 md:h-265",
 						duration: 30,
 						icons: [
-							{
-								src: "https://images.shadcnspace.com/assets/svgs/clude.svg",
-								alt: "Clude",
-								angle: -60,
-							},
-							{
-								src: "https://images.shadcnspace.com/assets/svgs/chatgpt.svg",
-								alt: "chatgpt",
-								angle: 0,
-							},
-							{
-								src: "https://images.shadcnspace.com/assets/svgs/stripe.svg",
-								alt: "Stripe",
-								angle: 60,
-							},
+							{ icon: FileJson, alt: "OpenAPI", angle: -60 },
+							{ icon: Terminal, alt: "curl", angle: 0 },
+							{ icon: Package, alt: "npm", angle: 60 },
 						],
 					},
 				].map((orbit, orbitIndex) => {
@@ -171,12 +148,9 @@ const Integration = () => {
 											} as React.CSSProperties
 										}
 									>
-										<img
-											alt={iconData.alt}
-											className="h-6 w-6 md:h-8 md:w-8"
-											height={32}
-											src={iconData.src}
-											width={32}
+										<iconData.icon
+											aria-label={iconData.alt}
+											className="h-6 w-6 text-foreground md:h-8 md:w-8"
 										/>
 									</div>
 								</div>

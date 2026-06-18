@@ -26,7 +26,7 @@ const accordionItems = [
 		icon: Globe2,
 		title: "Coverage tuned for in-app location UX",
 		description:
-			"Reliable place search, autocomplete, and geocoding for addresses and venues inside your product. See regions, endpoints, and data guarantees in the documentation—we avoid unverified “better than X” claims and focus on what your integration needs.",
+			"Reliable place search, autocomplete, and geocoding for addresses and venues. US and Australia anchor the data, with several European countries live and coverage expanding across South America, Africa, and Asia. See regions, endpoints, and data guarantees in the documentation.",
 	},
 ];
 
@@ -45,23 +45,12 @@ const Feature = () => {
 							</h2>
 							<p className="max-w-xl text-base text-muted-foreground sm:text-lg">
 								Pricing you can plan around, APIs you can integrate quickly, and
-								coverage aimed at real app flows—not a generic maps platform
-								bolt-on.
+								international coverage aimed at real app flows—not a generic
+								maps platform bolt-on.
 							</p>
 						</div>
 					</div>
-					<div className="grid grid-cols-1 border-border border-t md:grid-cols-2">
-						<div className="border-border border-r p-5 sm:p-6">
-							<div className="relative flex h-full w-full items-end justify-end rounded-xl bg-[url('https://images.shadcnspace.com/assets/feature/feature-15-bg.png')] bg-cover">
-								<img
-									alt="feature-15"
-									className="max-h-full w-auto object-contain pt-6 pl-6 sm:pt-12 sm:pl-12"
-									height={840}
-									src="https://images.shadcnspace.com/assets/feature/feature-15-img.png"
-									width={960}
-								/>
-							</div>
-						</div>
+					<div className="grid grid-cols-1 border-border border-t">
 						<div>
 							<Accordion
 								defaultValue={["predictable-pricing"]}
