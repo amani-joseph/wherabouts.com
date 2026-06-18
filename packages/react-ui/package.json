@@ -4,6 +4,9 @@
   "type": "module",
   "description": "Production-ready React components for Wherabouts SDK — address autocomplete, geocoding, and form fields with accessibility and customization.",
   "license": "UNLICENSED",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -13,13 +16,16 @@
     "./styles.css": "./dist/styles.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsup && node scripts/build-css.mjs",
     "dev": "tsup --watch",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm build"
   },
   "peerDependencies": {
     "react": ">=19.0.0",
