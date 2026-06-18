@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import ApiInAction from "@/components/landing/api-in-action";
+import Capabilities from "@/components/landing/capabilities";
 import Feature from "@/components/shadcn-space/blocks/feature-15/feature";
 import Footer from "@/components/shadcn-space/blocks/footer-02/footer";
 import HeroPage from "@/components/shadcn-space/blocks/hero-15";
@@ -14,6 +16,8 @@ function HomeComponent() {
 		<div>
 			<HeroPage />
 			<Integration />
+			<Capabilities />
+			<ApiInAction />
 			<Feature />
 			<Testimonial />
 			<Footer />
