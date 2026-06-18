@@ -1,10 +1,12 @@
 import { type SQL, sql } from "drizzle-orm";
 import type { Database } from "../client.ts";
+import { parseFreeformAddress } from "./parse-freeform-address.ts";
 import {
 	type ParsedUnitAddress,
 	parseUnitAddress,
 } from "./parse-unit-address.ts";
 import { anchorToken } from "./query-tokens.ts";
+import { structuredAutocomplete } from "./structured-search.ts";
 
 const TRIGRAM_SIMILARITY_THRESHOLD = 0.3;
 const LEVENSHTEIN_SHORT_MAX_DISTANCE = 1;
@@ -25,7 +27,7 @@ export interface AutocompleteResult {
 	streetAddress: string;
 }
 
-interface RawAddressRow {
+export interface RawAddressRow {
 	building_name: string | null;
 	country: string;
 	flat_number: string | null;
@@ -163,7 +165,7 @@ function buildOrderBy(
 	return sql.join(orderParts, sql`, `);
 }
 
-const SELECT_COLUMNS = sql`
+export const SELECT_COLUMNS = sql`
 	id, country, state, locality, postcode,
 	street_name, street_type, street_suffix,
 	building_name, flat_type, flat_number,
@@ -171,7 +173,7 @@ const SELECT_COLUMNS = sql`
 	number_first, number_last,
 	longitude, latitude`;
 
-function mapRowToResult(row: RawAddressRow): AutocompleteResult {
+export function mapRowToResult(row: RawAddressRow): AutocompleteResult {
 	const mapped = {
 		flatType: row.flat_type,
 		flatNumber: row.flat_number,
@@ -234,8 +236,25 @@ export async function autocompleteAddresses(
 		return { results: [], parsedQuery: null };
 	}
 
-	const parsed = parseUnitAddress(trimmed);
-	const searchInput = parsed ? parsed.streetQuery : trimmed;
+	// Freeform full-address path: parse into components and try the structured,
+	// index-anchored query first. On a miss we fall through to the existing fuzzy
+	// pipeline using the cleaned (comma/country-stripped) string. See design §4.4.
+	const freeform = parseFreeformAddress(trimmed);
+	const effectiveCountry = country ?? freeform.countryCode ?? undefined;
+	if (freeform.confidence === "high") {
+		const structured = await structuredAutocomplete(db, freeform, {
+			limit,
+			country: effectiveCountry,
+		});
+		if (structured.length > 0) {
+			return { results: structured, parsedQuery: null };
+		}
+	}
+	const searchBase =
+		freeform.confidence === "high" ? freeform.cleaned : trimmed;
+
+	const parsed = parseUnitAddress(searchBase);
+	const searchInput = parsed ? parsed.streetQuery : searchBase;
 	const len = searchInput.length;
 
 	// Too short -- only guard when parser did not strip unit/street numbers;
@@ -244,7 +263,7 @@ export async function autocompleteAddresses(
 		return { results: [], parsedQuery: null };
 	}
 
-	const filterClauses = buildFilterClauses(country, state, parsed);
+	const filterClauses = buildFilterClauses(effectiveCountry, state, parsed);
 
 	// Parsed with empty streetQuery -- filters alone identify the rows.
 	if (parsed && searchInput === "") {
