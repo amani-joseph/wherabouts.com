@@ -190,7 +190,7 @@ function AddressAutocompleteDemo() {
 
 	return (
 		<>
-			<Card className="border-2 border-blue-200 dark:border-blue-900">
+			<Card className="overflow-visible border-2 border-blue-200 dark:border-blue-900">
 				<CardHeader className="bg-blue-50 dark:bg-blue-950/30">
 					<CardTitle className="text-base">Live Demo</CardTitle>
 					<CardDescription>
@@ -248,7 +248,7 @@ function AddressFormFieldDemo() {
 
 	return (
 		<>
-			<Card className="border-2 border-blue-200 dark:border-blue-900">
+			<Card className="overflow-visible border-2 border-blue-200 dark:border-blue-900">
 				<CardHeader className="bg-blue-50 dark:bg-blue-950/30">
 					<CardTitle className="text-base">Live Demo</CardTitle>
 					<CardDescription>
@@ -306,7 +306,7 @@ function AddressFieldGroupDemo() {
 
 	return (
 		<>
-			<Card className="border-2 border-blue-200 dark:border-blue-900">
+			<Card className="overflow-visible border-2 border-blue-200 dark:border-blue-900">
 				<CardHeader className="bg-blue-50 dark:bg-blue-950/30">
 					<CardTitle className="text-base">Live Demo</CardTitle>
 					<CardDescription>
@@ -384,7 +384,7 @@ function ForwardGeocodeDemo() {
 
 	return (
 		<>
-			<Card className="border-2 border-blue-200 dark:border-blue-900">
+			<Card className="overflow-visible border-2 border-blue-200 dark:border-blue-900">
 				<CardHeader className="bg-blue-50 dark:bg-blue-950/30">
 					<CardTitle className="text-base">Live Demo</CardTitle>
 					<CardDescription>
@@ -470,7 +470,7 @@ function ReverseGeocodeDemo() {
 
 	return (
 		<>
-			<Card className="border-2 border-blue-200 dark:border-blue-900">
+			<Card className="overflow-visible border-2 border-blue-200 dark:border-blue-900">
 				<CardHeader className="bg-blue-50 dark:bg-blue-950/30">
 					<CardTitle className="text-base">Live Demo</CardTitle>
 					<CardDescription>
