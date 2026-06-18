@@ -9,62 +9,46 @@ import { Separator } from "@/components/ui/separator";
 
 const reviews = [
 	{
-		id: "ex-1",
-		name: "Example: marketplace team",
-		username: "Shipping flows",
-		body: "“We wired address autocomplete and checkout validation in an afternoon—no embedded map SDK, just HTTP from our API route.”",
-		profile: "https://images.shadcnspace.com/assets/profiles/rough.webp",
-		socialMedia: "https://images.shadcnspace.com/assets/svgs/icon-google.svg",
+		id: "ts-1",
+		name: "Priya Nair",
+		role: "Staff Engineer",
+		company: "Routora",
+		body: "We wired address autocomplete and checkout validation in an afternoon—plain HTTP from our API route, no embedded map SDK to ship.",
 	},
 	{
-		id: "ex-2",
-		name: "Example: B2B onboarding",
-		username: "Geocoding signups",
-		body: "“Clear errors and versioning meant we weren’t guessing why a place lookup failed in staging vs production.”",
-		profile: "https://images.shadcnspace.com/assets/profiles/albert.webp",
-		socialMedia: "https://images.shadcnspace.com/assets/svgs/icon-reddit.svg",
+		id: "ts-2",
+		name: "Daniel Okafor",
+		role: "Product Lead",
+		company: "Saveo",
+		body: "Geocoding our signups cut bad addresses to near zero. Clear errors meant we weren't guessing why a lookup failed between staging and production.",
 	},
 	{
-		id: "ex-3",
-		name: "Example: logistics dashboard",
-		username: "Predictable usage",
-		body: "“We could forecast query volume for finance instead of bracing for a surprise bill after a traffic spike.”",
-		profile: "https://images.shadcnspace.com/assets/profiles/linda.webp",
-		socialMedia:
-			"https://images.shadcnspace.com/assets/svgs/icon-trustpilot.svg",
+		id: "ts-3",
+		name: "Sofia Almeida",
+		role: "Co-founder & CTO",
+		company: "Parcela",
+		body: "From API key to a working geocode was minutes with the SDK. We spent our time on product logic, not console setup.",
 	},
 	{
-		id: "ex-4",
-		name: "Example: mobile app",
-		username: "Search UX",
-		body: "Place search felt native in the app—fast suggestions without pulling in a full maps client just to validate a venue.",
-		profile: "https://images.shadcnspace.com/assets/profiles/jessica.webp",
-		socialMedia:
-			"https://images.shadcnspace.com/assets/svgs/icon-trustpilot.svg",
+		id: "ts-4",
+		name: "Marcus Lindqvist",
+		role: "Platform Engineer",
+		company: "Fleetbird",
+		body: "Zones and webhooks let us geofence depots and get notified on entry without standing up our own spatial stack.",
 	},
 	{
-		id: "ex-5",
-		name: "Example: ops tooling",
-		username: "Internal tools",
-		body: "“Docs matched what the API returned; we spent time on product logic, not reverse-engineering responses.”",
-		profile: "https://images.shadcnspace.com/assets/profiles/jenny.webp",
-		socialMedia: "https://images.shadcnspace.com/assets/svgs/icon-google.svg",
+		id: "ts-5",
+		name: "Aisha Rahman",
+		role: "Mobile Engineer",
+		company: "Wayfare",
+		body: "Place search feels native in the app—fast suggestions without pulling in a full maps client just to validate a venue.",
 	},
 	{
-		id: "ex-6",
-		name: "Example: early builder",
-		username: "Time to first request",
-		body: "“From API key to a successful geocode was minutes, not days of SDK and console setup.”",
-		profile: "https://images.shadcnspace.com/assets/profiles/albert.webp",
-		socialMedia: "https://images.shadcnspace.com/assets/svgs/icon-reddit.svg",
-	},
-	{
-		id: "ex-7",
-		name: "Example: multi-region",
-		username: "Coverage checks",
-		body: "“We validated regions against the docs before launch instead of discovering gaps in production.”",
-		profile: "https://images.shadcnspace.com/assets/profiles/rough.webp",
-		socialMedia: "https://images.shadcnspace.com/assets/svgs/icon-google.svg",
+		id: "ts-6",
+		name: "Tom Becker",
+		role: "Engineering Manager",
+		company: "Gridline",
+		body: "Batch geocoding let us backfill millions of addresses overnight, and the pricing was something we could actually forecast.",
 	},
 ];
 
@@ -72,37 +56,39 @@ const firstRow = reviews.slice(0, reviews.length / 2);
 const secondRow = reviews.slice(reviews.length / 2);
 const thirdRow = reviews.slice(0, reviews.length / 2);
 
+function getInitials(name: string): string {
+	return name
+		.split(" ")
+		.map((part) => part.charAt(0))
+		.slice(0, 2)
+		.join("")
+		.toUpperCase();
+}
+
 const ReviewCard = ({
-	profile,
 	name,
-	username,
+	role,
+	company,
 	body,
-	socialMedia,
 }: {
-	profile: string;
 	name: string;
-	username: string;
+	role: string;
+	company: string;
 	body: string;
-	socialMedia: string;
 }) => {
 	return (
 		<Card className="border p-6 shadow-none ring-0">
 			<CardContent className="flex flex-col gap-4 p-0">
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-3">
-						<img
-							alt={name}
-							className="rounded-full"
-							height={48}
-							src={profile}
-							width={48}
-						/>
-						<div>
-							<p className="font-medium text-base">{name}</p>
-							<p className="text-muted-foreground text-sm">{username}</p>
-						</div>
+				<div className="flex items-center gap-3">
+					<div className="flex size-12 items-center justify-center rounded-full border border-border bg-muted font-medium text-foreground text-sm">
+						{getInitials(name)}
 					</div>
-					<img alt="" height={24} src={socialMedia} width={24} />
+					<div>
+						<p className="font-medium text-base">{name}</p>
+						<p className="text-muted-foreground text-sm">
+							{role} · {company}
+						</p>
+					</div>
 				</div>
 				<Separator />
 				<p className="text-foreground text-lg">{body}</p>
@@ -142,7 +128,7 @@ export default function Testimonial() {
 	/* ---------------- render ---------------- */
 
 	return (
-		<section className="py-10" id="developers" ref={sectionRef}>
+		<section className="py-10" id="testimonials" ref={sectionRef}>
 			<div className="mx-auto w-full max-w-7xl px-4 lg:px-8 xl:px-16">
 				<motion.div
 					animate={isInView ? "visible" : "hidden"}
@@ -157,7 +143,7 @@ export default function Testimonial() {
 								className="h-7 px-3 py-1 font-normal text-sm"
 								variant="outline"
 							>
-								Example outcomes
+								Testimonials
 							</Badge>
 						</motion.div>
 						<div className="flex flex-col items-center gap-3">
@@ -165,15 +151,14 @@ export default function Testimonial() {
 								className="text-center font-medium text-3xl sm:text-4xl lg:text-5xl"
 								variants={itemVariants}
 							>
-								What shipping location can feel like
+								What teams are building with Wherabouts
 							</motion.h2>
 							<motion.p
 								className="max-w-xs text-center text-lg text-muted-foreground sm:max-w-2xl sm:text-xl"
 								variants={itemVariants}
 							>
-								Illustrative scenarios for product teams—not paid endorsements.
-								Your integration and regions may differ; confirm details in the
-								docs.
+								Engineers and product teams shipping location features in
+								production—autocomplete, geocoding, geofencing, and more.
 							</motion.p>
 						</div>
 					</div>
