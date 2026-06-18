@@ -1,8 +1,12 @@
 # @wherabouts/sdk
 
 Official TypeScript SDK for the [Wherabouts](https://wherabouts.com) location API —
-Australian geocoding, geofencing zones, device tracking, and webhooks over
+geocoding, geofencing zones, device tracking, routing, and webhooks over
 authoritative G‑NAF / ABS data.
+
+> **Coverage:** Authoritative Australian addresses (G‑NAF). International coverage
+> (US, parts of the EU, and more) is in **beta** and rolling out — availability may
+> vary by deployment.
 
 - **Dependency-free** and runtime-agnostic (Node, edge, browser) — built on `fetch`.
 - **Fully typed**, resource-namespaced surface (`client.zones.create(...)`).
@@ -67,6 +71,7 @@ const zone = await client.zones.create({
 | `client.devices` | `pushLocation`, `zones` |
 | `client.webhooks` | `create`, `list`, `delete`, `reactivate` |
 | `client.regions` | `classify` |
+| `client.routing` | `directions`, `matrix`, `isochrone` |
 
 ## Configuration
 

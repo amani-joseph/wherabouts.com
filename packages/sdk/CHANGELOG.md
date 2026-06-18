@@ -4,6 +4,15 @@ All notable changes to `@wherabouts/sdk` are documented here. This project adher
 to [Semantic Versioning](https://semver.org/) and the
 [Keep a Changelog](https://keepachangelog.com/) format.
 
+## [0.4.3] - 2026-06-18
+
+### Fixed
+
+- `User-Agent` header now reports the SDK's real version. `WHERABOUTS_SDK_VERSION` had
+  drifted (pinned at `0.4.1`) while the package version advanced; it now tracks the
+  release. The dist smoke check derives the expected version from `package.json` so it
+  cannot drift again.
+
 ## [0.4.2] - 2026-06-16
 
 ### Added

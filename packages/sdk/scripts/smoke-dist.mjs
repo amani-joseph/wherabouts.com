@@ -1,6 +1,7 @@
 // Build-consumption smoke test: verifies both the ESM and CJS dist entry points
 // resolve and expose a working public API. Run AFTER `pnpm build`, via Node (not
 // vitest) so it exercises real module resolution of the published artifacts.
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,6 +9,8 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const distEsm = resolve(here, "../dist/index.js");
 const distCjs = resolve(here, "../dist/index.cjs");
+// Read the expected version from package.json so this check never drifts.
+const pkg = JSON.parse(readFileSync(resolve(here, "../package.json"), "utf8"));
 
 const failures = [];
 
@@ -19,8 +22,10 @@ if (typeof esm.createWheraboutsClient !== "function") {
 if (typeof esm.WheraboutsApiError !== "function") {
 	failures.push("ESM: WheraboutsApiError is not exported");
 }
-if (esm.WHERABOUTS_SDK_VERSION !== "0.2.0") {
-	failures.push(`ESM: unexpected version ${esm.WHERABOUTS_SDK_VERSION}`);
+if (esm.WHERABOUTS_SDK_VERSION !== pkg.version) {
+	failures.push(
+		`ESM: version ${esm.WHERABOUTS_SDK_VERSION} != package.json ${pkg.version}`
+	);
 }
 const esmClient = esm.createWheraboutsClient({ apiKey: "wh_smoke" });
 for (const ns of [

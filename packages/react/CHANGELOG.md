@@ -4,6 +4,13 @@ All notable changes to `@wherabouts/react` are documented here. This project
 adheres to [Semantic Versioning](https://semver.org/) and the
 [Keep a Changelog](https://keepachangelog.com/) format.
 
+## [0.2.1] - 2026-06-18
+
+### Changed
+
+- Maintenance republish. No functional or API changes; hooks and peer requirements
+  (`react >=18`, `@wherabouts/sdk >=0.4.2`) are unchanged from 0.2.0.
+
 ## [0.2.0] - 2026-06-16
 
 ### Added
