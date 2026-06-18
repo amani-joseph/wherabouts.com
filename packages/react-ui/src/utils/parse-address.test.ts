@@ -1,6 +1,22 @@
-import { describe, expect, it } from "vitest";
 import type { AddressSuggestion } from "@wherabouts/sdk";
-import { toAddressWithParsed } from "./parse-address";
+import { describe, expect, it } from "vitest";
+import { cleanAddressInput, toAddressWithParsed } from "./parse-address";
+
+describe("cleanAddressInput", () => {
+	it("collapses whitespace and trims", () => {
+		expect(cleanAddressInput("  1   Rocket   Road  ")).toBe("1 Rocket Road");
+	});
+
+	it("normalizes spacing around commas", () => {
+		expect(cleanAddressInput("1 Rocket Road ,Hawthorne,  CA 90250")).toBe(
+			"1 Rocket Road, Hawthorne, CA 90250"
+		);
+	});
+
+	it("returns empty string unchanged", () => {
+		expect(cleanAddressInput("")).toBe("");
+	});
+});
 
 describe("toAddressWithParsed", () => {
 	it("maps standard AU address correctly", () => {
