@@ -1,4 +1,5 @@
 import { ORPCError } from "@orpc/server";
+import { sendInvitationEmail } from "@wherabouts.com/auth/invitations";
 import {
 	projects,
 	teamInvitations,
@@ -9,7 +10,7 @@ import {
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { Context } from "../../context.ts";
-import { protectedProcedure } from "../../procedures.ts";
+import { protectedProcedure, publicProcedure } from "../../procedures.ts";
 
 type DatabaseLike = Context["db"];
 
@@ -199,6 +200,116 @@ export async function deleteTeamForOwner(
 	return { id: teamId };
 }
 
+const INVITE_TTL_MS = 72 * 60 * 60 * 1000;
+const inviteRoleSchema = z.enum(["admin", "member"]);
+
+export async function createInvitation(
+	db: DatabaseLike,
+	{
+		teamId,
+		email,
+		role,
+		invitedBy,
+		now,
+	}: {
+		teamId: string;
+		email: string;
+		role: TeamRole;
+		invitedBy: string;
+		now: Date;
+	}
+): Promise<{ id: string; email: string; role: TeamRole; expiresAt: Date }> {
+	const normalizedEmail = email.trim().toLowerCase();
+
+	const existingMember = await db
+		.select({ id: teamMembers.id })
+		.from(teamMembers)
+		.innerJoin(users, eq(users.id, teamMembers.userId))
+		.where(
+			and(eq(teamMembers.teamId, teamId), eq(users.email, normalizedEmail))
+		)
+		.limit(1);
+	if (existingMember.length > 0) {
+		throw new ORPCError("CONFLICT", {
+			message: "That person is already a member of this team.",
+		});
+	}
+
+	const existingInvite = await db
+		.select({ id: teamInvitations.id })
+		.from(teamInvitations)
+		.where(
+			and(
+				eq(teamInvitations.teamId, teamId),
+				eq(teamInvitations.email, normalizedEmail),
+				eq(teamInvitations.status, "pending")
+			)
+		)
+		.limit(1);
+	if (existingInvite.length > 0) {
+		throw new ORPCError("CONFLICT", {
+			message: "An invitation for that email is already pending.",
+		});
+	}
+
+	const [invite] = await db
+		.insert(teamInvitations)
+		.values({
+			teamId,
+			email: normalizedEmail,
+			role,
+			invitedBy,
+			status: "pending",
+			expiresAt: new Date(now.getTime() + INVITE_TTL_MS),
+		})
+		.returning({
+			id: teamInvitations.id,
+			email: teamInvitations.email,
+			role: teamInvitations.role,
+			expiresAt: teamInvitations.expiresAt,
+		});
+	if (!invite) {
+		throw new ORPCError("INTERNAL_SERVER_ERROR", {
+			message: "Failed to create invitation.",
+		});
+	}
+	return { ...invite, role: invite.role as TeamRole };
+}
+
+export async function getInvitationForLanding(
+	db: DatabaseLike,
+	{ invitationId, now }: { invitationId: string; now: Date }
+): Promise<{
+	teamName: string;
+	invitedEmail: string;
+	role: TeamRole;
+	status: string;
+	expired: boolean;
+} | null> {
+	const [row] = await db
+		.select({
+			email: teamInvitations.email,
+			role: teamInvitations.role,
+			status: teamInvitations.status,
+			expiresAt: teamInvitations.expiresAt,
+			teamName: teams.name,
+		})
+		.from(teamInvitations)
+		.innerJoin(teams, eq(teams.id, teamInvitations.teamId))
+		.where(eq(teamInvitations.id, invitationId))
+		.limit(1);
+	if (!row) {
+		return null;
+	}
+	return {
+		teamName: row.teamName,
+		invitedEmail: row.email,
+		role: row.role as TeamRole,
+		status: row.status,
+		expired: row.expiresAt.getTime() < now.getTime(),
+	};
+}
+
 async function requireManager(
 	db: DatabaseLike,
 	teamId: string,
@@ -259,5 +370,106 @@ export const teamsRouter = {
 				});
 			}
 			return await deleteTeamForOwner(context.db, { teamId: input.teamId });
+		}),
+
+	invite: protectedProcedure
+		.input(
+			z.object({
+				teamId: z.string().uuid(),
+				email: z.string().trim().email(),
+				role: inviteRoleSchema,
+			})
+		)
+		.handler(async ({ context, input }) => {
+			await requireManager(context.db, input.teamId, context.session.user.id);
+			const invite = await createInvitation(context.db, {
+				teamId: input.teamId,
+				email: input.email,
+				role: input.role,
+				invitedBy: context.session.user.id,
+				now: new Date(),
+			});
+			const [team] = await context.db
+				.select({ name: teams.name })
+				.from(teams)
+				.where(eq(teams.id, input.teamId))
+				.limit(1);
+			await sendInvitationEmail({
+				to: invite.email,
+				teamName: team?.name ?? "your team",
+				inviterName: context.session.user.name ?? context.session.user.email,
+				inviterEmail: context.session.user.email,
+				invitationId: invite.id,
+			});
+			return invite;
+		}),
+
+	resendInvite: protectedProcedure
+		.input(z.object({ invitationId: z.string().uuid() }))
+		.handler(async ({ context, input }) => {
+			const [invite] = await context.db
+				.select({
+					id: teamInvitations.id,
+					teamId: teamInvitations.teamId,
+					email: teamInvitations.email,
+					status: teamInvitations.status,
+				})
+				.from(teamInvitations)
+				.where(eq(teamInvitations.id, input.invitationId))
+				.limit(1);
+			if (!invite || invite.status !== "pending") {
+				throw new ORPCError("NOT_FOUND", {
+					message: "No pending invitation found.",
+				});
+			}
+			await requireManager(context.db, invite.teamId, context.session.user.id);
+			await context.db
+				.update(teamInvitations)
+				.set({ expiresAt: new Date(Date.now() + INVITE_TTL_MS) })
+				.where(eq(teamInvitations.id, invite.id));
+			const [team] = await context.db
+				.select({ name: teams.name })
+				.from(teams)
+				.where(eq(teams.id, invite.teamId))
+				.limit(1);
+			await sendInvitationEmail({
+				to: invite.email,
+				teamName: team?.name ?? "your team",
+				inviterName: context.session.user.name ?? context.session.user.email,
+				inviterEmail: context.session.user.email,
+				invitationId: invite.id,
+			});
+			return { id: invite.id };
+		}),
+
+	revokeInvite: protectedProcedure
+		.input(z.object({ invitationId: z.string().uuid() }))
+		.handler(async ({ context, input }) => {
+			const [invite] = await context.db
+				.select({
+					id: teamInvitations.id,
+					teamId: teamInvitations.teamId,
+				})
+				.from(teamInvitations)
+				.where(eq(teamInvitations.id, input.invitationId))
+				.limit(1);
+			if (!invite) {
+				throw new ORPCError("NOT_FOUND", { message: "Invitation not found." });
+			}
+			await requireManager(context.db, invite.teamId, context.session.user.id);
+			await context.db
+				.update(teamInvitations)
+				.set({ status: "revoked" })
+				.where(eq(teamInvitations.id, invite.id));
+			return { id: invite.id };
+		}),
+
+	getInvite: publicProcedure
+		.input(z.object({ invitationId: z.string().uuid() }))
+		.handler(async ({ context, input }) => {
+			return await getInvitationForLanding(context.db, {
+				invitationId: input.invitationId,
+				now: new Date(),
+			});
 		}),
 };

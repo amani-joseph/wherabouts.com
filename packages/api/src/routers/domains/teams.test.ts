@@ -1,5 +1,11 @@
+import { ORPCError } from "@orpc/server";
 import { describe, expect, it } from "vitest";
-import { canManageMembers, generateTeamSlug } from "./teams.ts";
+import {
+	canManageMembers,
+	createInvitation,
+	deleteTeamForOwner,
+	generateTeamSlug,
+} from "./teams.ts";
 
 describe("generateTeamSlug", () => {
 	it("lowercases, replaces non-alphanumerics with dashes, and appends the seed", () => {
@@ -21,9 +27,6 @@ describe("canManageMembers", () => {
 		expect(canManageMembers(null)).toBe(false);
 	});
 });
-
-import { ORPCError } from "@orpc/server";
-import { deleteTeamForOwner } from "./teams.ts";
 
 function dbWithProjectCount(count: number) {
 	return {
@@ -50,5 +53,97 @@ describe("deleteTeamForOwner", () => {
 			teamId: "t1",
 		});
 		expect(result).toEqual({ id: "t1" });
+	});
+});
+
+const INVITE_NOW = new Date("2026-06-20T00:00:00Z");
+
+function inviteDb(opts: { memberExists: boolean; pendingExists: boolean }) {
+	let selectCall = 0;
+	const inserted: Record<string, unknown>[] = [];
+	const db = {
+		select: () => ({
+			from: () => ({
+				innerJoin: () => ({
+					where: () => ({
+						limit: () =>
+							Promise.resolve(opts.memberExists ? [{ id: "m1" }] : []),
+					}),
+				}),
+				where: () => ({
+					limit: () => {
+						selectCall += 1;
+						return Promise.resolve(opts.pendingExists ? [{ id: "i1" }] : []);
+					},
+				}),
+			}),
+		}),
+		insert: () => ({
+			values: (v: Record<string, unknown>) => ({
+				returning: () => {
+					inserted.push(v);
+					return Promise.resolve([
+						{
+							id: "new-invite",
+							email: v.email,
+							role: v.role,
+							expiresAt: v.expiresAt,
+						},
+					]);
+				},
+			}),
+		}),
+	} as unknown as Parameters<typeof createInvitation>[0];
+	return { db, inserted, selectCall: () => selectCall };
+}
+
+describe("createInvitation", () => {
+	it("rejects when the email is already a member", async () => {
+		const { db } = inviteDb({ memberExists: true, pendingExists: false });
+		await expect(
+			createInvitation(db, {
+				teamId: "t1",
+				email: "joe@example.com",
+				role: "member",
+				invitedBy: "owner1",
+				now: INVITE_NOW,
+			})
+		).rejects.toBeInstanceOf(ORPCError);
+	});
+
+	it("rejects when a pending invite already exists", async () => {
+		const { db } = inviteDb({ memberExists: false, pendingExists: true });
+		await expect(
+			createInvitation(db, {
+				teamId: "t1",
+				email: "joe@example.com",
+				role: "member",
+				invitedBy: "owner1",
+				now: INVITE_NOW,
+			})
+		).rejects.toBeInstanceOf(ORPCError);
+	});
+
+	it("inserts a pending invite expiring 72h from now", async () => {
+		const { db, inserted } = inviteDb({
+			memberExists: false,
+			pendingExists: false,
+		});
+		const result = await createInvitation(db, {
+			teamId: "t1",
+			email: "Joe@Example.com",
+			role: "member",
+			invitedBy: "owner1",
+			now: INVITE_NOW,
+		});
+		expect(result.id).toBe("new-invite");
+		// biome-ignore lint/style/noNonNullAssertion: inserted is always populated by the mock above
+		const row = inserted[0]!;
+		expect(row.email).toBe("joe@example.com");
+		expect(row.status).toBe("pending");
+		const expiresAt = row.expiresAt as Date;
+		expect(expiresAt.getTime() - INVITE_NOW.getTime()).toBe(
+			72 * 60 * 60 * 1000
+		);
 	});
 });
