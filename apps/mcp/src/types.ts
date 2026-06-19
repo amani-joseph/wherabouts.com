@@ -1,6 +1,9 @@
 import type { WheraboutsClient } from "@wherabouts/sdk";
 import type { ZodRawShape } from "zod";
 
+/** Worker environment bindings/vars for the MCP server. */
+export type Env = { WHERABOUTS_API_BASE_URL: string };
+
 /** Per-session agent props extracted from the incoming bearer token. */
 export type Props = { apiKey: string };
 
