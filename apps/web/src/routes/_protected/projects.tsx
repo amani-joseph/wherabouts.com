@@ -35,6 +35,7 @@ import {
 	LoaderIcon,
 	PlusIcon,
 	ShieldAlertIcon,
+	Trash2Icon,
 } from "lucide-react";
 import {
 	type ReactNode,
@@ -444,6 +445,90 @@ function AssignApiKeyDialog({
 	);
 }
 
+function DeleteProjectDialog({
+	onDeleted,
+	project,
+}: {
+	onDeleted: () => Promise<void>;
+	project: ProjectListItem;
+}) {
+	const [open, setOpen] = useState(false);
+	const [deleting, setDeleting] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	const handleOpenChange = (nextOpen: boolean) => {
+		if (deleting) {
+			return;
+		}
+
+		setOpen(nextOpen);
+		if (!nextOpen) {
+			setError(null);
+		}
+	};
+
+	const handleDelete = async () => {
+		setDeleting(true);
+		setError(null);
+
+		try {
+			await orpcClient.projects.delete({ projectId: project.id });
+			await onDeleted();
+			setOpen(false);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to delete project");
+		} finally {
+			setDeleting(false);
+		}
+	};
+
+	return (
+		<Dialog onOpenChange={handleOpenChange} open={open}>
+			<DialogTrigger
+				render={
+					<Button
+						aria-label={`Delete ${project.name}`}
+						size="icon"
+						variant="ghost"
+					>
+						<Trash2Icon className="size-4 text-muted-foreground" />
+					</Button>
+				}
+			/>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Delete project</DialogTitle>
+					<DialogDescription>
+						This permanently removes{" "}
+						<span className="font-medium text-foreground">{project.name}</span>.
+						{project.apiKey
+							? " Its API key will be unassigned but stays active, so existing requests keep working."
+							: ""}
+					</DialogDescription>
+				</DialogHeader>
+				{error ? <p className="text-destructive text-sm">{error}</p> : null}
+				<DialogFooter>
+					<Button
+						disabled={deleting}
+						onClick={() => handleOpenChange(false)}
+						variant="outline"
+					>
+						Cancel
+					</Button>
+					<Button
+						disabled={deleting}
+						onClick={handleDelete}
+						variant="destructive"
+					>
+						{deleting ? <LoaderIcon className="size-4 animate-spin" /> : null}
+						Delete project
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
 function ProjectsLoadingSkeleton() {
 	return (
 		<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -503,10 +588,12 @@ function EmptyProjectsState({
 function ProjectsGrid({
 	apiKeyOptions,
 	onAssigned,
+	onDeleted,
 	projects,
 }: {
 	apiKeyOptions: ApiKeyListItem[];
 	onAssigned: () => Promise<void>;
+	onDeleted: () => Promise<void>;
 	projects: ProjectListItem[];
 }) {
 	return (
@@ -526,9 +613,12 @@ function ProjectsGrid({
 									</CardDescription>
 								</div>
 							</div>
-							<Badge variant={project.apiKey ? "default" : "secondary"}>
-								{project.apiKey ? "Key assigned" : "No key assigned"}
-							</Badge>
+							<div className="flex shrink-0 items-center gap-1">
+								<Badge variant={project.apiKey ? "default" : "secondary"}>
+									{project.apiKey ? "Key assigned" : "No key assigned"}
+								</Badge>
+								<DeleteProjectDialog onDeleted={onDeleted} project={project} />
+							</div>
 						</div>
 					</CardHeader>
 					<CardContent className="space-y-4">
@@ -608,6 +698,7 @@ function RouteComponent() {
 			<ProjectsGrid
 				apiKeyOptions={apiKeyOptions}
 				onAssigned={fetchData}
+				onDeleted={fetchData}
 				projects={projects}
 			/>
 		);
