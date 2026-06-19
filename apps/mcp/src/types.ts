@@ -1,21 +1,26 @@
 import type { WheraboutsClient } from "@wherabouts/sdk";
+import type { ZodRawShape } from "zod";
 
 /** Per-session agent props extracted from the incoming bearer token. */
 export type Props = { apiKey: string };
 
-/** The shape every tool module must return as MCP content. */
+/**
+ * The shape every tool handler returns as MCP content. `isError: true` marks a
+ * tool-level failure (e.g. a mapped upstream error or a refused destructive op)
+ * so the client surfaces it without throwing out of the agent.
+ */
 export type ToolResult = {
-	content: Array<{ type: "text"; text: string }>;
+	content: { type: "text"; text: string }[];
+	isError?: boolean;
 };
 
 /**
- * Contract every tool module must satisfy.
- *
- * `I` is the validated input object inferred from the tool's Zod `inputSchema`.
- * Each tool exports a single `ToolDef` which the agent registers via
- * `server.registerTool(def.name, def, def.handler)`.
+ * Contract every tool module must satisfy. Each tool exports a `ToolDef`; the
+ * registry (register.ts) wires it via `server.registerTool(name, {description,
+ * inputSchema, annotations}, cb)` and invokes `handler(client, args)` with a
+ * per-session SDK client and the validated arguments.
  */
-export type ToolDef<I = Record<string, unknown>> = {
+export type ToolDef = {
 	name: string;
 	description: string;
 	annotations?: {
@@ -24,6 +29,9 @@ export type ToolDef<I = Record<string, unknown>> = {
 		idempotentHint?: boolean;
 		openWorldHint?: boolean;
 	};
-	inputSchema: Record<string, unknown>;
-	handler: (input: I, client: WheraboutsClient) => Promise<ToolResult>;
+	inputSchema: ZodRawShape;
+	handler: (
+		client: WheraboutsClient,
+		args: Record<string, unknown>
+	) => Promise<ToolResult>;
 };
