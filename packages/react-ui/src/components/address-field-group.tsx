@@ -5,21 +5,34 @@ import { cn } from "../utils/cn";
 import { AddressAutocomplete } from "./address-autocomplete";
 
 export interface AddressFieldGroupValue {
+	/** Postcode field value. */
 	postcode: string;
+	/** State field value. */
 	state: string;
+	/** Street address field value. */
 	street: string;
+	/** Suburb field value. */
 	suburb: string;
 }
 
 export interface AddressFieldGroupProps {
+	/** Class applied to the root container. */
 	className?: string;
+	/** Required. SDK client created with `createWheraboutsClient`. */
 	client: WheraboutsClient;
+	/** Disable all fields. */
 	disabled?: boolean;
+	/** Required. Change handler, called with the updated value on any field edit. */
 	onChange: (value: AddressFieldGroupValue) => void;
+	/** Override the postcode field label. */
 	postcodeLabel?: string;
+	/** Override the state field label. */
 	stateLabel?: string;
+	/** Override the street address field label. */
 	streetLabel?: string;
+	/** Override the suburb field label. */
 	suburbLabel?: string;
+	/** Required. Controlled value for the field group. */
 	value: AddressFieldGroupValue;
 }
 
