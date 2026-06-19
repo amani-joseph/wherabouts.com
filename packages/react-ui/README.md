@@ -159,6 +159,24 @@ full address.
 - Exported types: `AddressWithParsed`, `AddressI18nStrings`, `AddressValidateFn`,
   `AddressSuggestionInput`, and each component's `*Props`.
 
+## Per-component documentation
+
+Full per-component guides — multiple examples, accessibility notes, and recipes —
+live in [`docs/`](./docs/README.md).
+
+## Interactive docs (Storybook)
+
+This package ships a Storybook with live, interactive examples of every component.
+
+```bash
+pnpm --filter @wherabouts/react-ui storybook
+```
+
+Live stories call the real API. Set `VITE_DEMO_API_KEY` (a publishable,
+origin-scoped key) and optionally `VITE_DEMO_API_BASE_URL` (default
+`https://api.wherabouts.com`) to enable results; without a key, components still
+render with a configuration banner.
+
 ## Styling
 
 The package ships a prebuilt `styles.css` (import it once, as shown above). Components use
