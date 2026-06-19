@@ -11,6 +11,9 @@ import { lazy, Suspense } from "react";
 import { authClient } from "@/lib/auth-client";
 import { type BetterAuthSession, getSession } from "@/lib/auth-server";
 
+import { absoluteUrl, DEFAULT_OG_IMAGE, SITE_NAME } from "@/lib/seo";
+import { jsonLdScript, organizationJsonLd } from "@/lib/structured-data";
+
 import appCss from "../index.css?url";
 
 // Client-only: the devtools browser build touches `window` at module scope,
@@ -47,6 +50,22 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 			{
 				title: "Wherabouts — Locations API for developers",
 			},
+			{
+				name: "description",
+				content:
+					"Production-ready location APIs — address autocomplete, geocoding, geofencing, routing, and device tracking. US & Australia coverage.",
+			},
+			{ property: "og:site_name", content: SITE_NAME },
+			{ property: "og:type", content: "website" },
+			{
+				property: "og:image",
+				content: absoluteUrl(DEFAULT_OG_IMAGE),
+			},
+			{ name: "twitter:card", content: "summary_large_image" },
+			{
+				name: "twitter:image",
+				content: absoluteUrl(DEFAULT_OG_IMAGE),
+			},
 		],
 		links: [
 			{
@@ -63,6 +82,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 				href: appCss,
 			},
 		],
+		scripts: [jsonLdScript(organizationJsonLd())],
 	}),
 
 	component: RootDocument,

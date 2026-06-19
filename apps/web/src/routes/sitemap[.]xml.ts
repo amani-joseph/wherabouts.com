@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 /** Public indexable paths (omit auth-only and API routes). */
-const PUBLIC_PATHS: readonly { path: string; priority: string }[] = [
+export const PUBLIC_PATHS: readonly { path: string; priority: string }[] = [
 	{ path: "/", priority: "1.0" },
+	{ path: "/docs", priority: "0.9" },
+	{ path: "/pricing", priority: "0.8" },
 	{ path: "/sign-in", priority: "0.5" },
 	{ path: "/sign-up", priority: "0.5" },
 ];
