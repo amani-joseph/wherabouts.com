@@ -4,8 +4,11 @@ import type { AddressAutocompleteProps } from "./address-autocomplete";
 import { AddressAutocomplete } from "./address-autocomplete";
 
 export interface AddressFormFieldProps extends AddressAutocompleteProps {
+	/** Class applied to the error text element. */
 	errorClassName?: string;
+	/** Required. Field label rendered above the input. */
 	label: string;
+	/** Class applied to the label element. */
 	labelClassName?: string;
 }
 

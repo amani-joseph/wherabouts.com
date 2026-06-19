@@ -4,7 +4,13 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-04-14",
   "compatibility_flags": ["nodejs_compat"],
-  "dev": { "port": 3005 },
+  // The `agents` SDK dynamically imports the optional `ai` peer dep, which is
+  // not installed (the MCP server never uses that AI-chat path). Alias it to a
+  // local stub so esbuild can resolve the specifier at bundle time.
+  "alias": { "ai": "./src/stubs/ai.ts" },
+  // Use a non-default inspector port so the mcp worker does not collide with
+  // the server worker (which keeps the default 9229) under `turbo dev`.
+  "dev": { "port": 3005, "inspector_port": 9230 },
   "routes": [{ "pattern": "mcp.wherabouts.com", "custom_domain": true }],
   "vars": { "WHERABOUTS_API_BASE_URL": "https://api.wherabouts.com" },
   "durable_objects": {

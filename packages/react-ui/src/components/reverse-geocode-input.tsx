@@ -4,16 +4,24 @@ import { type ReactNode, useEffect } from "react";
 import { cn } from "../utils/cn";
 
 export interface ReverseGeocodeInputProps {
+	/** Class applied to the input element. */
 	className?: string;
+	/** Required. SDK client created with `createWheraboutsClient`. */
 	client: WheraboutsClient;
+	/** Disable the input. */
 	disabled?: boolean;
+	/** id forwarded to the input element. */
 	id?: string;
+	/** Latitude to reverse-geocode. */
 	latitude: number | null;
+	/** Longitude to reverse-geocode. */
 	longitude: number | null;
+	/** Result callback, called whenever the resolved address changes. */
 	onResult?: (result: {
 		address: string | null;
 		distance: number | null;
 	}) => void;
+	/** Input placeholder text. */
 	placeholder?: string;
 }
 
