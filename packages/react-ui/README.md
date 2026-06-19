@@ -73,8 +73,8 @@ keyboard navigation, and customizable rendering.
 <AddressAutocomplete
   client={client}
   onSelect={(address) => setAddress(address)}
-  minCharsToSearch={3}
-  debounceMs={200}
+  minCharsToSearch={4}
+  debounceMs={250}
   maxSuggestions={8}
   enableGeolocation
 />

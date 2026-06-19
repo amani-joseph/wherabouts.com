@@ -67,7 +67,8 @@ const [coords, setCoords] = React.useState<{
 The component fires a geocode request on every `query` change. If `query` comes from a fast-changing input (e.g. keystrokes), debounce before passing to `query`:
 
 ```tsx
-import { useDebouncedValue } from "your-hooks";
+// Replace with your preferred debounce hook (e.g. `use-debounce`).
+import { useDebouncedValue } from "your-debounce-hook";
 
 const [raw, setRaw] = React.useState("");
 const debouncedQuery = useDebouncedValue(raw, 300);
