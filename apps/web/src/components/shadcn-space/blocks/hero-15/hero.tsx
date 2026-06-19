@@ -1,13 +1,8 @@
 "use client";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check, MapPin, Search } from "lucide-react";
-import {
-	AnimatePresence,
-	motion,
-	useInView,
-	useReducedMotion,
-} from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useState } from "react";
 import { GlobeDemo } from "@/components/globe-demo";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -348,6 +343,13 @@ function DemoSuggestionsPanel({
 					/>
 				))}
 			</div>
+
+			<div className="mt-2 flex items-center justify-center gap-1.5 border-white/5 border-t px-2.5 pt-2">
+				<MapPin className="size-3 text-cyan-300/70" />
+				<p className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.22em]">
+					Powered by <span className="text-foreground">Wherabouts</span>
+				</p>
+			</div>
 		</motion.div>
 	);
 }
@@ -571,46 +573,43 @@ function AddressDemoInput() {
 }
 
 const HeroSection = () => {
-	const sectionRef = useRef<HTMLElement>(null);
-	const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
-
+	// Entrance animates position only (opacity stays 1) so the server and the
+	// client's first render produce identical, visible markup — no hydration
+	// mismatch and no blank flash before hydration. Driven on mount instead of
+	// useInView (a client-only hook) since the hero is always above the fold.
 	const containerVariants = {
-		hidden: { opacity: 0 },
+		hidden: {},
 		visible: {
-			opacity: 1,
 			transition: {
-				staggerChildren: 0.15,
-				delayChildren: 0.1,
+				staggerChildren: 0.12,
+				delayChildren: 0.05,
 			},
 		},
 	};
 
 	const itemVariants = {
-		hidden: { opacity: 0, y: 20 },
+		hidden: { y: 16 },
 		visible: {
-			opacity: 1,
 			y: 0,
 			transition: {
-				duration: 0.8,
+				duration: 0.7,
 				ease: [0.21, 0.47, 0.32, 0.98] as [number, number, number, number],
 			},
 		},
 	};
 
 	const h1Variants = {
-		hidden: { opacity: 1 },
+		hidden: {},
 		visible: {
-			opacity: 1,
 			transition: {
-				staggerChildren: 0.02,
+				staggerChildren: 0.015,
 			},
 		},
 	};
 
 	const charVariants = {
-		hidden: { opacity: 0, y: 10 },
+		hidden: { y: 8 },
 		visible: {
-			opacity: 1,
 			y: 0,
 			transition: {
 				duration: 0.4,
@@ -619,16 +618,16 @@ const HeroSection = () => {
 	};
 
 	return (
-		<section className="relative" id="top" ref={sectionRef}>
+		<section className="relative" id="top">
 			<motion.div
-				animate={isInView ? "visible" : "hidden"}
+				animate="visible"
 				className="relative mx-auto flex min-h-[70vh] max-w-7xl flex-col items-center justify-center gap-3 px-4 py-6 text-center md:min-h-[85vh] md:gap-6 md:py-14 lg:px-8 xl:px-16"
 				initial="hidden"
 				variants={containerVariants}
 			>
 				<div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-					<div className="absolute top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl md:h-72 md:w-72" />
-					<div className="absolute bottom-0 left-1/2 h-96 w-208 -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.18),rgba(6,32,86,0.04)_52%,transparent_76%)]" />
+					<div className="absolute top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-cyan-400/5 blur-3xl md:h-72 md:w-72" />
+					<div className="absolute bottom-0 left-1/2 h-96 w-208 -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),rgba(6,32,86,0.03)_55%,transparent_78%)]" />
 					<div className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-b from-transparent via-background/30 to-background" />
 				</div>
 
