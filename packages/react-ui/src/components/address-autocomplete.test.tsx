@@ -1,8 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { WheraboutsClient } from "@wherabouts/sdk";
-import type { AddressSuggestion } from "@wherabouts/sdk";
+import type { AddressSuggestion, WheraboutsClient } from "@wherabouts/sdk";
+import { describe, expect, it, vi } from "vitest";
 import { AddressAutocomplete } from "./address-autocomplete";
 
 // Mock client
@@ -32,10 +31,7 @@ describe("AddressAutocomplete", () => {
 	it("renders input with placeholder", () => {
 		const mockClient = createMockClient();
 		render(
-			<AddressAutocomplete
-				client={mockClient}
-				placeholder="Enter address"
-			/>
+			<AddressAutocomplete client={mockClient} placeholder="Enter address" />
 		);
 		const input = screen.getByPlaceholderText("Enter address");
 		expect(input).toBeInTheDocument();
@@ -72,8 +68,8 @@ describe("AddressAutocomplete", () => {
 		render(
 			<AddressAutocomplete
 				client={mockClient}
-				onQueryChange={onQueryChange}
 				minCharsToSearch={1}
+				onQueryChange={onQueryChange}
 			/>
 		);
 
@@ -113,15 +109,17 @@ describe("AddressAutocomplete", () => {
 
 	it("displays empty state when no results", async () => {
 		const mockClient = createMockClient();
-		const autocomplete = mockClient.addresses.autocomplete as ReturnType<typeof vi.fn>;
+		const autocomplete = mockClient.addresses.autocomplete as ReturnType<
+			typeof vi.fn
+		>;
 		autocomplete.mockResolvedValueOnce({ results: [] });
 
 		const user = userEvent.setup();
 		render(
 			<AddressAutocomplete
 				client={mockClient}
-				minCharsToSearch={1}
 				i18nStrings={{ noResults: "No addresses found" }}
+				minCharsToSearch={1}
 			/>
 		);
 
@@ -143,8 +141,8 @@ describe("AddressAutocomplete", () => {
 		render(
 			<AddressAutocomplete
 				client={mockClient}
-				onSelect={onSelect}
 				minCharsToSearch={1}
+				onSelect={onSelect}
 			/>
 		);
 
@@ -190,19 +188,19 @@ describe("AddressAutocomplete", () => {
 
 	it("calls renderError when error occurs", async () => {
 		const mockClient = createMockClient();
-		const autocomplete = mockClient.addresses.autocomplete as ReturnType<typeof vi.fn>;
+		const autocomplete = mockClient.addresses.autocomplete as ReturnType<
+			typeof vi.fn
+		>;
 		autocomplete.mockRejectedValueOnce(new Error("Network error"));
 
-		const renderError = vi.fn((err: Error) => (
-			<div>Error: {err.message}</div>
-		));
+		const renderError = vi.fn((err: Error) => <div>Error: {err.message}</div>);
 		const user = userEvent.setup();
 
 		render(
 			<AddressAutocomplete
 				client={mockClient}
-				renderError={renderError}
 				minCharsToSearch={1}
+				renderError={renderError}
 			/>
 		);
 

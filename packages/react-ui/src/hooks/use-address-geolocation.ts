@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 
 export interface UseAddressGeolocationResult {
+	error: GeolocationPositionError | null;
 	lat: number | undefined;
 	lng: number | undefined;
 	loading: boolean;
-	error: GeolocationPositionError | null;
 }
 
 export function useAddressGeolocation(

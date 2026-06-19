@@ -7,4 +7,4 @@ const srcCss = path.join(__dirname, "../src/styles/globals.css");
 const distCss = path.join(__dirname, "../dist/styles.css");
 
 fs.copyFileSync(srcCss, distCss);
-console.log(`✓ Copied styles.css to dist/`);
+console.log("✓ Copied styles.css to dist/");

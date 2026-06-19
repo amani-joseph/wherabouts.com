@@ -116,8 +116,8 @@ const GLOBE_CONFIG: GlobeConfig = {
 	ambientLight: "#67e8f9",
 	arcLength: 0.85,
 	arcTime: 1200,
-	atmosphereAltitude: 0.1,
-	atmosphereColor: "#ffffff",
+	atmosphereAltitude: 0.08,
+	atmosphereColor: "#1e3a8a",
 	autoRotate: true,
 	autoRotateSpeed: 0.6,
 	directionalLeftLight: "#ffffff",
@@ -137,8 +137,8 @@ const GLOBE_CONFIG: GlobeConfig = {
 function GlobeFallback() {
 	return (
 		<div className="relative h-120 w-full">
-			<div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.26),rgba(6,32,86,0.08)_45%,transparent_75%)] blur-2xl" />
-			<div className="absolute inset-x-[12%] top-[14%] h-[72%] rounded-full border border-white/10 bg-white/5 backdrop-blur-[2px]" />
+			<div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),rgba(6,32,86,0.04)_50%,transparent_72%)] blur-3xl" />
+			<div className="absolute inset-x-[12%] top-[14%] h-[72%] rounded-full border border-white/5 bg-white/[0.015] backdrop-blur-[2px]" />
 		</div>
 	);
 }

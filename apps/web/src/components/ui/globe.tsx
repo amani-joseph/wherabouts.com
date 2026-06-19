@@ -271,7 +271,7 @@ export function World({ data, globeConfig }: WorldProps) {
 	);
 	const scene = useMemo(() => {
 		const globeScene = new Scene();
-		globeScene.fog = new Fog(0xff_ff_ff, 400, 2000);
+		globeScene.fog = new Fog(0x06_20_56, 400, 2000);
 		return globeScene;
 	}, []);
 
