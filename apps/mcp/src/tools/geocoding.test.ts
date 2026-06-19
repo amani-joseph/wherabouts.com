@@ -24,14 +24,17 @@ describe("geocoding tools", () => {
 	});
 
 	it("geocode_address calls geocode.forward and returns JSON", async () => {
-		const forward = vi.fn(async () => ({ candidates: [{ id: 1 }] }));
+		const forward = vi.fn(async () => ({
+			address: { id: 1, formattedAddress: "1 Main St" },
+			matchType: "exact",
+		}));
 		const client = { geocode: { forward } } as any;
 		const res = await tool("geocode_address").handler(client, {
 			q: "1 Main St",
 		});
 		expect(forward).toHaveBeenCalledWith({ q: "1 Main St" });
 		// biome-ignore lint/style/noNonNullAssertion: content always has at least one item
-		expect(res.content[0]!.text).toContain('"candidates"');
+		expect(res.content[0]!.text).toContain('"matchType"');
 	});
 
 	it("reverse_geocode calls addresses.reverse with lat/lng", async () => {
