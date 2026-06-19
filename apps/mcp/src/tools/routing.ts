@@ -26,7 +26,7 @@ const matchPoint = z.object({
 const optimizeWaypoint = z.object({
 	lat: z.number().optional(),
 	lng: z.number().optional(),
-	addressId: z.number().optional(),
+	addressId: z.number().int().optional(),
 });
 
 export const routingTools: ToolDef[] = [

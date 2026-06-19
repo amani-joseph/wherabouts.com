@@ -74,4 +74,20 @@ describe("routing tools", () => {
 		});
 		expect(optimize).toHaveBeenCalledWith({ waypoints, roundtrip: true });
 	});
+
+	it("optimize_stops forwards source and destination enums", async () => {
+		const optimize = vi.fn(async () => ({ trips: [], waypoints: [] }));
+		const client = { routing: { optimize } } as any;
+		const waypoints = [{ lat: -33.87, lng: 151.21 }, { addressId: 42 }];
+		await tool("optimize_stops").handler(client, {
+			waypoints,
+			source: "first",
+			destination: "last",
+		});
+		expect(optimize).toHaveBeenCalledWith({
+			waypoints,
+			source: "first",
+			destination: "last",
+		});
+	});
 });
