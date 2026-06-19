@@ -21,3 +21,34 @@ describe("canManageMembers", () => {
 		expect(canManageMembers(null)).toBe(false);
 	});
 });
+
+import { ORPCError } from "@orpc/server";
+import { deleteTeamForOwner } from "./teams.ts";
+
+function dbWithProjectCount(count: number) {
+	return {
+		select: () => ({
+			from: () => ({
+				where: () => ({
+					limit: () => Promise.resolve(count > 0 ? [{ id: "p1" }] : []),
+				}),
+			}),
+		}),
+		delete: () => ({ where: () => Promise.resolve() }),
+	} as unknown as Parameters<typeof deleteTeamForOwner>[0];
+}
+
+describe("deleteTeamForOwner", () => {
+	it("blocks deletion when the team still owns projects", async () => {
+		await expect(
+			deleteTeamForOwner(dbWithProjectCount(1), { teamId: "t1" })
+		).rejects.toBeInstanceOf(ORPCError);
+	});
+
+	it("deletes the team when it owns no projects", async () => {
+		const result = await deleteTeamForOwner(dbWithProjectCount(0), {
+			teamId: "t1",
+		});
+		expect(result).toEqual({ id: "t1" });
+	});
+});

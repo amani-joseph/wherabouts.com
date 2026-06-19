@@ -1,10 +1,13 @@
+import { ORPCError } from "@orpc/server";
 import {
+	projects,
 	teamInvitations,
 	teamMembers,
 	teams,
 	users,
 } from "@wherabouts.com/database";
 import { and, eq, inArray } from "drizzle-orm";
+import { z } from "zod";
 import type { Context } from "../../context.ts";
 import { protectedProcedure } from "../../procedures.ts";
 
@@ -137,8 +140,124 @@ export async function listTeamsForUser(
 	}));
 }
 
+function randomSeed(): string {
+	return crypto.randomUUID().replace(/-/g, "").slice(0, 8);
+}
+
+export async function createTeamForUser(
+	db: DatabaseLike,
+	{ userId, name }: { userId: string; name: string }
+): Promise<{ id: string; name: string; slug: string }> {
+	const trimmed = name.trim().replace(/\s+/g, " ");
+	const [team] = await db
+		.insert(teams)
+		.values({ name: trimmed, slug: generateTeamSlug(trimmed, randomSeed()) })
+		.returning({ id: teams.id, name: teams.name, slug: teams.slug });
+	if (!team) {
+		throw new ORPCError("INTERNAL_SERVER_ERROR", {
+			message: "Failed to create team.",
+		});
+	}
+	await db
+		.insert(teamMembers)
+		.values({ teamId: team.id, userId, role: "owner" });
+	return team;
+}
+
+export async function renameTeam(
+	db: DatabaseLike,
+	{ teamId, name }: { teamId: string; name: string }
+): Promise<{ id: string; name: string }> {
+	const trimmed = name.trim().replace(/\s+/g, " ");
+	const [row] = await db
+		.update(teams)
+		.set({ name: trimmed, updatedAt: new Date() })
+		.where(eq(teams.id, teamId))
+		.returning({ id: teams.id, name: teams.name });
+	if (!row) {
+		throw new ORPCError("NOT_FOUND", { message: "Team not found." });
+	}
+	return row;
+}
+
+export async function deleteTeamForOwner(
+	db: DatabaseLike,
+	{ teamId }: { teamId: string }
+): Promise<{ id: string }> {
+	const existingProjects = await db
+		.select({ id: projects.id })
+		.from(projects)
+		.where(eq(projects.teamId, teamId))
+		.limit(1);
+	if (existingProjects.length > 0) {
+		throw new ORPCError("CONFLICT", {
+			message:
+				"This team still owns projects. Move or delete them before deleting the team.",
+		});
+	}
+	await db.delete(teams).where(eq(teams.id, teamId));
+	return { id: teamId };
+}
+
+async function requireManager(
+	db: DatabaseLike,
+	teamId: string,
+	userId: string
+): Promise<TeamRole> {
+	const role = await resolveTeamRole(db, teamId, userId);
+	if (!role) {
+		throw new ORPCError("NOT_FOUND", { message: "Team not found." });
+	}
+	if (!canManageMembers(role)) {
+		throw new ORPCError("FORBIDDEN", {
+			message: "You do not have permission to manage this team.",
+		});
+	}
+	return role;
+}
+
 export const teamsRouter = {
 	listMine: protectedProcedure.handler(async ({ context }) => {
 		return await listTeamsForUser(context.db, context.session.user.id);
 	}),
+
+	create: protectedProcedure
+		.input(z.object({ name: z.string().trim().min(1).max(128) }))
+		.handler(async ({ context, input }) => {
+			return await createTeamForUser(context.db, {
+				userId: context.session.user.id,
+				name: input.name,
+			});
+		}),
+
+	rename: protectedProcedure
+		.input(
+			z.object({
+				teamId: z.string().uuid(),
+				name: z.string().trim().min(1).max(128),
+			})
+		)
+		.handler(async ({ context, input }) => {
+			await requireManager(context.db, input.teamId, context.session.user.id);
+			return await renameTeam(context.db, {
+				teamId: input.teamId,
+				name: input.name,
+			});
+		}),
+
+	delete: protectedProcedure
+		.input(z.object({ teamId: z.string().uuid() }))
+		.handler(async ({ context, input }) => {
+			const role = await resolveTeamRole(
+				context.db,
+				input.teamId,
+				context.session.user.id
+			);
+			if (role !== "owner") {
+				throw new ORPCError("FORBIDDEN", {
+					message: "Only the team owner can delete a team.",
+				});
+			}
+			return await deleteTeamForOwner(context.db, { teamId: input.teamId });
+		}),
 };
