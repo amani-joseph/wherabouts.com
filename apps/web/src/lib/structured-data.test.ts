@@ -15,6 +15,13 @@ describe("organizationJsonLd", () => {
 		expect(typeof o.name).toBe("string");
 		expect(typeof o.url).toBe("string");
 	});
+
+	it("uses an ImageObject logo at the brand logo path", () => {
+		const o = organizationJsonLd();
+		const logo = o.logo as Record<string, unknown>;
+		expect(logo["@type"]).toBe("ImageObject");
+		expect(String(logo.url)).toContain("/brand/png/logo-mark-512.png");
+	});
 });
 
 describe("softwareApplicationJsonLd", () => {

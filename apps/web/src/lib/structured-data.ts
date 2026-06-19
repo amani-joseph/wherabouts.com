@@ -11,7 +11,10 @@ export function organizationJsonLd(): Record<string, unknown> {
 		"@type": "Organization",
 		name: SITE_NAME,
 		url: SITE_URL,
-		logo: absoluteUrl("/brand/png/logo-mark-512.png"),
+		logo: {
+			"@type": "ImageObject",
+			url: absoluteUrl("/brand/png/logo-mark-512.png"),
+		},
 	};
 }
 
