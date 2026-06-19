@@ -12,7 +12,7 @@ export interface AddressAutocompleteProps {
 	className?: string;
 	/** Required. SDK client created with `createWheraboutsClient`. */
 	client: WheraboutsClient;
-	/** Debounce in ms before querying the API. Default 200. */
+	/** Debounce in ms before querying the API. Default 300. */
 	debounceMs?: number;
 	/** Disable the input. */
 	disabled?: boolean;
@@ -24,9 +24,9 @@ export interface AddressAutocompleteProps {
 	i18nStrings?: Partial<AddressI18nStrings>;
 	/** id forwarded to the input element. */
 	id?: string;
-	/** Maximum number of suggestions to show. Default 10. */
+	/** Maximum number of suggestions to show. Default 5. */
 	maxSuggestions?: number;
-	/** Minimum characters typed before searching. Default 3. */
+	/** Minimum characters typed before searching. Default 2. */
 	minCharsToSearch?: number;
 	/** Called as the input text changes. */
 	onQueryChange?: (query: string) => void;

@@ -86,9 +86,9 @@ keyboard navigation, and customizable rendering.
 | `onSelect` | `(address: AddressWithParsed) => void` | — | Called when a suggestion is chosen. |
 | `onQueryChange` | `(query: string) => void` | — | Called as the input text changes. |
 | `placeholder` | `string` | — | Input placeholder. |
-| `debounceMs` | `number` | `200` | Debounce before querying the API. |
-| `minCharsToSearch` | `number` | `3` | Minimum characters before searching. |
-| `maxSuggestions` | `number` | `10` | Max suggestions to show. |
+| `debounceMs` | `number` | `300` | Debounce before querying the API. |
+| `minCharsToSearch` | `number` | `2` | Minimum characters before searching. |
+| `maxSuggestions` | `number` | `5` | Max suggestions to show. |
 | `enableGeolocation` | `boolean` | `false` | Use the browser's location to bias results (proximity). |
 | `userLat` / `userLng` | `number` | — | Explicit proximity bias instead of geolocation. |
 | `sessionToken` | `string` | — | Group a run of keystrokes into one billable search (see `newSessionToken()` in the SDK). |
