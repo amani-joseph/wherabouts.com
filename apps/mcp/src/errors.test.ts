@@ -33,6 +33,8 @@ describe("toToolError", () => {
 	});
 
 	it("handles non-API errors", () => {
-		expect(toToolError(new Error("boom")).isError).toBe(true);
+		const r = toToolError(new Error("boom"));
+		expect(r.isError).toBe(true);
+		expect(r.content[0]!.text).toContain("boom");
 	});
 });
