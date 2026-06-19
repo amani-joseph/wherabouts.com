@@ -691,6 +691,13 @@ importers:
         version: 5.9.3
 
   packages/vue-ui:
+    dependencies:
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      tailwind-merge:
+        specifier: ^2.3.0
+        version: 2.6.1
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: ^5.1.4
