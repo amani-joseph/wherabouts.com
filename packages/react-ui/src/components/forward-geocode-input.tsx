@@ -4,16 +4,23 @@ import { useForwardGeocode } from "../hooks/use-forward-geocode";
 import { cn } from "../utils/cn";
 
 export interface ForwardGeocodeInputProps {
+	/** Class applied to the input element. */
 	className?: string;
+	/** Required. SDK client created with `createWheraboutsClient`. */
 	client: WheraboutsClient;
+	/** Disable the input. */
 	disabled?: boolean;
+	/** id forwarded to the input element. */
 	id?: string;
+	/** Geocode result callback, called whenever the resolved result changes. */
 	onResult?: (result: {
 		latitude: number | null;
 		longitude: number | null;
 		formattedAddress: string | null;
 	}) => void;
+	/** Input placeholder text. */
 	placeholder?: string;
+	/** Address text to geocode. */
 	query: string | null;
 }
 

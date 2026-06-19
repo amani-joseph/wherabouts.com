@@ -8,29 +8,50 @@ import { cn } from "../utils/cn";
 import { toAddressWithParsed } from "../utils/parse-address";
 
 export interface AddressAutocompleteProps {
+	/** Class applied to the root container. */
 	className?: string;
+	/** Required. SDK client created with `createWheraboutsClient`. */
 	client: WheraboutsClient;
+	/** Debounce in ms before querying the API. Default 300. */
 	debounceMs?: number;
+	/** Disable the input. */
 	disabled?: boolean;
+	/** Use the browser's geolocation to bias results by proximity. Default false. */
 	enableGeolocation?: boolean;
+	/** External error message to display. */
 	error?: string;
+	/** Override built-in UI strings (no results, retry, etc.). */
 	i18nStrings?: Partial<AddressI18nStrings>;
+	/** id forwarded to the input element. */
 	id?: string;
+	/** Maximum number of suggestions to show. Default 5. */
 	maxSuggestions?: number;
+	/** Minimum characters typed before searching. Default 2. */
 	minCharsToSearch?: number;
+	/** Called as the input text changes. */
 	onQueryChange?: (query: string) => void;
+	/** Called when a suggestion is selected. */
 	onSelect?: (address: AddressWithParsed) => void;
+	/** Input placeholder text. */
 	placeholder?: string;
+	/** Render a custom empty state. */
 	renderEmpty?: () => ReactNode;
+	/** Render a custom error state. */
 	renderError?: (error: Error | null) => ReactNode;
+	/** Render a custom loading state. */
 	renderLoading?: () => ReactNode;
+	/** Render a custom suggestion row. */
 	renderSuggestion?: (
 		address: AddressWithParsed,
 		isActive: boolean
 	) => ReactNode;
+	/** Mark the input as required. */
 	required?: boolean;
+	/** Group a run of keystrokes into one billable search (see SDK `newSessionToken()`). */
 	sessionToken?: string;
+	/** Explicit latitude for proximity bias (instead of geolocation). */
 	userLat?: number;
+	/** Explicit longitude for proximity bias (instead of geolocation). */
 	userLng?: number;
 }
 
