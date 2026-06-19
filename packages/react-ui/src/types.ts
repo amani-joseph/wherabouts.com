@@ -1,25 +1,26 @@
 import type { AddressSuggestion } from "@wherabouts/sdk";
 
 export interface AddressWithParsed {
-	id: number;
+	country: string;
 	formattedAddress: string;
+	id: number;
 	latitude: number;
 	longitude: number;
+	postcode: string;
+	state: string;
 	streetAddress: string;
 	suburb: string;
-	state: string;
-	postcode: string;
-	country: string;
 }
 
 export interface AddressI18nStrings {
-	noResults: string;
 	enterManually: string;
 	errorRetry: string;
 	geolocationError: string;
+	noResults: string;
 }
 
-export type AddressValidateFn =
-	(address: AddressWithParsed) => Promise<{ message: string } | null>;
+export type AddressValidateFn = (
+	address: AddressWithParsed
+) => Promise<{ message: string } | null>;
 
 export type AddressSuggestionInput = AddressSuggestion;
