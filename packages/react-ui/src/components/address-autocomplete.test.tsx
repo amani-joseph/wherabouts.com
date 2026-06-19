@@ -1,7 +1,13 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import {
+	act,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { AddressSuggestion, WheraboutsClient } from "@wherabouts/sdk";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { AddressAutocomplete } from "./address-autocomplete";
 
 // Mock client
@@ -28,6 +34,13 @@ function createMockClient(): WheraboutsClient {
 }
 
 describe("AddressAutocomplete", () => {
+	// Guarantee real timers are restored after every test. A fake-timer test that
+	// times out before its own cleanup would otherwise leak fake timers into the
+	// following async tests and hang them.
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
 	it("renders input with placeholder", () => {
 		const mockClient = createMockClient();
 		render(
@@ -82,7 +95,6 @@ describe("AddressAutocomplete", () => {
 	it("triggers autocomplete search with debounce", async () => {
 		vi.useFakeTimers();
 		const mockClient = createMockClient();
-		const user = userEvent.setup({ delay: null });
 
 		render(
 			<AddressAutocomplete
@@ -92,19 +104,22 @@ describe("AddressAutocomplete", () => {
 			/>
 		);
 
+		// Use fireEvent rather than userEvent here: userEvent schedules its own
+		// work on timers, which deadlocks under fake timers. fireEvent.change sets
+		// the value synchronously and still drives the hook's debounced search.
 		const input = screen.getByRole("combobox");
-		await user.type(input, "Fleet");
+		fireEvent.change(input, { target: { value: "Fleet" } });
 
-		// Before debounce period
+		// The query is debounced: no request before the debounce window elapses.
 		expect(mockClient.addresses.autocomplete).not.toHaveBeenCalled();
 
-		// After debounce period
-		vi.advanceTimersByTime(300);
-
-		// Note: actual search timing depends on hook implementation
-		// This is a simplified test; real implementation would need to wait for the search
-
-		vi.useRealTimers();
+		// Advancing past the debounce window fires exactly one search. Wrap in act
+		// so the resulting state updates flush cleanly. Real timers are restored by
+		// the suite's afterEach.
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(300);
+		});
+		expect(mockClient.addresses.autocomplete).toHaveBeenCalledTimes(1);
 	});
 
 	it("displays empty state when no results", async () => {
@@ -149,26 +164,22 @@ describe("AddressAutocomplete", () => {
 		const input = screen.getByRole("combobox");
 		await user.type(input, "Fleet");
 
-		await waitFor(() => {
-			expect(input).toHaveAttribute("aria-expanded", "true");
-		});
+		// Wait for the debounced search to resolve and render an option. Waiting on
+		// aria-expanded would be wrong: it flips to true on focus, before results
+		// have loaded.
+		const items = await screen.findAllByRole("option");
+		await user.click(items[0]);
 
-		// Get the first listbox item
-		const items = screen.getAllByRole("option");
-		if (items.length > 0) {
-			await user.click(items[0]);
-
-			expect(onSelect).toHaveBeenCalledWith(
-				expect.objectContaining({
-					id: 1,
-					streetAddress: "29/14 Fleet Street",
-					suburb: "Browns Plains",
-					state: "QLD",
-					postcode: "4118",
-					country: "Australia",
-				})
-			);
-		}
+		expect(onSelect).toHaveBeenCalledWith(
+			expect.objectContaining({
+				id: 1,
+				streetAddress: "29/14 Fleet Street",
+				suburb: "Browns Plains",
+				state: "QLD",
+				postcode: "4118",
+				country: "Australia",
+			})
+		);
 	});
 
 	it("renders custom suggestion slot", () => {
