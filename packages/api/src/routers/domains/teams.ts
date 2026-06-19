@@ -352,7 +352,7 @@ export async function acceptInvitation(
 			message: "This invitation has expired.",
 		});
 	}
-	if (invite.email.toLowerCase() !== userEmail.trim().toLowerCase()) {
+	if (invite.email.trim().toLowerCase() !== userEmail.trim().toLowerCase()) {
 		throw new ORPCError("FORBIDDEN", {
 			message: `This invitation was sent to ${invite.email}.`,
 		});
@@ -379,9 +379,21 @@ export async function changeMemberRole(
 	}: { teamId: string; targetUserId: string; role: TeamRole }
 ): Promise<{ userId: string; role: TeamRole }> {
 	if (role !== "owner" && (await countOwners(db, teamId)) <= 1) {
-		throw new ORPCError("CONFLICT", {
-			message: "A team must keep at least one owner.",
-		});
+		const [current] = await db
+			.select({ role: teamMembers.role })
+			.from(teamMembers)
+			.where(
+				and(
+					eq(teamMembers.teamId, teamId),
+					eq(teamMembers.userId, targetUserId)
+				)
+			)
+			.limit(1);
+		if (current?.role === "owner") {
+			throw new ORPCError("CONFLICT", {
+				message: "A team must keep at least one owner.",
+			});
+		}
 	}
 	await db
 		.update(teamMembers)
@@ -623,14 +635,6 @@ export const teamsRouter = {
 	leave: protectedProcedure
 		.input(z.object({ teamId: z.string().uuid() }))
 		.handler(async ({ context, input }) => {
-			const role = await resolveTeamRole(
-				context.db,
-				input.teamId,
-				context.session.user.id
-			);
-			if (!role) {
-				throw new ORPCError("NOT_FOUND", { message: "Team not found." });
-			}
 			return await removeTeamMember(context.db, {
 				teamId: input.teamId,
 				targetUserId: context.session.user.id,

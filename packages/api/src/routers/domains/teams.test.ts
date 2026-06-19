@@ -246,25 +246,65 @@ describe("acceptInvitation", () => {
 	});
 });
 
-function ownerCountDb(ownerCount: number) {
+/**
+ * Build a mock db for changeMemberRole tests.
+ *
+ * The function makes two different selects when ownerCount <= 1 and the new
+ * role is not "owner":
+ *   1. countOwners  → select({count}).from(teamMembers).where(...)
+ *      Returns an array with a `count` field — no `.limit()` call.
+ *   2. target role  → select({role}).from(teamMembers).where(...).limit(1)
+ *      Returns an array with a `role` field.
+ *
+ * We distinguish them by tracking call order on `select()`.
+ */
+function ownerCountDb(
+	ownerCount: number,
+	targetCurrentRole: "owner" | "member" | "admin" = "owner"
+) {
+	let selectCall = 0;
 	return {
-		select: () => ({
-			from: () => ({
-				where: () => Promise.resolve([{ count: ownerCount }]),
-			}),
-		}),
+		select: () => {
+			selectCall += 1;
+			const call = selectCall;
+			return {
+				from: () => ({
+					where: () => {
+						if (call === 1) {
+							// countOwners aggregate — no .limit()
+							return Promise.resolve([{ count: ownerCount }]);
+						}
+						// target-role lookup — caller will chain .limit()
+						return {
+							limit: () => Promise.resolve([{ role: targetCurrentRole }]),
+						};
+					},
+				}),
+			};
+		},
 		update: () => ({ set: () => ({ where: () => Promise.resolve() }) }),
 	} as unknown as Parameters<typeof changeMemberRole>[0];
 }
 
 describe("changeMemberRole", () => {
 	it("blocks demoting the last owner", async () => {
+		// Target IS the last owner; trying to set role to "member" must throw.
 		await expect(
-			changeMemberRole(ownerCountDb(1), {
+			changeMemberRole(ownerCountDb(1, "owner"), {
 				teamId: "t1",
 				targetUserId: "u1",
 				role: "member",
 			})
 		).rejects.toBeInstanceOf(ORPCError);
+	});
+
+	it("allows promoting a non-owner when only one owner exists", async () => {
+		// Target is a plain member; promoting to "admin" must NOT throw.
+		const result = await changeMemberRole(ownerCountDb(1, "member"), {
+			teamId: "t1",
+			targetUserId: "u2",
+			role: "admin",
+		});
+		expect(result).toEqual({ userId: "u2", role: "admin" });
 	});
 });
