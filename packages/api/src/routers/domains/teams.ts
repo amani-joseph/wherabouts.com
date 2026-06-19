@@ -7,7 +7,7 @@ import {
 	teams,
 	users,
 } from "@wherabouts.com/database";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { Context } from "../../context.ts";
 import { protectedProcedure, publicProcedure } from "../../procedures.ts";
@@ -310,6 +310,115 @@ export async function getInvitationForLanding(
 	};
 }
 
+export async function countOwners(
+	db: DatabaseLike,
+	teamId: string
+): Promise<number> {
+	const [row] = await db
+		.select({ count: count() })
+		.from(teamMembers)
+		.where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.role, "owner")));
+	return Number(row?.count ?? 0);
+}
+
+export async function acceptInvitation(
+	db: DatabaseLike,
+	{
+		invitationId,
+		userId,
+		userEmail,
+		now,
+	}: { invitationId: string; userId: string; userEmail: string; now: Date }
+): Promise<{ teamId: string }> {
+	const [invite] = await db
+		.select({
+			email: teamInvitations.email,
+			status: teamInvitations.status,
+			expiresAt: teamInvitations.expiresAt,
+			teamId: teamInvitations.teamId,
+			role: teamInvitations.role,
+		})
+		.from(teamInvitations)
+		.where(eq(teamInvitations.id, invitationId))
+		.limit(1);
+
+	if (!invite || invite.status !== "pending") {
+		throw new ORPCError("NOT_FOUND", {
+			message: "This invitation is no longer valid.",
+		});
+	}
+	if (invite.expiresAt.getTime() < now.getTime()) {
+		throw new ORPCError("CONFLICT", {
+			message: "This invitation has expired.",
+		});
+	}
+	if (invite.email.toLowerCase() !== userEmail.trim().toLowerCase()) {
+		throw new ORPCError("FORBIDDEN", {
+			message: `This invitation was sent to ${invite.email}.`,
+		});
+	}
+
+	await db
+		.insert(teamMembers)
+		.values({ teamId: invite.teamId, userId, role: invite.role })
+		.onConflictDoNothing();
+	await db
+		.update(teamInvitations)
+		.set({ status: "accepted" })
+		.where(eq(teamInvitations.id, invitationId));
+
+	return { teamId: invite.teamId };
+}
+
+export async function changeMemberRole(
+	db: DatabaseLike,
+	{
+		teamId,
+		targetUserId,
+		role,
+	}: { teamId: string; targetUserId: string; role: TeamRole }
+): Promise<{ userId: string; role: TeamRole }> {
+	if (role !== "owner" && (await countOwners(db, teamId)) <= 1) {
+		throw new ORPCError("CONFLICT", {
+			message: "A team must keep at least one owner.",
+		});
+	}
+	await db
+		.update(teamMembers)
+		.set({ role })
+		.where(
+			and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, targetUserId))
+		);
+	return { userId: targetUserId, role };
+}
+
+export async function removeTeamMember(
+	db: DatabaseLike,
+	{ teamId, targetUserId }: { teamId: string; targetUserId: string }
+): Promise<{ userId: string }> {
+	const [current] = await db
+		.select({ role: teamMembers.role })
+		.from(teamMembers)
+		.where(
+			and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, targetUserId))
+		)
+		.limit(1);
+	if (!current) {
+		throw new ORPCError("NOT_FOUND", { message: "Member not found." });
+	}
+	if (current.role === "owner" && (await countOwners(db, teamId)) <= 1) {
+		throw new ORPCError("CONFLICT", {
+			message: "A team must keep at least one owner.",
+		});
+	}
+	await db
+		.delete(teamMembers)
+		.where(
+			and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, targetUserId))
+		);
+	return { userId: targetUserId };
+}
+
 async function requireManager(
 	db: DatabaseLike,
 	teamId: string,
@@ -470,6 +579,61 @@ export const teamsRouter = {
 			return await getInvitationForLanding(context.db, {
 				invitationId: input.invitationId,
 				now: new Date(),
+			});
+		}),
+
+	acceptInvite: protectedProcedure
+		.input(z.object({ invitationId: z.string().uuid() }))
+		.handler(async ({ context, input }) => {
+			return await acceptInvitation(context.db, {
+				invitationId: input.invitationId,
+				userId: context.session.user.id,
+				userEmail: context.session.user.email,
+				now: new Date(),
+			});
+		}),
+
+	changeRole: protectedProcedure
+		.input(
+			z.object({
+				teamId: z.string().uuid(),
+				userId: z.string(),
+				role: z.enum(["owner", "admin", "member"]),
+			})
+		)
+		.handler(async ({ context, input }) => {
+			await requireManager(context.db, input.teamId, context.session.user.id);
+			return await changeMemberRole(context.db, {
+				teamId: input.teamId,
+				targetUserId: input.userId,
+				role: input.role,
+			});
+		}),
+
+	removeMember: protectedProcedure
+		.input(z.object({ teamId: z.string().uuid(), userId: z.string() }))
+		.handler(async ({ context, input }) => {
+			await requireManager(context.db, input.teamId, context.session.user.id);
+			return await removeTeamMember(context.db, {
+				teamId: input.teamId,
+				targetUserId: input.userId,
+			});
+		}),
+
+	leave: protectedProcedure
+		.input(z.object({ teamId: z.string().uuid() }))
+		.handler(async ({ context, input }) => {
+			const role = await resolveTeamRole(
+				context.db,
+				input.teamId,
+				context.session.user.id
+			);
+			if (!role) {
+				throw new ORPCError("NOT_FOUND", { message: "Team not found." });
+			}
+			return await removeTeamMember(context.db, {
+				teamId: input.teamId,
+				targetUserId: context.session.user.id,
 			});
 		}),
 };

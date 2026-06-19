@@ -1,7 +1,9 @@
 import { ORPCError } from "@orpc/server";
 import { describe, expect, it } from "vitest";
 import {
+	acceptInvitation,
 	canManageMembers,
+	changeMemberRole,
 	createInvitation,
 	deleteTeamForOwner,
 	generateTeamSlug,
@@ -145,5 +147,124 @@ describe("createInvitation", () => {
 		expect(expiresAt.getTime() - INVITE_NOW.getTime()).toBe(
 			72 * 60 * 60 * 1000
 		);
+	});
+});
+
+function acceptDb(
+	invite: {
+		email: string;
+		status: string;
+		expiresAt: Date;
+		teamId: string;
+	} | null
+) {
+	const inserted: Record<string, unknown>[] = [];
+	const updated: Record<string, unknown>[] = [];
+	const db = {
+		select: () => ({
+			from: () => ({
+				where: () => ({
+					limit: () => Promise.resolve(invite ? [invite] : []),
+				}),
+			}),
+		}),
+		insert: () => ({
+			values: (v: Record<string, unknown>) => ({
+				onConflictDoNothing: () => {
+					inserted.push(v);
+					return Promise.resolve();
+				},
+			}),
+		}),
+		update: () => ({
+			set: (v: Record<string, unknown>) => ({
+				where: () => {
+					updated.push(v);
+					return Promise.resolve();
+				},
+			}),
+		}),
+	} as unknown as Parameters<typeof acceptInvitation>[0];
+	return { db, inserted, updated };
+}
+
+const ACCEPT_NOW = new Date("2026-06-20T00:00:00Z");
+const FUTURE = new Date("2026-06-22T00:00:00Z");
+const PAST = new Date("2026-06-19T00:00:00Z");
+
+describe("acceptInvitation", () => {
+	it("rejects when the signed-in email does not match the invite", async () => {
+		const { db } = acceptDb({
+			email: "joe@example.com",
+			status: "pending",
+			expiresAt: FUTURE,
+			teamId: "t1",
+		});
+		await expect(
+			acceptInvitation(db, {
+				invitationId: "i1",
+				userId: "u1",
+				userEmail: "someone-else@example.com",
+				now: ACCEPT_NOW,
+			})
+		).rejects.toBeInstanceOf(ORPCError);
+	});
+
+	it("rejects an expired invitation", async () => {
+		const { db } = acceptDb({
+			email: "joe@example.com",
+			status: "pending",
+			expiresAt: PAST,
+			teamId: "t1",
+		});
+		await expect(
+			acceptInvitation(db, {
+				invitationId: "i1",
+				userId: "u1",
+				userEmail: "joe@example.com",
+				now: ACCEPT_NOW,
+			})
+		).rejects.toBeInstanceOf(ORPCError);
+	});
+
+	it("adds the member and marks the invite accepted on success", async () => {
+		const { db, inserted, updated } = acceptDb({
+			email: "joe@example.com",
+			status: "pending",
+			expiresAt: FUTURE,
+			teamId: "t1",
+		});
+		const result = await acceptInvitation(db, {
+			invitationId: "i1",
+			userId: "u1",
+			userEmail: "Joe@Example.com",
+			now: ACCEPT_NOW,
+		});
+		expect(result).toEqual({ teamId: "t1" });
+		expect(inserted[0]).toMatchObject({ teamId: "t1", userId: "u1" });
+		expect(updated[0]).toMatchObject({ status: "accepted" });
+	});
+});
+
+function ownerCountDb(ownerCount: number) {
+	return {
+		select: () => ({
+			from: () => ({
+				where: () => Promise.resolve([{ count: ownerCount }]),
+			}),
+		}),
+		update: () => ({ set: () => ({ where: () => Promise.resolve() }) }),
+	} as unknown as Parameters<typeof changeMemberRole>[0];
+}
+
+describe("changeMemberRole", () => {
+	it("blocks demoting the last owner", async () => {
+		await expect(
+			changeMemberRole(ownerCountDb(1), {
+				teamId: "t1",
+				targetUserId: "u1",
+				role: "member",
+			})
+		).rejects.toBeInstanceOf(ORPCError);
 	});
 });
