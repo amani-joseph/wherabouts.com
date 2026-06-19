@@ -54,3 +54,68 @@ export const zoneReadTools: ToolDef[] = [
 		},
 	},
 ];
+
+const DESTRUCTIVE = { destructiveHint: true, readOnlyHint: false } as const;
+
+const geometry = z.object({
+	type: z.literal("Polygon"),
+	coordinates: z.array(z.array(z.array(z.number()))),
+});
+
+export const zoneManagementTools: ToolDef[] = [
+	{
+		name: "create_zone",
+		description: "Create a geofence zone from a GeoJSON Polygon.",
+		inputSchema: {
+			name: z.string().min(1),
+			geometry,
+			description: z.string().optional(),
+			metadata: z.record(z.string(), z.unknown()).optional(),
+		},
+		annotations: DESTRUCTIVE,
+		handler: (client, args) => client.zones.create(args as never).then(ok),
+	},
+	{
+		name: "update_zone",
+		description:
+			"Update a geofence zone's name, geometry, description, or metadata.",
+		inputSchema: {
+			id: z.number().int(),
+			name: z.string().min(1).optional(),
+			geometry: geometry.optional(),
+			description: z.string().optional(),
+			metadata: z.record(z.string(), z.unknown()).optional(),
+		},
+		annotations: DESTRUCTIVE,
+		handler: (client, args) => {
+			const { id, ...body } = args as { id: number };
+			return client.zones.update(id, body as never).then(ok);
+		},
+	},
+	{
+		name: "delete_zone",
+		description:
+			"Permanently delete a geofence zone. Requires confirm=true; set it only after the user has agreed to the deletion.",
+		inputSchema: {
+			id: z.number().int(),
+			confirm: z.boolean().optional(),
+		},
+		annotations: { ...DESTRUCTIVE, idempotentHint: true },
+		handler: (client, args) => {
+			if (args.confirm !== true) {
+				return Promise.resolve({
+					content: [
+						{
+							type: "text" as const,
+							text: "Refusing to delete: call again with confirm=true to confirm permanent deletion.",
+						},
+					],
+					isError: true,
+				});
+			}
+			return client.zones.delete(args.id as number).then(ok);
+		},
+	},
+];
+
+export const zoneTools: ToolDef[] = [...zoneReadTools, ...zoneManagementTools];
