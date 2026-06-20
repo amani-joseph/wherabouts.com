@@ -31,6 +31,21 @@ export function canManageMembers(role: TeamRole | null): boolean {
 	return role === "owner" || role === "admin";
 }
 
+export function canAssignRole(
+	callerRole: TeamRole,
+	targetCurrentRole: TeamRole | null,
+	newRole: TeamRole
+): boolean {
+	if (callerRole === "owner") {
+		return true;
+	}
+	if (callerRole !== "admin") {
+		return false;
+	}
+	// admins cannot grant owner or modify an owner
+	return newRole !== "owner" && targetCurrentRole !== "owner";
+}
+
 export async function resolveTeamRole(
 	db: DatabaseLike,
 	teamId: string,
@@ -614,7 +629,26 @@ export const teamsRouter = {
 			})
 		)
 		.handler(async ({ context, input }) => {
-			await requireManager(context.db, input.teamId, context.session.user.id);
+			const callerRole = await requireManager(
+				context.db,
+				input.teamId,
+				context.session.user.id
+			);
+			if (callerRole !== "owner") {
+				const targetRole = await resolveTeamRole(
+					context.db,
+					input.teamId,
+					input.userId
+				);
+				if (!canAssignRole(callerRole, targetRole, input.role)) {
+					throw new ORPCError("FORBIDDEN", {
+						message:
+							input.role === "owner"
+								? "Only an owner can grant the owner role."
+								: "Only an owner can change an owner's role.",
+					});
+				}
+			}
 			return await changeMemberRole(context.db, {
 				teamId: input.teamId,
 				targetUserId: input.userId,

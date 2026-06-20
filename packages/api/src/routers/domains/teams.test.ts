@@ -2,6 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { describe, expect, it } from "vitest";
 import {
 	acceptInvitation,
+	canAssignRole,
 	canManageMembers,
 	changeMemberRole,
 	createInvitation,
@@ -306,5 +307,27 @@ describe("changeMemberRole", () => {
 			role: "admin",
 		});
 		expect(result).toEqual({ userId: "u2", role: "admin" });
+	});
+});
+
+describe("canAssignRole", () => {
+	it("owner can assign the owner role to anyone", () => {
+		expect(canAssignRole("owner", "member", "owner")).toBe(true);
+	});
+
+	it("admin cannot grant the owner role", () => {
+		expect(canAssignRole("admin", "member", "owner")).toBe(false);
+	});
+
+	it("admin cannot change an existing owner's role", () => {
+		expect(canAssignRole("admin", "owner", "member")).toBe(false);
+	});
+
+	it("admin can promote a member to admin", () => {
+		expect(canAssignRole("admin", "member", "admin")).toBe(true);
+	});
+
+	it("member cannot assign any role", () => {
+		expect(canAssignRole("member", "member", "admin")).toBe(false);
 	});
 });
