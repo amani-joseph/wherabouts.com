@@ -15,6 +15,7 @@ const LEVENSHTEIN_LONG_MAX_DISTANCE = 2;
 const PREFIX_SEARCH_MAX_LEN = 4;
 const WIDE_FUZZY_MIN_LEN = 8;
 const PURE_DIGITS_REGEX = /^\d+$/;
+const WHITESPACE_REGEX = /\s+/;
 
 export interface AutocompleteResult {
 	country: string;
@@ -612,7 +613,7 @@ async function ilikeFallback(
 	opts: { limit: number }
 ): Promise<AutocompleteResult[]> {
 	const { limit } = opts;
-	const tokens = trimmed.split(/\s+/).filter(Boolean);
+	const tokens = trimmed.split(WHITESPACE_REGEX).filter(Boolean);
 
 	// First token uses prefix match (can use B-tree index)
 	const firstTokenCondition = sql`search_text ILIKE ${`${tokens[0]}%`}`;
