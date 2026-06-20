@@ -128,7 +128,7 @@ function RouteComponent() {
 					className="underline underline-offset-4 hover:text-foreground"
 					href="mailto:hello@wherabouts.com"
 				>
-					Request coverage →
+					Request coverage <span aria-hidden="true">→</span>
 				</a>
 			</p>
 		</main>
