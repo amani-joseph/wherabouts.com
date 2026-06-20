@@ -1,4 +1,5 @@
 import { cn } from "@wherabouts.com/ui/lib/utils";
+// biome-ignore lint/performance/noNamespaceImport: React namespace import is the conventional shadcn pattern; React is not tree-shaken, so there is no bundle cost.
 import * as React from "react";
 import type { ControllerProps, FieldPath, FieldValues } from "react-hook-form";
 import { Controller, FormProvider, useFormContext } from "react-hook-form";
@@ -79,6 +80,7 @@ const FormLabel = React.forwardRef<
 	const { error, formItemId } = useFormField();
 
 	return (
+		// biome-ignore lint/a11y/noLabelWithoutControl: associated with its control via htmlFor={formItemId}; the control is rendered separately by FormControl.
 		<label
 			className={cn(
 				"font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
