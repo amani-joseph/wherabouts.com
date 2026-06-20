@@ -53,7 +53,7 @@ if (typeof cjsClient.zones.create !== "function") {
 }
 
 if (failures.length > 0) {
-	console.error("Smoke test FAILED:\n" + failures.join("\n"));
+	console.error(`Smoke test FAILED:\n${failures.join("\n")}`);
 	process.exit(1);
 }
 console.log(

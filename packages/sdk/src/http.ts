@@ -128,6 +128,192 @@ const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
 		signal?.addEventListener("abort", onAbort, { once: true });
 	});
 
+const buildRequestUrl = (
+	path: string,
+	baseUrl: URL,
+	query: RequestOptions["query"]
+): URL => {
+	const url = new URL(path, baseUrl);
+	if (query) {
+		for (const [key, value] of Object.entries(query)) {
+			if (value !== undefined) {
+				url.searchParams.set(key, String(value));
+			}
+		}
+	}
+	return url;
+};
+
+// Wires a caller's AbortSignal into the per-attempt controller and returns an
+// unlink cleanup. Keeping this out of the retry loop keeps its complexity down.
+const linkAbort = (
+	controller: AbortController,
+	callerSignal: AbortSignal | undefined
+): (() => void) => {
+	if (!callerSignal) {
+		return () => {
+			// no caller signal to unlink
+		};
+	}
+	const onCallerAbort = () => controller.abort();
+	if (callerSignal.aborted) {
+		controller.abort();
+	} else {
+		callerSignal.addEventListener("abort", onCallerAbort, { once: true });
+	}
+	return () => callerSignal.removeEventListener("abort", onCallerAbort);
+};
+
+// Decides what to do with a thrown request error: retry after `waitMs`, or
+// stop and surface `error`. Extracted so the retry loop stays under the
+// cognitive-complexity limit. `attempt` is the pre-increment value, so `waitMs`
+// (computeBackoff(attempt)) matches the original computeBackoff(attempt - 1)
+// taken after the caller increments.
+type RetryDecision =
+	| { retry: true; waitMs: number }
+	| { retry: false; error: unknown };
+
+const classifyRequestError = (
+	error: unknown,
+	ctx: {
+		callerSignal: AbortSignal | undefined;
+		timedOut: boolean;
+		attempt: number;
+		maxRetries: number;
+		timeoutMs: number;
+	}
+): RetryDecision => {
+	// Caller aborted — never retry; propagate their intent.
+	if (ctx.callerSignal?.aborted) {
+		return { retry: false, error };
+	}
+	// Our timeout fired — treat like a transient failure.
+	if (ctx.timedOut) {
+		if (ctx.attempt < ctx.maxRetries) {
+			return { retry: true, waitMs: computeBackoff(ctx.attempt) };
+		}
+		return {
+			retry: false,
+			error: new WheraboutsApiError({
+				status: 0,
+				code: "timeout",
+				message: `Request timed out after ${ctx.timeoutMs}ms.`,
+			}),
+		};
+	}
+	// A parsed API error (non-retryable status) — surface as-is.
+	if (error instanceof WheraboutsApiError) {
+		return { retry: false, error };
+	}
+	// Network/transport error — retry if budget remains.
+	if (ctx.attempt < ctx.maxRetries) {
+		return { retry: true, waitMs: computeBackoff(ctx.attempt) };
+	}
+	return { retry: false, error };
+};
+
+// Decides whether a non-OK response should be retried. Returns the (capped)
+// wait when retryable; otherwise the caller throws the parsed API error.
+const classifyResponse = (
+	response: Response,
+	ctx: { attempt: number; maxRetries: number }
+): { retry: true; waitMs: number } | { retry: false } => {
+	if (RETRYABLE_STATUSES.has(response.status) && ctx.attempt < ctx.maxRetries) {
+		const wait =
+			parseRetryAfter(response.headers.get("retry-after")) ??
+			computeBackoff(ctx.attempt);
+		return { retry: true, waitMs: Math.min(wait, BACKOFF_CAP_MS) };
+	}
+	return { retry: false };
+};
+
+const readResponseBody = async <T>(response: Response): Promise<T> => {
+	if (response.status === 204) {
+		return undefined as T;
+	}
+	const text = await response.text();
+	return (text ? JSON.parse(text) : undefined) as T;
+};
+
+interface AttemptContext {
+	attempt: number;
+	body: string | undefined;
+	callerSignal: AbortSignal | undefined;
+	config: WheraboutsClientConfig;
+	fetchImpl: typeof globalThis.fetch;
+	headers: Headers;
+	maxRetries: number;
+	method: HttpMethod;
+	path: string;
+	startTime: number;
+	timeoutMs: number;
+	url: URL;
+}
+
+type AttemptOutcome<T> =
+	| { done: true; value: T }
+	| { done: false; waitMs: number };
+
+// One request attempt: sets up the timeout/abort controller, performs the fetch,
+// and returns either a terminal value or a retry signal (the loop owns waiting
+// and the attempt counter). Throws on non-retryable failures.
+const runAttempt = async <T>(
+	ctx: AttemptContext
+): Promise<AttemptOutcome<T>> => {
+	const controller = new AbortController();
+	let timedOut = false;
+	const timeoutId = setTimeout(() => {
+		timedOut = true;
+		controller.abort();
+	}, ctx.timeoutMs);
+	const unlinkAbort = linkAbort(controller, ctx.callerSignal);
+
+	try {
+		const response = await ctx.fetchImpl(ctx.url, {
+			method: ctx.method,
+			headers: ctx.headers,
+			body: ctx.body,
+			signal: controller.signal,
+		});
+
+		ctx.config.logger?.({
+			method: ctx.method,
+			path: ctx.path,
+			status: response.status,
+			durationMs: Date.now() - ctx.startTime,
+			requestId: readRequestId(response) ?? undefined,
+		});
+
+		if (!response.ok) {
+			const decision = classifyResponse(response, {
+				attempt: ctx.attempt,
+				maxRetries: ctx.maxRetries,
+			});
+			if (decision.retry) {
+				return { done: false, waitMs: decision.waitMs };
+			}
+			throw await parseApiError(response);
+		}
+
+		return { done: true, value: await readResponseBody<T>(response) };
+	} catch (error) {
+		const decision = classifyRequestError(error, {
+			callerSignal: ctx.callerSignal,
+			timedOut,
+			attempt: ctx.attempt,
+			maxRetries: ctx.maxRetries,
+			timeoutMs: ctx.timeoutMs,
+		});
+		if (decision.retry) {
+			return { done: false, waitMs: decision.waitMs };
+		}
+		throw decision.error;
+	} finally {
+		clearTimeout(timeoutId);
+		unlinkAbort();
+	}
+};
+
 export const createRequester = (config: WheraboutsClientConfig): Requester => {
 	const fetchImpl = config.fetch ?? globalThis.fetch;
 	if (!fetchImpl) {
@@ -139,14 +325,7 @@ export const createRequester = (config: WheraboutsClientConfig): Requester => {
 	const baseHeaders = createBaseHeaders(config);
 
 	return async <T>(opts: RequestOptions): Promise<T> => {
-		const url = new URL(opts.path, baseUrl);
-		if (opts.query) {
-			for (const [key, value] of Object.entries(opts.query)) {
-				if (value !== undefined) {
-					url.searchParams.set(key, String(value));
-				}
-			}
-		}
+		const url = buildRequestUrl(opts.path, baseUrl, opts.query);
 
 		const headers = buildRequestHeaders(baseHeaders, opts);
 		const hasBody = opts.body !== undefined;
@@ -160,91 +339,28 @@ export const createRequester = (config: WheraboutsClientConfig): Requester => {
 		const startTime = Date.now();
 
 		let attempt = 0;
-		// Retry loop: returns on success or non-retryable failure; otherwise waits
-		// and continues until `maxRetries` is exhausted.
+		// Retry loop: each attempt returns a terminal value or a retry signal with
+		// the backoff to wait. The per-attempt mechanics live in runAttempt.
 		while (true) {
-			const controller = new AbortController();
-			let timedOut = false;
-			const timeoutId = setTimeout(() => {
-				timedOut = true;
-				controller.abort();
-			}, timeoutMs);
-			const onCallerAbort = () => controller.abort();
-			if (callerSignal) {
-				if (callerSignal.aborted) {
-					controller.abort();
-				} else {
-					callerSignal.addEventListener("abort", onCallerAbort, { once: true });
-				}
+			const outcome = await runAttempt<T>({
+				fetchImpl,
+				url,
+				method: opts.method,
+				headers,
+				body,
+				path: opts.path,
+				config,
+				timeoutMs,
+				callerSignal,
+				attempt,
+				maxRetries,
+				startTime,
+			});
+			if (outcome.done) {
+				return outcome.value;
 			}
-
-			try {
-				const response = await fetchImpl(url, {
-					method: opts.method,
-					headers,
-					body,
-					signal: controller.signal,
-				});
-
-				const durationMs = Date.now() - startTime;
-				config.logger?.({
-					method: opts.method,
-					path: opts.path,
-					status: response.status,
-					durationMs,
-					requestId: readRequestId(response) ?? undefined,
-				});
-
-				if (!response.ok) {
-					if (RETRYABLE_STATUSES.has(response.status) && attempt < maxRetries) {
-						const wait =
-							parseRetryAfter(response.headers.get("retry-after")) ??
-							computeBackoff(attempt);
-						attempt++;
-						await sleep(Math.min(wait, BACKOFF_CAP_MS), callerSignal);
-						continue;
-					}
-					throw await parseApiError(response);
-				}
-
-				if (response.status === 204) {
-					return undefined as T;
-				}
-				const text = await response.text();
-				return (text ? JSON.parse(text) : undefined) as T;
-			} catch (error) {
-				// Caller aborted — never retry; propagate their intent.
-				if (callerSignal?.aborted) {
-					throw error;
-				}
-				// Our timeout fired — treat like a transient failure.
-				if (timedOut) {
-					if (attempt < maxRetries) {
-						attempt++;
-						await sleep(computeBackoff(attempt - 1), callerSignal);
-						continue;
-					}
-					throw new WheraboutsApiError({
-						status: 0,
-						code: "timeout",
-						message: `Request timed out after ${timeoutMs}ms.`,
-					});
-				}
-				// A parsed API error (non-retryable status) — surface as-is.
-				if (error instanceof WheraboutsApiError) {
-					throw error;
-				}
-				// Network/transport error — retry if budget remains.
-				if (attempt < maxRetries) {
-					attempt++;
-					await sleep(computeBackoff(attempt - 1), callerSignal);
-					continue;
-				}
-				throw error;
-			} finally {
-				clearTimeout(timeoutId);
-				callerSignal?.removeEventListener("abort", onCallerAbort);
-			}
+			attempt++;
+			await sleep(outcome.waitMs, callerSignal);
 		}
 	};
 };
