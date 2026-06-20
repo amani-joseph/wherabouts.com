@@ -1,5 +1,6 @@
 import { type SQL, sql } from "drizzle-orm";
 import type { Database } from "../client.ts";
+import { formatAddress } from "./format-address.ts";
 import { parseFreeformAddress } from "./parse-freeform-address.ts";
 import {
 	type ParsedUnitAddress,
@@ -189,7 +190,12 @@ export function mapRowToResult(row: RawAddressRow): AutocompleteResult {
 	const streetAddress = formatStreetAddress(mapped);
 	return {
 		id: row.id,
-		formattedAddress: `${streetAddress}, ${row.locality} ${row.state} ${row.postcode}, ${row.country}`,
+		formattedAddress: formatAddress(streetAddress, {
+			locality: row.locality,
+			state: row.state,
+			postcode: row.postcode,
+			country: row.country,
+		}),
 		streetAddress,
 		locality: row.locality,
 		state: row.state,

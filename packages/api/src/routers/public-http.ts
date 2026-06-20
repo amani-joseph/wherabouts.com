@@ -1,5 +1,8 @@
 import { ORPCError } from "@orpc/server";
-import { autocompleteAddresses } from "@wherabouts.com/database/queries";
+import {
+	autocompleteAddresses,
+	formatAddress,
+} from "@wherabouts.com/database/queries";
 import { addresses } from "@wherabouts.com/database/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -217,7 +220,12 @@ const reverse = baseBuilder
 		return {
 			address: {
 				id: row.id,
-				formattedAddress: `${streetParts.join(" ")}, ${row.locality} ${row.state} ${row.postcode}, ${row.country}`,
+				formattedAddress: formatAddress(streetParts.join(" "), {
+					locality: row.locality,
+					state: row.state,
+					postcode: row.postcode,
+					country: row.country,
+				}),
 				streetAddress: streetParts.join(" "),
 				locality: row.locality,
 				state: row.state,
