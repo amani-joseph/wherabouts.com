@@ -21,9 +21,9 @@ interface HeroGlobeProps {
 	target: GlobeCoordinate | null;
 }
 
-// cobe colours — green dotted earth with cyan location markers (Variant 03).
+// cobe colours — green dotted earth with electric-green location markers.
 const BASE_COLOR: [number, number, number] = [0.18, 0.42, 0.36];
-const MARKER_COLOR: [number, number, number] = [0.4, 0.91, 0.98];
+const MARKER_COLOR: [number, number, number] = [0.22, 0.94, 0.66];
 const GLOW_COLOR: [number, number, number] = [0.05, 0.16, 0.13];
 
 const DOUBLE_PI = Math.PI * 2;

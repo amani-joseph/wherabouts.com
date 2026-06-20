@@ -332,12 +332,12 @@ function DemoSuggestionsPanel({
 		>
 			<div className="flex items-center justify-between px-2.5 pt-0.5 pb-2">
 				<div className="flex items-center gap-2">
-					<div className="size-1.5 rounded-full bg-teal-300/80" />
+					<div className="size-1.5 rounded-full bg-emerald-300/80" />
 					<p className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.22em]">
 						Possible addresses
 					</p>
 				</div>
-				<div className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-cyan-300">
+				<div className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-emerald-300">
 					Exact match confidence
 				</div>
 			</div>
@@ -357,7 +357,7 @@ function DemoSuggestionsPanel({
 			</div>
 
 			<div className="mt-2 flex items-center justify-center gap-1.5 border-white/5 border-t px-2.5 pt-2">
-				<MapPin className="size-3 text-cyan-300/70" />
+				<MapPin className="size-3 text-emerald-300/70" />
 				<p className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.22em]">
 					Powered by <span className="text-foreground">Wherabouts</span>
 				</p>
@@ -544,7 +544,7 @@ function AddressDemoInput({ onResolve }: AddressDemoInputProps) {
 			<div className="relative h-[21.25rem] overflow-visible rounded-[2rem] border border-white/10 bg-background/70 p-2.5 shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl md:h-[25.25rem] md:p-4">
 				<div className="mb-3 flex items-center justify-between gap-3 px-1">
 					<div className="flex items-center gap-2">
-						<div className="size-1.5 rounded-full bg-cyan-300" />
+						<div className="size-1.5 rounded-full bg-emerald-300" />
 						<p className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.22em]">
 							Live address search
 						</p>
@@ -679,10 +679,10 @@ const HeroSection = () => {
 				{/* Left column — copy, CTAs, and the live address-search demo. */}
 				<div className="flex flex-col items-start gap-5 text-left">
 					<motion.div
-						className="flex w-fit items-center gap-1.5 rounded-full border border-cyan-300/30 bg-background/60 px-3 py-1 backdrop-blur-sm"
+						className="flex w-fit items-center gap-1.5 rounded-full border border-emerald-300/30 bg-background/60 px-3 py-1 backdrop-blur-sm"
 						variants={itemVariants}
 					>
-						<div className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.9)]" />
+						<div className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.9)]" />
 						<p className="font-normal text-foreground text-sm">
 							Location &amp; geocoding API — US, Australia &amp; expanding
 						</p>
@@ -721,7 +721,7 @@ const HeroSection = () => {
 						<Link
 							className={cn(
 								buttonVariants({ variant: "default" }),
-								"h-auto cursor-pointer rounded-full bg-cyan-400 px-5 py-2.5 font-semibold text-slate-950 shadow-[0_8px_30px_-10px_rgba(34,211,238,0.7)] transition-colors hover:bg-cyan-300 md:px-6 md:py-3.5"
+								"h-auto cursor-pointer rounded-full px-5 py-2.5 font-semibold shadow-[0_8px_30px_-10px_rgba(52,211,153,0.6)] md:px-6 md:py-3.5"
 							)}
 							to="/sign-up"
 						>
