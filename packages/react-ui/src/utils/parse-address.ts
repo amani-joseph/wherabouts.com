@@ -1,9 +1,5 @@
-import type { AddressSuggestion } from "@wherabouts/sdk";
+import { type AddressSuggestion, countryName } from "@wherabouts/sdk";
 import type { AddressWithParsed } from "../types";
-
-const COUNTRY_NAMES: Record<string, string> = {
-	AU: "Australia",
-};
 
 /**
  * Light client-side cleanup before sending to the API for snappier typeahead.
@@ -30,6 +26,6 @@ export function toAddressWithParsed(
 		suburb: suggestion.locality,
 		state: suggestion.state,
 		postcode: suggestion.postcode,
-		country: COUNTRY_NAMES[suggestion.country] ?? suggestion.country,
+		country: countryName(suggestion.country),
 	};
 }

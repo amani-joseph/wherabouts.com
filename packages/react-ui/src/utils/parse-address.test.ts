@@ -47,9 +47,27 @@ describe("toAddressWithParsed", () => {
 		});
 	});
 
-	it("falls back to raw country code if unknown", () => {
+	it("resolves any ISO country code to its display name", () => {
 		const suggestion: AddressSuggestion = {
 			id: 2,
+			formattedAddress: "1 Reykjanesvitabraut, Reykjanesbær 233",
+			streetAddress: "1 Reykjanesvitabraut",
+			locality: "Reykjanesbær",
+			state: "",
+			postcode: "233",
+			latitude: 63.83,
+			longitude: -22.7,
+			country: "IS",
+		};
+
+		const result = toAddressWithParsed(suggestion);
+
+		expect(result.country).toBe("Iceland");
+	});
+
+	it("falls back to the raw value for malformed country codes", () => {
+		const suggestion: AddressSuggestion = {
+			id: 3,
 			formattedAddress: "123 Main St, Sydney NSW 2000",
 			streetAddress: "123 Main St",
 			locality: "Sydney",
@@ -57,12 +75,12 @@ describe("toAddressWithParsed", () => {
 			postcode: "2000",
 			latitude: -33.8688,
 			longitude: 151.2093,
-			country: "NZ",
+			country: "ZZZ",
 		};
 
 		const result = toAddressWithParsed(suggestion);
 
-		expect(result.country).toBe("NZ");
+		expect(result.country).toBe("ZZZ");
 	});
 
 	it("preserves all original fields in transformation", () => {

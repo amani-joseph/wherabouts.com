@@ -1,7 +1,7 @@
 {
   "name": "@wherabouts/sdk",
-  "version": "0.4.3",
-  "description": "Official TypeScript SDK for the Wherabouts location API — Australian geocoding, geofencing zones, device tracking, and webhooks over authoritative G-NAF/ABS data.",
+  "version": "0.5.0",
+  "description": "Official TypeScript SDK for the Wherabouts location API — international geocoding, geofencing zones, device tracking, and webhooks over authoritative open address data (G-NAF, Overture, OpenAddresses, and more).",
   "type": "module",
   "license": "MIT",
   "homepage": "https://wherabouts.com",
@@ -14,9 +14,11 @@
     "geocoding",
     "reverse-geocoding",
     "geofencing",
-    "australia",
+    "international",
+    "address-autocomplete",
     "g-naf",
-    "abs",
+    "overture",
+    "openaddresses",
     "location",
     "webhooks",
     "wherabouts"

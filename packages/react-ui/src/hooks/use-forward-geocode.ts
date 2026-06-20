@@ -41,6 +41,9 @@ export function useForwardGeocode(
 			return;
 		}
 
+		// Capture the narrowed (non-null) value so the nested closure below keeps
+		// the `string` type instead of widening back to `string | null`.
+		const activeQuery = query;
 		const controller = new AbortController();
 
 		async function fetch() {
@@ -49,7 +52,7 @@ export function useForwardGeocode(
 
 			try {
 				const response = await client.geocode.forward(
-					{ q: query },
+					{ q: activeQuery },
 					{ signal: controller.signal }
 				);
 				if (controller.signal.aborted) {

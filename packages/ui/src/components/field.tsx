@@ -75,6 +75,7 @@ function Field({
 	...props
 }: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants>) {
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: a flexible Field wrapper that lays out arbitrary controls/labels; role="group" avoids <fieldset>'s layout/styling constraints while keeping the grouping semantics.
 		<div
 			className={cn(fieldVariants({ orientation }), className)}
 			data-orientation={orientation}
@@ -194,15 +195,15 @@ function FieldError({
 			...new Map(errors.map((error) => [error?.message, error])).values(),
 		];
 
-		if (uniqueErrors?.length == 1) {
+		if (uniqueErrors?.length === 1) {
 			return uniqueErrors[0]?.message;
 		}
 
 		return (
 			<ul className="ml-4 flex list-disc flex-col gap-1">
 				{uniqueErrors.map(
-					(error, index) =>
-						error?.message && <li key={index}>{error.message}</li>
+					(error) =>
+						error?.message && <li key={error.message}>{error.message}</li>
 				)}
 			</ul>
 		);

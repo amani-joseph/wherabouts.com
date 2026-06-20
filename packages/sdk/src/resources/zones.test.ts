@@ -102,15 +102,15 @@ describe("createZones", () => {
 		const zone2 = { id: 2, name: "Zone 2" } as any;
 		const zone3 = { id: 3, name: "Zone 3" } as any;
 
-		const request = vi.fn(async (opts: unknown): Promise<any> => {
+		const request = vi.fn((opts: unknown): Promise<any> => {
 			const req = opts as any;
 			if (req.query.page === 1) {
-				return { zones: [zone1, zone2] };
+				return Promise.resolve({ zones: [zone1, zone2] });
 			}
 			if (req.query.page === 2) {
-				return { zones: [zone3] };
+				return Promise.resolve({ zones: [zone3] });
 			}
-			return { zones: [] };
+			return Promise.resolve({ zones: [] });
 		});
 
 		const zones = createZones(request as never);

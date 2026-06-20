@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { hmacSign } from "./hmac.ts";
 
+const HMAC_SIGNATURE = /^hmac-sha256=[0-9a-f]{64}$/;
+
 describe("hmacSign", () => {
 	it("produces an hmac-sha256= prefixed 64-hex-char signature", async () => {
 		const sig = await hmacSign("secret", "payload");
-		expect(sig).toMatch(/^hmac-sha256=[0-9a-f]{64}$/);
+		expect(sig).toMatch(HMAC_SIGNATURE);
 	});
 
 	it("is deterministic for the same secret + body", async () => {

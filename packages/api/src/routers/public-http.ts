@@ -1,5 +1,8 @@
 import { ORPCError } from "@orpc/server";
-import { autocompleteAddresses } from "@wherabouts.com/database/queries";
+import {
+	autocompleteAddresses,
+	formatAddress,
+} from "@wherabouts.com/database/queries";
 import { addresses } from "@wherabouts.com/database/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -77,7 +80,24 @@ const autocomplete = baseBuilder
 				longitude: input.lon,
 			}
 		);
-		return { results, count: results.length, parsedQuery };
+		// Map explicitly: the autocomplete contract exposes streetAddress (the
+		// combined line), not the individual street components that the shared
+		// AutocompleteResult now also carries for the forward-geocode response.
+		return {
+			results: results.map((r) => ({
+				id: r.id,
+				formattedAddress: r.formattedAddress,
+				streetAddress: r.streetAddress,
+				locality: r.locality,
+				state: r.state,
+				postcode: r.postcode,
+				country: r.country,
+				latitude: r.latitude,
+				longitude: r.longitude,
+			})),
+			count: results.length,
+			parsedQuery,
+		};
 	});
 
 const nearby = baseBuilder
@@ -217,7 +237,12 @@ const reverse = baseBuilder
 		return {
 			address: {
 				id: row.id,
-				formattedAddress: `${streetParts.join(" ")}, ${row.locality} ${row.state} ${row.postcode}, ${row.country}`,
+				formattedAddress: formatAddress(streetParts.join(" "), {
+					locality: row.locality,
+					state: row.state,
+					postcode: row.postcode,
+					country: row.country,
+				}),
 				streetAddress: streetParts.join(" "),
 				locality: row.locality,
 				state: row.state,

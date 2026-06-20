@@ -38,9 +38,7 @@ describe("tool registry", () => {
 		} as never;
 		const client = {
 			zones: {
-				list: vi.fn(async () => {
-					throw new Error("boom");
-				}),
+				list: vi.fn(() => Promise.reject(new Error("boom"))),
 			},
 		};
 		registerTools(server, () => client as never);

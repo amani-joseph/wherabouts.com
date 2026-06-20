@@ -6,9 +6,9 @@ address form fields. Built on [`@wherabouts/sdk`](https://www.npmjs.com/package/
 styled with Tailwind, and shipped with a prebuilt stylesheet so you can drop them in
 without any build setup.
 
-> **Coverage:** Authoritative Australian addresses (G-NAF). International coverage
-> (US, parts of the EU, and more) is in **beta** and rolling out — availability may
-> vary by deployment.
+> **Coverage:** International — authoritative open address datasets including
+> Australia (G-NAF), the United States, Canada, and parts of Europe. Per-country
+> depth and freshness vary by source.
 
 ## Requirements
 
@@ -190,5 +190,5 @@ payloads are fully typed.
 
 ## License
 
-UNLICENSED — © Wherabouts. See the repository for usage terms.
+MIT — © Wherabouts.
 </content>

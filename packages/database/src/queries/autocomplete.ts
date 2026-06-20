@@ -1,5 +1,6 @@
 import { type SQL, sql } from "drizzle-orm";
 import type { Database } from "../client.ts";
+import { formatAddress } from "./format-address.ts";
 import { parseFreeformAddress } from "./parse-freeform-address.ts";
 import {
 	type ParsedUnitAddress,
@@ -14,6 +15,7 @@ const LEVENSHTEIN_LONG_MAX_DISTANCE = 2;
 const PREFIX_SEARCH_MAX_LEN = 4;
 const WIDE_FUZZY_MIN_LEN = 8;
 const PURE_DIGITS_REGEX = /^\d+$/;
+const WHITESPACE_REGEX = /\s+/;
 
 export interface AutocompleteResult {
 	country: string;
@@ -25,6 +27,9 @@ export interface AutocompleteResult {
 	postcode: string;
 	state: string;
 	streetAddress: string;
+	streetName: string | null;
+	streetNumber: string | null;
+	streetType: string | null;
 }
 
 export interface RawAddressRow {
@@ -189,8 +194,16 @@ export function mapRowToResult(row: RawAddressRow): AutocompleteResult {
 	const streetAddress = formatStreetAddress(mapped);
 	return {
 		id: row.id,
-		formattedAddress: `${streetAddress}, ${row.locality} ${row.state} ${row.postcode}, ${row.country}`,
+		formattedAddress: formatAddress(streetAddress, {
+			locality: row.locality,
+			state: row.state,
+			postcode: row.postcode,
+			country: row.country,
+		}),
 		streetAddress,
+		streetName: row.street_name,
+		streetNumber: row.number_first,
+		streetType: row.street_type,
 		locality: row.locality,
 		state: row.state,
 		postcode: row.postcode ?? "",
@@ -600,7 +613,7 @@ async function ilikeFallback(
 	opts: { limit: number }
 ): Promise<AutocompleteResult[]> {
 	const { limit } = opts;
-	const tokens = trimmed.split(/\s+/).filter(Boolean);
+	const tokens = trimmed.split(WHITESPACE_REGEX).filter(Boolean);
 
 	// First token uses prefix match (can use B-tree index)
 	const firstTokenCondition = sql`search_text ILIKE ${`${tokens[0]}%`}`;
