@@ -23,7 +23,7 @@ const COVERAGE_TITLE = "Coverage — Countries with Address Data | Wherabouts";
 const COVERAGE_DESCRIPTION =
 	"See which countries the Wherabouts location API supports for geocoding, reverse geocoding, and address autocomplete before you integrate.";
 
-export const Route = createFileRoute("/coverage")({
+export const Route = createFileRoute("/_public/coverage")({
 	head: () => {
 		const seo = buildSeo({
 			title: COVERAGE_TITLE,

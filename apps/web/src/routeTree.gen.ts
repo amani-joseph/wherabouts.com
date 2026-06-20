@@ -10,14 +10,15 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as DocsRouteImport } from './routes/docs'
-import { Route as CoverageRouteImport } from './routes/coverage'
+import { Route as PublicRouteImport } from './routes/_public'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RpcSplatRouteImport } from './routes/rpc/$'
 import { Route as InviteIdRouteImport } from './routes/invite.$id'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as PublicPricingRouteImport } from './routes/_public/pricing'
+import { Route as PublicCoverageRouteImport } from './routes/_public/coverage'
 import { Route as ProtectedZonesRouteImport } from './routes/_protected/zones'
 import { Route as ProtectedWebhooksRouteImport } from './routes/_protected/webhooks'
 import { Route as ProtectedTeamRouteImport } from './routes/_protected/team'
@@ -54,19 +55,13 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DocsRoute = DocsRouteImport.update({
   id: '/docs',
   path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CoverageRoute = CoverageRouteImport.update({
-  id: '/coverage',
-  path: '/coverage',
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedRoute = ProtectedRouteImport.update({
@@ -92,6 +87,16 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PublicPricingRoute = PublicPricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicCoverageRoute = PublicCoverageRouteImport.update({
+  id: '/coverage',
+  path: '/coverage',
+  getParentRoute: () => PublicRoute,
 } as any)
 const ProtectedZonesRoute = ProtectedZonesRouteImport.update({
   id: '/zones',
@@ -246,9 +251,7 @@ const ApiAuthCallbackProviderRoute = ApiAuthCallbackProviderRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/coverage': typeof CoverageRoute
   '/docs': typeof DocsRoute
-  '/pricing': typeof PricingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/.well-known/api-catalog': typeof DotwellKnownApiCatalogRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
@@ -271,6 +274,8 @@ export interface FileRoutesByFullPath {
   '/team': typeof ProtectedTeamRoute
   '/webhooks': typeof ProtectedWebhooksRoute
   '/zones': typeof ProtectedZonesRoute
+  '/coverage': typeof PublicCoverageRoute
+  '/pricing': typeof PublicPricingRoute
   '/api/health': typeof ApiHealthRoute
   '/invite/$id': typeof InviteIdRoute
   '/rpc/$': typeof RpcSplatRoute
@@ -286,9 +291,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/coverage': typeof CoverageRoute
   '/docs': typeof DocsRoute
-  '/pricing': typeof PricingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/.well-known/api-catalog': typeof DotwellKnownApiCatalogRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
@@ -311,6 +314,8 @@ export interface FileRoutesByTo {
   '/team': typeof ProtectedTeamRoute
   '/webhooks': typeof ProtectedWebhooksRoute
   '/zones': typeof ProtectedZonesRoute
+  '/coverage': typeof PublicCoverageRoute
+  '/pricing': typeof PublicPricingRoute
   '/api/health': typeof ApiHealthRoute
   '/invite/$id': typeof InviteIdRoute
   '/rpc/$': typeof RpcSplatRoute
@@ -328,9 +333,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteWithChildren
-  '/coverage': typeof CoverageRoute
+  '/_public': typeof PublicRouteWithChildren
   '/docs': typeof DocsRoute
-  '/pricing': typeof PricingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/.well-known/api-catalog': typeof DotwellKnownApiCatalogRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
@@ -353,6 +357,8 @@ export interface FileRoutesById {
   '/_protected/team': typeof ProtectedTeamRoute
   '/_protected/webhooks': typeof ProtectedWebhooksRoute
   '/_protected/zones': typeof ProtectedZonesRoute
+  '/_public/coverage': typeof PublicCoverageRoute
+  '/_public/pricing': typeof PublicPricingRoute
   '/api/health': typeof ApiHealthRoute
   '/invite/$id': typeof InviteIdRoute
   '/rpc/$': typeof RpcSplatRoute
@@ -370,9 +376,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/coverage'
     | '/docs'
-    | '/pricing'
     | '/sitemap.xml'
     | '/.well-known/api-catalog'
     | '/forgot-password'
@@ -395,6 +399,8 @@ export interface FileRouteTypes {
     | '/team'
     | '/webhooks'
     | '/zones'
+    | '/coverage'
+    | '/pricing'
     | '/api/health'
     | '/invite/$id'
     | '/rpc/$'
@@ -410,9 +416,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/coverage'
     | '/docs'
-    | '/pricing'
     | '/sitemap.xml'
     | '/.well-known/api-catalog'
     | '/forgot-password'
@@ -435,6 +439,8 @@ export interface FileRouteTypes {
     | '/team'
     | '/webhooks'
     | '/zones'
+    | '/coverage'
+    | '/pricing'
     | '/api/health'
     | '/invite/$id'
     | '/rpc/$'
@@ -451,9 +457,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_protected'
-    | '/coverage'
+    | '/_public'
     | '/docs'
-    | '/pricing'
     | '/sitemap.xml'
     | '/.well-known/api-catalog'
     | '/_auth/forgot-password'
@@ -476,6 +481,8 @@ export interface FileRouteTypes {
     | '/_protected/team'
     | '/_protected/webhooks'
     | '/_protected/zones'
+    | '/_public/coverage'
+    | '/_public/pricing'
     | '/api/health'
     | '/invite/$id'
     | '/rpc/$'
@@ -493,9 +500,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRoute: typeof ProtectedRouteWithChildren
-  CoverageRoute: typeof CoverageRoute
+  PublicRoute: typeof PublicRouteWithChildren
   DocsRoute: typeof DocsRoute
-  PricingRoute: typeof PricingRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   DotwellKnownApiCatalogRoute: typeof DotwellKnownApiCatalogRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
@@ -525,13 +531,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/docs': {
       id: '/docs'
       path: '/docs'
@@ -539,11 +538,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/coverage': {
-      id: '/coverage'
-      path: '/coverage'
-      fullPath: '/coverage'
-      preLoaderRoute: typeof CoverageRouteImport
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected': {
@@ -580,6 +579,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_public/pricing': {
+      id: '/_public/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PublicPricingRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/coverage': {
+      id: '/_public/coverage'
+      path: '/coverage'
+      fullPath: '/coverage'
+      preLoaderRoute: typeof PublicCoverageRouteImport
+      parentRoute: typeof PublicRoute
     }
     '/_protected/zones': {
       id: '/_protected/zones'
@@ -836,12 +849,24 @@ const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
   ProtectedRouteChildren,
 )
 
+interface PublicRouteChildren {
+  PublicCoverageRoute: typeof PublicCoverageRoute
+  PublicPricingRoute: typeof PublicPricingRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicCoverageRoute: PublicCoverageRoute,
+  PublicPricingRoute: PublicPricingRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRoute: ProtectedRouteWithChildren,
-  CoverageRoute: CoverageRoute,
+  PublicRoute: PublicRouteWithChildren,
   DocsRoute: DocsRoute,
-  PricingRoute: PricingRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   DotwellKnownApiCatalogRoute: DotwellKnownApiCatalogRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,

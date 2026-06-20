@@ -1,34 +1,6 @@
 import HeroSection from "@/components/shadcn-space/blocks/hero-15/hero";
-import type { NavigationSection } from "@/components/shadcn-space/blocks/hero-15/navbar";
 import Navbar from "@/components/shadcn-space/blocks/hero-15/navbar";
-
-const navigationData: NavigationSection[] = [
-	{
-		name: "Dashboard",
-		href: "/dashboard",
-	},
-	{
-		name: "Why Wherabouts",
-		href: "#why",
-		isActive: true,
-	},
-	{
-		name: "Capabilities",
-		href: "#capabilities",
-	},
-	{
-		name: "API",
-		href: "#api",
-	},
-	{
-		name: "Docs",
-		href: "/docs",
-	},
-	{
-		name: "Pricing",
-		href: "/pricing",
-	},
-];
+import { navigationData } from "@/components/shadcn-space/blocks/hero-15/navigation-data";
 
 const HeroPage = () => {
 	return (
