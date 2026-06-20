@@ -513,7 +513,7 @@ function AddressDemoInput() {
 
 	return (
 		<div aria-hidden="true" className="mx-auto w-full max-w-xl text-left">
-			<div className="relative h-[22rem] overflow-visible rounded-[2rem] border border-white/10 bg-background/70 p-2.5 shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl md:h-[24rem] md:p-4">
+			<div className="relative h-[21.25rem] overflow-visible rounded-[2rem] border border-white/10 bg-background/70 p-2.5 shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl md:h-[25.25rem] md:p-4">
 				<div className="mb-3 flex items-center justify-between gap-3 px-1">
 					<div className="flex items-center gap-2">
 						<div className="size-1.5 rounded-full bg-cyan-300" />
