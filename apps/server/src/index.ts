@@ -104,13 +104,18 @@ app.post("/api/stripe/webhook", async (context) => {
 	if (!signature) {
 		return context.json({ error: "missing signature" }, 400);
 	}
+	const webhookSecret = serverEnv.STRIPE_WEBHOOK_SECRET;
+	if (!webhookSecret) {
+		console.error("[stripe] STRIPE_WEBHOOK_SECRET is not configured");
+		return context.json({ error: "webhook not configured" }, 500);
+	}
 	const payload = await context.req.text();
 	let event: Stripe.Event;
 	try {
 		event = await getStripeClient().webhooks.constructEventAsync(
 			payload,
 			signature,
-			serverEnv.STRIPE_WEBHOOK_SECRET,
+			webhookSecret,
 			undefined,
 			stripeCryptoProvider
 		);
