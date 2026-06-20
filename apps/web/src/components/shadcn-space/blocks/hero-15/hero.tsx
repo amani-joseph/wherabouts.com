@@ -2,8 +2,11 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check, MapPin, Search } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useState } from "react";
-import { GlobeDemo } from "@/components/globe-demo";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+	type GlobeCoordinate,
+	HeroGlobe,
+} from "@/components/shadcn-space/blocks/hero-15/hero-globe";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -14,6 +17,8 @@ interface DemoSuggestion {
 }
 
 interface DemoScenario {
+	/** Coordinates of the selected (correct) address — drives the globe. */
+	coordinate: GlobeCoordinate;
 	query: string;
 	selectedIndex: number;
 	suggestions: readonly DemoSuggestion[];
@@ -39,6 +44,7 @@ const DEMO_SCENARIOS = [
 				meta: "Similar prefix, wrong city and route.",
 			},
 		],
+		coordinate: { lat: 37.422, lng: -122.0841 },
 	},
 	{
 		query: "350 Fifth",
@@ -57,6 +63,7 @@ const DEMO_SCENARIOS = [
 				meta: "Another plausible option from a different state.",
 			},
 		],
+		coordinate: { lat: 40.7484, lng: -73.9857 },
 	},
 	{
 		query: "10 Down",
@@ -75,8 +82,13 @@ const DEMO_SCENARIOS = [
 				meta: "Looks right at a glance, but isn't the same place.",
 			},
 		],
+		coordinate: { lat: 51.5034, lng: -0.1276 },
 	},
 ] as const satisfies readonly DemoScenario[];
+
+const DEMO_MARKERS: readonly GlobeCoordinate[] = DEMO_SCENARIOS.map(
+	(scenario) => scenario.coordinate
+);
 
 const TYPE_MS = 52;
 const DELETE_MS = 28;
@@ -356,6 +368,7 @@ function DemoSuggestionsPanel({
 
 interface PlayDemoScenarioOptions {
 	isCancelled: () => boolean;
+	onResolve: (coordinate: GlobeCoordinate) => void;
 	scenario: DemoScenario;
 	scenarioIndex: number;
 	setHighlightedIndex: (value: number | null) => void;
@@ -368,6 +381,7 @@ interface PlayDemoScenarioOptions {
 
 async function playDemoScenario({
 	isCancelled,
+	onResolve,
 	scenario,
 	scenarioIndex,
 	setHighlightedIndex,
@@ -419,6 +433,7 @@ async function playDemoScenario({
 	setHighlightedIndex(scenario.selectedIndex);
 	setSelectedIndex(scenario.selectedIndex);
 	setValue(selectedSuggestion.label);
+	onResolve(scenario.coordinate);
 	await sleep(PAUSE_SELECTED_MS);
 
 	if (isCancelled()) {
@@ -439,7 +454,11 @@ async function playDemoScenario({
 	setSelectedIndex(null);
 }
 
-function AddressDemoInput() {
+interface AddressDemoInputProps {
+	onResolve: (coordinate: GlobeCoordinate) => void;
+}
+
+function AddressDemoInput({ onResolve }: AddressDemoInputProps) {
 	const shouldReduceMotion = useReducedMotion() ?? false;
 	const [value, setValue] = useState("");
 	const [scenarioIndex, setScenarioIndex] = useState(0);
@@ -448,8 +467,16 @@ function AddressDemoInput() {
 	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 	const [phase, setPhase] = useState<DemoPhase>("typing");
 
+	// Held in a ref so changing the callback identity never restarts the loop.
+	const onResolveRef = useRef(onResolve);
+	useEffect(() => {
+		onResolveRef.current = onResolve;
+	}, [onResolve]);
+
 	useEffect(() => {
 		if (shouldReduceMotion) {
+			// No animation loop; surface the static scenario's location once.
+			onResolveRef.current(DEMO_SCENARIOS[0].coordinate);
 			return;
 		}
 
@@ -464,6 +491,7 @@ function AddressDemoInput() {
 
 				await playDemoScenario({
 					isCancelled,
+					onResolve: (coordinate) => onResolveRef.current(coordinate),
 					scenario,
 					scenarioIndex: currentScenarioIndex,
 					setHighlightedIndex,
@@ -573,6 +601,14 @@ function AddressDemoInput() {
 }
 
 const HeroSection = () => {
+	const shouldReduceMotion = useReducedMotion() ?? false;
+	const [activeLocation, setActiveLocation] = useState<GlobeCoordinate | null>(
+		null
+	);
+	const handleResolve = useCallback((coordinate: GlobeCoordinate) => {
+		setActiveLocation(coordinate);
+	}, []);
+
 	// Entrance animates position only (opacity stays 1) so the server and the
 	// client's first render produce identical, visible markup — no hydration
 	// mismatch and no blank flash before hydration. Driven on mount instead of
@@ -618,94 +654,112 @@ const HeroSection = () => {
 	};
 
 	return (
-		<section className="relative" id="top">
+		<section className="relative overflow-hidden" id="top">
+			{/* Variant 03 backdrop — dark radial glow toward the globe + radar sweep. */}
+			<div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_42%,rgba(10,28,24,0.75),transparent_68%)]" />
+				<motion.div
+					animate={shouldReduceMotion ? undefined : { rotate: 360 }}
+					className="absolute top-[42%] left-[80%] hidden h-[1200px] w-[1200px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_180deg,rgba(52,211,153,0.12),transparent_24%)] lg:block"
+					transition={{
+						duration: 9,
+						ease: "linear",
+						repeat: Number.POSITIVE_INFINITY,
+					}}
+				/>
+				<div className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-b from-transparent via-background/30 to-background" />
+			</div>
+
 			<motion.div
 				animate="visible"
-				className="relative mx-auto flex min-h-[70vh] max-w-7xl flex-col items-center justify-center gap-3 px-4 py-6 text-center md:min-h-[85vh] md:gap-6 md:py-14 lg:px-8 xl:px-16"
+				className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 py-10 md:py-14 lg:grid-cols-2 lg:gap-8 lg:px-8 lg:py-20 xl:px-16"
 				initial="hidden"
 				variants={containerVariants}
 			>
-				<div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-					<div className="absolute top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-cyan-400/5 blur-3xl md:h-72 md:w-72" />
-					<div className="absolute bottom-0 left-1/2 h-96 w-208 -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),rgba(6,32,86,0.03)_55%,transparent_78%)]" />
-					<div className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-b from-transparent via-background/30 to-background" />
-				</div>
-
-				<div className="relative z-10 flex max-w-3xl flex-col items-center justify-center gap-3 text-center md:gap-4">
+				{/* Left column — copy, CTAs, and the live address-search demo. */}
+				<div className="flex flex-col items-start gap-5 text-left">
 					<motion.div
-						className="flex w-fit items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1"
+						className="flex w-fit items-center gap-1.5 rounded-full border border-cyan-300/30 bg-background/60 px-3 py-1 backdrop-blur-sm"
 						variants={itemVariants}
 					>
-						<div className="h-1 w-1 rounded-full bg-teal-400" />
+						<div className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.9)]" />
 						<p className="font-normal text-foreground text-sm">
 							Location &amp; geocoding API — US, Australia &amp; expanding
 						</p>
 						<ArrowRight className="text-foreground" size={16} />
 					</motion.div>
-					<div className="flex flex-col items-center gap-3 text-center">
-						<motion.h1
-							className="max-w-7xl overflow-visible text-wrap text-balance rounded-[1rem] border border-white/10 bg-background/70 px-3 py-2 text-center font-normal text-foreground text-lg tracking-tight shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl sm:text-xl md:px-4 md:py-3 md:text-2xl"
-							variants={h1Variants}
-						>
-							{"Production-ready APIs for every location workflow"
-								.split("")
-								.map((char, i, chars) => (
-									<motion.span
-										key={`h1-${chars.slice(0, i + 1).join("")}`}
-										variants={charVariants}
-									>
-										{char}
-									</motion.span>
-								))}
-						</motion.h1>
-						<motion.p
-							className="max-w-2xl text-pretty font-normal text-foreground text-sm sm:text-base md:text-lg"
-							variants={itemVariants}
-						>
-							Address autocomplete, geocoding, geofencing, routing, device
-							tracking, and webhooks — ship location features without the
-							complexity.
-						</motion.p>
-					</div>
-					<motion.div
-						className="w-full max-w-2xl pt-2 md:pt-4"
+
+					<motion.h1
+						className="max-w-xl text-wrap text-balance font-semibold text-3xl text-foreground leading-[1.05] tracking-tight sm:text-4xl md:text-5xl"
+						variants={h1Variants}
+					>
+						{"Production-ready APIs for every location workflow"
+							.split("")
+							.map((char, i, chars) => (
+								<motion.span
+									key={`h1-${chars.slice(0, i + 1).join("")}`}
+									variants={charVariants}
+								>
+									{char}
+								</motion.span>
+							))}
+					</motion.h1>
+
+					<motion.p
+						className="max-w-lg text-pretty font-normal text-base text-muted-foreground md:text-lg"
 						variants={itemVariants}
 					>
-						<AddressDemoInput />
+						Address autocomplete, geocoding, geofencing, routing, device
+						tracking, and webhooks — ship location features without the
+						complexity.
+					</motion.p>
+
+					<motion.div
+						className="flex flex-wrap gap-2 pt-1"
+						variants={itemVariants}
+					>
+						<Link
+							className={cn(
+								buttonVariants({ variant: "default" }),
+								"h-auto cursor-pointer rounded-full bg-cyan-400 px-5 py-2.5 font-semibold text-slate-950 shadow-[0_8px_30px_-10px_rgba(34,211,238,0.7)] transition-colors hover:bg-cyan-300 md:px-6 md:py-3.5"
+							)}
+							to="/sign-up"
+						>
+							Get API access
+						</Link>
+						<Link
+							className={cn(
+								buttonVariants({ variant: "outline" }),
+								"inline-flex h-auto cursor-pointer items-center gap-2 rounded-full border-white/30 bg-white/10 px-5 py-2.5 font-medium text-foreground transition-colors hover:bg-white/20 md:px-6 md:py-3.5 dark:border-white/30 dark:bg-white/10 dark:hover:bg-white/20"
+							)}
+							to="/docs"
+						>
+							Read the docs
+							<ArrowRight className="text-foreground" size={16} />
+						</Link>
+					</motion.div>
+
+					<motion.div className="w-full pt-2" variants={itemVariants}>
+						<AddressDemoInput onResolve={handleResolve} />
 					</motion.div>
 				</div>
+
+				{/* Right column — interactive globe that flies to the resolved address. */}
 				<motion.div
-					className="relative z-10 flex flex-wrap justify-center gap-2 pt-2"
+					className="relative order-first w-full lg:order-none"
 					variants={itemVariants}
 				>
-					<Link
-						className={cn(
-							buttonVariants({ variant: "default" }),
-							"h-auto cursor-pointer rounded-full bg-cyan-400 px-5 py-2.5 font-semibold text-slate-950 shadow-[0_8px_30px_-10px_rgba(34,211,238,0.7)] transition-colors hover:bg-cyan-300 md:px-6 md:py-3.5"
-						)}
-						to="/sign-up"
-					>
-						Get API access
-					</Link>
-					<Link
-						className={cn(
-							buttonVariants({ variant: "outline" }),
-							"inline-flex h-auto cursor-pointer items-center gap-2 rounded-full border-white/30 bg-white/10 px-5 py-2.5 font-medium text-foreground transition-colors hover:bg-white/20 md:px-6 md:py-3.5 dark:border-white/30 dark:bg-white/10 dark:hover:bg-white/20"
-						)}
-						to="/docs"
-					>
-						Read the docs
-						<ArrowRight className="text-foreground" size={16} />
-					</Link>
-				</motion.div>
-				<div className="pointer-events-none absolute inset-x-0 -bottom-32 z-0 flex justify-center overflow-hidden opacity-85">
-					<GlobeDemo
-						className="-translate-x-8 md:-translate-x-12"
-						decorative
-						globeHeightClassName="h-[20rem] sm:h-[30rem] md:h-[60rem]"
+					<div className="absolute top-2 right-2 z-10 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-[rgba(5,12,10,0.7)] px-3 py-1.5 text-emerald-200/90 text-xs backdrop-blur-sm">
+						<span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
+						LIVE · drag to spin
+					</div>
+					<HeroGlobe
+						className="mx-auto max-w-md lg:max-w-none"
+						markers={DEMO_MARKERS}
+						reduceMotion={shouldReduceMotion}
+						target={activeLocation}
 					/>
-					<div className="pointer-events-none absolute inset-0 bg-linear-to-b from-background/50 via-transparent to-background" />
-				</div>
+				</motion.div>
 			</motion.div>
 		</section>
 	);
