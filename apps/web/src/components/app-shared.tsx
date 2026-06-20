@@ -10,7 +10,6 @@ import {
 	LayoutGridIcon,
 	MapIcon,
 	NavigationIcon,
-	PlugIcon,
 	SettingsIcon,
 	TerminalIcon,
 	UsersIcon,
@@ -60,11 +59,7 @@ export const navGroups: SidebarNavGroup[] = [
 				path: "/team",
 				icon: <UsersIcon />,
 			},
-			{
-				title: "Integrations",
-				path: "/integrations",
-				icon: <PlugIcon />,
-			},
+			// Integrations is hidden for now — feature to be built out later.
 			{
 				title: "API Keys",
 				path: "/api-keys",
