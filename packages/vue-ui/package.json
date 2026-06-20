@@ -1,6 +1,6 @@
 {
   "name": "@wherabouts/vue-ui",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "Production-ready Vue 3 components for Wherabouts SDK — address autocomplete, geocoding, and form fields with accessibility and customization.",
   "license": "MIT",
