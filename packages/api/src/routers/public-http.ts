@@ -80,7 +80,24 @@ const autocomplete = baseBuilder
 				longitude: input.lon,
 			}
 		);
-		return { results, count: results.length, parsedQuery };
+		// Map explicitly: the autocomplete contract exposes streetAddress (the
+		// combined line), not the individual street components that the shared
+		// AutocompleteResult now also carries for the forward-geocode response.
+		return {
+			results: results.map((r) => ({
+				id: r.id,
+				formattedAddress: r.formattedAddress,
+				streetAddress: r.streetAddress,
+				locality: r.locality,
+				state: r.state,
+				postcode: r.postcode,
+				country: r.country,
+				latitude: r.latitude,
+				longitude: r.longitude,
+			})),
+			count: results.length,
+			parsedQuery,
+		};
 	});
 
 const nearby = baseBuilder

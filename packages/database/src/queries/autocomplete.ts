@@ -26,6 +26,9 @@ export interface AutocompleteResult {
 	postcode: string;
 	state: string;
 	streetAddress: string;
+	streetName: string | null;
+	streetNumber: string | null;
+	streetType: string | null;
 }
 
 export interface RawAddressRow {
@@ -197,6 +200,9 @@ export function mapRowToResult(row: RawAddressRow): AutocompleteResult {
 			country: row.country,
 		}),
 		streetAddress,
+		streetName: row.street_name,
+		streetNumber: row.number_first,
+		streetType: row.street_type,
 		locality: row.locality,
 		state: row.state,
 		postcode: row.postcode ?? "",
