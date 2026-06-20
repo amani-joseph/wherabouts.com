@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { zoneManagementTools, zoneReadTools, zoneTools } from "./zones.ts";
 
+const CONFIRM = /confirm/i;
+
 const tool = (list: any[], name: string) => {
 	const t = list.find((x) => x.name === name);
 	if (!t) {
@@ -101,7 +103,7 @@ describe("zone management tools", () => {
 		const res = await mgmtTool("delete_zone").handler(client, { id: 5 });
 		expect(res.isError).toBe(true);
 		// biome-ignore lint/style/noNonNullAssertion: test assertion, content[0] guaranteed by handler
-		expect(res.content[0]!.text).toMatch(/confirm/i);
+		expect(res.content[0]!.text).toMatch(CONFIRM);
 		expect(del).not.toHaveBeenCalled();
 	});
 

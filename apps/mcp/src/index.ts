@@ -8,8 +8,10 @@ import type { Env, Props } from "./types.ts";
 export class WheraboutsMcp extends McpAgent<Env, unknown, Props> {
 	server = new McpServer({ name: "wherabouts", version: "0.1.0" });
 
+	// biome-ignore lint/suspicious/useAwait: McpAgent.init is an async lifecycle hook the framework awaits; this implementation wires tools synchronously but the signature must stay async to match the base class.
 	async init() {
 		registerTools(this.server, () =>
+			// biome-ignore lint/style/noNonNullAssertion: this.props is set per request by the Durable Object — fetch() below writes ctx.props and updateProps() refreshes this.props before init/handlers run.
 			buildClient(this.props!.apiKey, this.env.WHERABOUTS_API_BASE_URL)
 		);
 	}
@@ -42,6 +44,6 @@ export default {
 		// passes ctx.props into the Durable Object, where updateProps() refreshes
 		// this.props on every request so each call uses its own API key.
 		(ctx as ExecutionContext & { props: Props }).props = { apiKey };
-		return mcpHandler.fetch(request, env, ctx);
+		return await mcpHandler.fetch(request, env, ctx);
 	},
 };
