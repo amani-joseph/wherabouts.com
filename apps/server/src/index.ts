@@ -224,6 +224,12 @@ const openApiHandler = new OpenAPIHandler(publicHttpRouter, {
 	],
 });
 
+// Path patterns for endpoint metric names — hoisted so they aren't recompiled
+// on every request.
+const ZONES_ADDRESSES_PATH = /\/zones\/\d+\/addresses/;
+const DEVICES_ZONES_PATH = /\/devices\/[^/]+\/zones/;
+const DEVICES_LOCATION_PATH = /\/devices\/[^/]+\/location/;
+
 // Derive endpoint key from path for Server-Timing metric name
 function endpointKeyFromPath(pathname: string): string {
 	if (pathname.includes("/autocomplete")) {
@@ -244,16 +250,16 @@ function endpointKeyFromPath(pathname: string): string {
 	if (pathname.includes("/zones/contains")) {
 		return "zones_contains";
 	}
-	if (/\/zones\/\d+\/addresses/.test(pathname)) {
+	if (ZONES_ADDRESSES_PATH.test(pathname)) {
 		return "zones_addresses";
 	}
 	if (pathname.includes("/zones")) {
 		return "zones";
 	}
-	if (/\/devices\/[^/]+\/zones/.test(pathname)) {
+	if (DEVICES_ZONES_PATH.test(pathname)) {
 		return "devices_zones";
 	}
-	if (/\/devices\/[^/]+\/location/.test(pathname)) {
+	if (DEVICES_LOCATION_PATH.test(pathname)) {
 		return "devices_location";
 	}
 	if (pathname.includes("/webhooks")) {
@@ -394,6 +400,7 @@ export default {
 			}
 		}
 	},
+	// biome-ignore lint/suspicious/useAwait: Cloudflare scheduled handler — work is handed to ctx.waitUntil() as fire-and-forget so the handler returns immediately; awaiting here would defeat that. Signature must stay async to satisfy the handler type.
 	async scheduled(
 		_event: { cron: string; scheduledTime: number },
 		_env: unknown,

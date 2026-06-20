@@ -39,8 +39,8 @@ export async function processBatchGeocodeMessage(
 				const { results: matches } = await autocompleteAddresses(db, address, {
 					limit: 1,
 				});
-				if (matches.length > 0) {
-					const m = matches[0]!;
+				const m = matches[0];
+				if (m) {
 					results.push({
 						input: address,
 						matched: true,

@@ -6,9 +6,6 @@ import {
 import { and, eq, isNull, or, sql } from "drizzle-orm";
 import { hmacSign } from "./hmac.ts";
 
-// Re-export for consumers that import from this module.
-export { hmacSign } from "./hmac.ts";
-
 export interface WebhookDeliveryMessage {
 	deviceId: string;
 	event: "entry" | "exit";
