@@ -10,6 +10,10 @@ describe("PUBLIC_PATHS", () => {
 		expect(PUBLIC_PATHS.some((p) => p.path === "/pricing")).toBe(true);
 	});
 
+	it("includes the coverage page", () => {
+		expect(PUBLIC_PATHS.some((p) => p.path === "/coverage")).toBe(true);
+	});
+
 	it("gives every entry a non-empty priority", () => {
 		for (const entry of PUBLIC_PATHS) {
 			expect(entry.priority.length).toBeGreaterThan(0);
