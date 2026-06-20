@@ -63,4 +63,38 @@ describe("parseFreeformAddress", () => {
 		expect(r.houseNumber).toBe("1-3");
 		expect(r.streetTokens).toEqual(["ROCKET", "ROAD"]);
 	});
+
+	it("parses a Canadian address with full postcode and province", () => {
+		const r = parseFreeformAddress("150 Elgin St, Ottawa, ON K1A 0B1, Canada");
+		expect(r.houseNumber).toBe("150");
+		expect(r.region).toBe("ON");
+		expect(r.postcode).toBe("K1A 0B1");
+		expect(r.countryCode).toBe("CA");
+		expect(r.locality).toBe("OTTAWA");
+	});
+
+	it("normalizes street-first input to number-first (Iceland convention)", () => {
+		const r = parseFreeformAddress("Laugavegur 26");
+		expect(r.houseNumber).toBe("26");
+		expect(r.streetTokens).toEqual(["LAUGAVEGUR"]);
+		expect(r.cleaned).toBe("26 LAUGAVEGUR");
+		// high confidence routes it through the number-first structured path
+		expect(r.confidence).toBe("high");
+	});
+
+	it("normalizes street-first within a full address", () => {
+		const r = parseFreeformAddress("Laugavegur 26, Reykjavik, IS");
+		expect(r.houseNumber).toBe("26");
+		expect(r.streetTokens).toEqual(["LAUGAVEGUR"]);
+		expect(r.locality).toBe("REYKJAVIK");
+		expect(r.countryCode).toBe("IS");
+		expect(r.cleaned).toBe("26 LAUGAVEGUR REYKJAVIK");
+	});
+
+	it("does not treat number-first typeahead as street-first", () => {
+		const r = parseFreeformAddress("120 Mai");
+		expect(r.houseNumber).toBe("120");
+		expect(r.streetTokens).toEqual(["MAI"]);
+		expect(r.confidence).toBe("low");
+	});
 });
