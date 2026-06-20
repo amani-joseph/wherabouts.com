@@ -23,6 +23,42 @@ export function toLngLat(point: HasCoords): [number, number] {
 	return [point.longitude, point.latitude];
 }
 
+// Resolve ISO 3166-1 country codes to display names via the platform Intl data —
+// full international coverage with zero maintenance. Lazily constructed and
+// cached per locale so repeated calls are cheap.
+const regionDisplayCache = new Map<string, Intl.DisplayNames | null>();
+
+function regionDisplayNames(locale: string): Intl.DisplayNames | null {
+	const cached = regionDisplayCache.get(locale);
+	if (cached !== undefined) {
+		return cached;
+	}
+	const instance =
+		typeof Intl !== "undefined" && "DisplayNames" in Intl
+			? new Intl.DisplayNames([locale], { type: "region" })
+			: null;
+	regionDisplayCache.set(locale, instance);
+	return instance;
+}
+
+/**
+ * ISO 3166-1 country code → display name (e.g. `"US"` → `"United States"`,
+ * `"IS"` → `"Iceland"`). Falls back to the raw code when `Intl.DisplayNames`
+ * is unavailable or the code is malformed. Defaults to English; pass a BCP-47
+ * `locale` for localized names.
+ */
+export function countryName(code: string, locale = "en"): string {
+	if (!code) {
+		return code;
+	}
+	try {
+		return regionDisplayNames(locale)?.of(code.toUpperCase()) ?? code;
+	} catch {
+		// of() throws RangeError on malformed codes — keep the raw value.
+		return code;
+	}
+}
+
 const EARTH_RADIUS_M = 6_371_000;
 const DEG = Math.PI / 180;
 

@@ -2,6 +2,7 @@
 export { createWheraboutsClient, type WheraboutsClient } from "./client.ts";
 export { WheraboutsApiError } from "./errors.ts";
 export {
+	countryName,
 	distanceMeters,
 	getLatLng,
 	type LatLng,
