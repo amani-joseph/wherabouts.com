@@ -18,12 +18,19 @@ export function useZoneContains(
 	const [error, setError] = useState<Error | null>(null);
 	const abortRef = useRef<AbortController | null>(null);
 
+	// Depend on the primitive lat/lng rather than the coords object so the effect
+	// re-runs only when the coordinates actually change, not on every new object
+	// identity a caller may pass. Capturing these locals (not `coords`) also keeps
+	// the dependency array exhaustive.
+	const lat = coords?.lat ?? null;
+	const lng = coords?.lng ?? null;
+
 	useEffect(() => {
 		if (abortRef.current) {
 			abortRef.current.abort();
 		}
 
-		if (!coords) {
+		if (lat === null || lng === null) {
 			setZones([]);
 			setLoading(false);
 			setError(null);
@@ -36,7 +43,7 @@ export function useZoneContains(
 		setError(null);
 
 		client.zones
-			.contains(coords, { signal: controller.signal })
+			.contains({ lat, lng }, { signal: controller.signal })
 			.then((res) => {
 				if (!controller.signal.aborted) {
 					setZones(res.zones);
@@ -56,7 +63,7 @@ export function useZoneContains(
 		return () => {
 			controller.abort();
 		};
-	}, [coords?.lat, coords?.lng, client]);
+	}, [lat, lng, client]);
 
 	return { zones, loading, error };
 }
