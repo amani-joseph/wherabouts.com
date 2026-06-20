@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 export default function Footer() {
 	const footerLinksProduct = [
 		{ label: "Documentation", href: "/docs" },
+		{ label: "Coverage", href: "/coverage" },
 		{ label: "Capabilities", href: "#capabilities" },
 		{ label: "API in action", href: "#api" },
 	];
