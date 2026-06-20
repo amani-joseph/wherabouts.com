@@ -88,6 +88,25 @@ const docsNavGroups: DocsSectionGroup[] = [
 		],
 	},
 	{
+		label: "React UI",
+		items: [
+			{ title: "Overview", href: "#react-ui" },
+			{ title: "AddressAutocomplete", href: "#react-address-autocomplete" },
+			{ title: "AddressFormField", href: "#react-address-form-field" },
+			{ title: "AddressFieldGroup", href: "#react-address-field-group" },
+			{ title: "ForwardGeocodeInput", href: "#react-forward-geocode" },
+			{ title: "ReverseGeocodeInput", href: "#react-reverse-geocode" },
+		],
+	},
+	{
+		label: "Vue UI",
+		items: [
+			{ title: "Overview", href: "#vue-ui" },
+			{ title: "Available Today", href: "#vue-available" },
+			{ title: "Components (Phase 2)", href: "#vue-components" },
+		],
+	},
+	{
 		label: "Core Endpoints",
 		items: [
 			{ title: "Autocomplete", href: "#autocomplete" },
@@ -1188,6 +1207,487 @@ function EndpointSection({ endpoint }: { endpoint: EndpointDoc }) {
 	);
 }
 
+interface ComponentPropDoc {
+	default?: string;
+	description: string;
+	name: string;
+	required?: boolean;
+	type: string;
+}
+
+interface ComponentDoc {
+	example: string;
+	href: string;
+	name: string;
+	props: ComponentPropDoc[];
+	summary: string;
+}
+
+const reactComponents: ComponentDoc[] = [
+	{
+		name: "AddressAutocomplete",
+		href: "#react-address-autocomplete",
+		summary:
+			"Accessible (WAI-ARIA combobox) debounced address search with keyboard navigation, proximity bias, session tokens, i18n strings, and customizable render slots. Provide a client created with createWheraboutsClient.",
+		example: `import { createWheraboutsClient } from "@wherabouts/sdk";
+import { AddressAutocomplete } from "@wherabouts/react-ui";
+import "@wherabouts/react-ui/styles.css";
+
+const client = createWheraboutsClient({
+  apiKey: import.meta.env.VITE_WHERABOUTS_KEY,
+});
+
+export function Checkout() {
+  return (
+    <AddressAutocomplete
+      client={client}
+      placeholder="Start typing an address…"
+      onSelect={(address) => console.log(address.formattedAddress)}
+    />
+  );
+}`,
+		props: [
+			{
+				name: "client",
+				type: "WheraboutsClient",
+				required: true,
+				description: "SDK client created with createWheraboutsClient.",
+			},
+			{
+				name: "onSelect",
+				type: "(address: AddressWithParsed) => void",
+				description: "Called when a suggestion is selected.",
+			},
+			{
+				name: "onQueryChange",
+				type: "(query: string) => void",
+				description: "Called as the input text changes.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Input placeholder text.",
+			},
+			{
+				name: "debounceMs",
+				type: "number",
+				default: "300",
+				description: "Debounce in ms before querying the API.",
+			},
+			{
+				name: "minCharsToSearch",
+				type: "number",
+				default: "2",
+				description: "Minimum characters typed before searching.",
+			},
+			{
+				name: "maxSuggestions",
+				type: "number",
+				default: "5",
+				description: "Maximum number of suggestions to show.",
+			},
+			{
+				name: "enableGeolocation",
+				type: "boolean",
+				default: "false",
+				description:
+					"Use the browser's geolocation to bias results by proximity.",
+			},
+			{
+				name: "userLat",
+				type: "number",
+				description:
+					"Explicit latitude for proximity bias (instead of geolocation).",
+			},
+			{
+				name: "userLng",
+				type: "number",
+				description:
+					"Explicit longitude for proximity bias (instead of geolocation).",
+			},
+			{
+				name: "sessionToken",
+				type: "string",
+				description:
+					"Group a run of keystrokes into one billable search (see SDK newSessionToken()).",
+			},
+			{ name: "disabled", type: "boolean", description: "Disable the input." },
+			{
+				name: "required",
+				type: "boolean",
+				description: "Mark the input as required.",
+			},
+			{
+				name: "error",
+				type: "string",
+				description: "External error message to display.",
+			},
+			{
+				name: "id",
+				type: "string",
+				default: '"wherabouts-autocomplete"',
+				description: "id forwarded to the input element.",
+			},
+			{
+				name: "className",
+				type: "string",
+				description: "Class applied to the root container.",
+			},
+			{
+				name: "i18nStrings",
+				type: "Partial<AddressI18nStrings>",
+				description: "Override built-in UI strings (no results, retry, etc.).",
+			},
+			{
+				name: "renderSuggestion",
+				type: "(address: AddressWithParsed, isActive: boolean) => ReactNode",
+				description: "Render a custom suggestion row.",
+			},
+			{
+				name: "renderEmpty",
+				type: "() => ReactNode",
+				description: "Render a custom empty state.",
+			},
+			{
+				name: "renderLoading",
+				type: "() => ReactNode",
+				description: "Render a custom loading state.",
+			},
+			{
+				name: "renderError",
+				type: "(error: Error | null) => ReactNode",
+				description: "Render a custom error state.",
+			},
+		],
+	},
+	{
+		name: "AddressFormField",
+		href: "#react-address-form-field",
+		summary:
+			"AddressAutocomplete wrapped with a <label> and error styling — a drop-in form field. Accepts every AddressAutocomplete prop plus the fields below.",
+		example: `import { createWheraboutsClient } from "@wherabouts/sdk";
+import { AddressFormField } from "@wherabouts/react-ui";
+import "@wherabouts/react-ui/styles.css";
+
+const client = createWheraboutsClient({
+  apiKey: import.meta.env.VITE_WHERABOUTS_KEY,
+});
+
+export function Checkout() {
+  return (
+    <AddressFormField
+      client={client}
+      label="Delivery address"
+      required
+      onSelect={setAddress}
+    />
+  );
+}`,
+		props: [
+			{
+				name: "label",
+				type: "string",
+				required: true,
+				description: "Text content of the <label> element.",
+			},
+			{
+				name: "labelClassName",
+				type: "string",
+				description: "Additional class(es) applied to the <label> element.",
+			},
+			{
+				name: "errorClassName",
+				type: "string",
+				description:
+					"Additional class(es) applied to the error text <p> element.",
+			},
+			{
+				name: "…AddressAutocomplete props",
+				type: "AddressAutocompleteProps",
+				description:
+					"Every AddressAutocomplete prop is forwarded unchanged (client, onSelect, placeholder, debounceMs, proximity bias, render slots, etc.).",
+			},
+		],
+	},
+	{
+		name: "AddressFieldGroup",
+		href: "#react-address-field-group",
+		summary:
+			"A controlled group of structured inputs (street, suburb, state, postcode) for editing a full address. Provide value and onChange.",
+		example: `import { useState } from "react";
+import { createWheraboutsClient } from "@wherabouts/sdk";
+import {
+  AddressFieldGroup,
+  type AddressFieldGroupValue,
+} from "@wherabouts/react-ui";
+
+const client = createWheraboutsClient({ apiKey: "..." });
+
+const EMPTY: AddressFieldGroupValue = {
+  street: "",
+  suburb: "",
+  state: "",
+  postcode: "",
+};
+
+function MyForm() {
+  const [address, setAddress] = useState<AddressFieldGroupValue>(EMPTY);
+
+  return (
+    <AddressFieldGroup client={client} value={address} onChange={setAddress} />
+  );
+}`,
+		props: [
+			{
+				name: "client",
+				type: "WheraboutsClient",
+				required: true,
+				description: "SDK client created with createWheraboutsClient.",
+			},
+			{
+				name: "value",
+				type: "AddressFieldGroupValue",
+				required: true,
+				description: "Controlled value for the field group.",
+			},
+			{
+				name: "onChange",
+				type: "(value: AddressFieldGroupValue) => void",
+				required: true,
+				description:
+					"Change handler called with the updated value on any field edit.",
+			},
+			{
+				name: "streetLabel",
+				type: "string",
+				default: '"Street Address"',
+				description: "Override the street address field label.",
+			},
+			{
+				name: "suburbLabel",
+				type: "string",
+				default: '"Suburb"',
+				description: "Override the suburb field label.",
+			},
+			{
+				name: "stateLabel",
+				type: "string",
+				default: '"State"',
+				description: "Override the state field label.",
+			},
+			{
+				name: "postcodeLabel",
+				type: "string",
+				default: '"Postcode"',
+				description: "Override the postcode field label.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables all fields.",
+			},
+			{
+				name: "className",
+				type: "string",
+				description: "Additional CSS class applied to the root container.",
+			},
+		],
+	},
+	{
+		name: "ForwardGeocodeInput",
+		href: "#react-forward-geocode",
+		summary:
+			"Resolves a free-text address string to coordinates (forward geocoding) as the query prop changes. Controlled: the parent owns query and receives results via onResult. Renders a read-only display of the resolved latitude, longitude pair.",
+		example: `import { createWheraboutsClient } from "@wherabouts/sdk";
+import { ForwardGeocodeInput } from "@wherabouts/react-ui";
+
+const client = createWheraboutsClient({ apiKey: "..." });
+
+function MyComponent() {
+  const [query, setQuery] = React.useState("");
+
+  return (
+    <>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} />
+      <ForwardGeocodeInput
+        client={client}
+        query={query}
+        onResult={(r) => console.log(r.latitude, r.longitude)}
+      />
+    </>
+  );
+}`,
+		props: [
+			{
+				name: "client",
+				type: "WheraboutsClient",
+				required: true,
+				description: "SDK client created with createWheraboutsClient.",
+			},
+			{
+				name: "query",
+				type: "string | null",
+				required: true,
+				description:
+					"Address text to geocode. null or empty string skips the request.",
+			},
+			{
+				name: "onResult",
+				type: "(r: { latitude: number | null; longitude: number | null; formattedAddress: string | null }) => void",
+				description:
+					"Called whenever the resolved result changes. All fields are null when no result is available.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				default: '"Coordinates will appear here"',
+				description: "Placeholder text for the read-only display input.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "id forwarded to the input element.",
+			},
+			{
+				name: "className",
+				type: "string",
+				description: "Additional CSS class applied to the input element.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables the input.",
+			},
+		],
+	},
+	{
+		name: "ReverseGeocodeInput",
+		href: "#react-reverse-geocode",
+		summary:
+			"Resolves a latitude/longitude pair to the nearest address (reverse geocoding). No request is made until both coordinates are non-null.",
+		example: `import { createWheraboutsClient } from "@wherabouts/sdk";
+import { ReverseGeocodeInput } from "@wherabouts/react-ui";
+
+const client = createWheraboutsClient({ apiKey: "..." });
+
+function MyComponent() {
+  const [coords, setCoords] = React.useState<{
+    lat: number | null;
+    lng: number | null;
+  }>({ lat: null, lng: null });
+
+  return (
+    <ReverseGeocodeInput
+      client={client}
+      latitude={coords.lat}
+      longitude={coords.lng}
+      onResult={(r) => console.log(r.address, r.distance)}
+    />
+  );
+}`,
+		props: [
+			{
+				name: "client",
+				type: "WheraboutsClient",
+				required: true,
+				description: "SDK client created with createWheraboutsClient.",
+			},
+			{
+				name: "latitude",
+				type: "number | null",
+				required: true,
+				description:
+					"Latitude to reverse-geocode. null suppresses the request.",
+			},
+			{
+				name: "longitude",
+				type: "number | null",
+				required: true,
+				description:
+					"Longitude to reverse-geocode. null suppresses the request.",
+			},
+			{
+				name: "onResult",
+				type: "(r: { address: string | null; distance: number | null }) => void",
+				description:
+					"Called whenever the resolved address changes. Both fields are null when no result is available.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				default: '"Address will appear here"',
+				description: "Placeholder text for the read-only display input.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "id forwarded to the input element.",
+			},
+			{
+				name: "className",
+				type: "string",
+				description: "Additional CSS class applied to the input element.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables the input.",
+			},
+		],
+	},
+];
+
+function ComponentReference({ component }: { component: ComponentDoc }) {
+	return (
+		<section className="scroll-mt-24 space-y-5" id={component.href.slice(1)}>
+			<div className="space-y-2">
+				<h3 className="font-semibold text-xl tracking-tight">
+					{component.name}
+				</h3>
+				<p className="max-w-3xl text-base text-muted-foreground leading-7">
+					{component.summary}
+				</p>
+			</div>
+
+			<CodeBlock code={component.example} label="Usage" />
+
+			<div className="space-y-3">
+				<p className="font-medium text-muted-foreground text-xs uppercase tracking-[0.18em]">
+					Props
+				</p>
+				<div className="grid gap-3">
+					{component.props.map((prop) => (
+						<div className="rounded-lg border p-3" key={prop.name}>
+							<div className="flex flex-wrap items-center gap-2">
+								<code className="break-all font-semibold text-sm">
+									{prop.name}
+								</code>
+								<Badge variant={prop.required ? "default" : "secondary"}>
+									{prop.required ? "Required" : "Optional"}
+								</Badge>
+								{prop.default ? (
+									<Badge className="font-mono" variant="outline">
+										default: {prop.default}
+									</Badge>
+								) : null}
+							</div>
+							<code className="mt-2 block break-all font-mono text-muted-foreground text-xs leading-5">
+								{prop.type}
+							</code>
+							<p className="mt-1 text-muted-foreground text-sm leading-6">
+								{prop.description}
+							</p>
+						</div>
+					))}
+				</div>
+			</div>
+		</section>
+	);
+}
+
 export function DocsPage() {
 	const [activeSection, setActiveSection] = useState("overview");
 
@@ -1254,7 +1754,9 @@ export function DocsPage() {
 	}, []);
 
 	return (
-		<SidebarProvider className={cn("[--docs-wrapper-max-width:96rem]")}>
+		<SidebarProvider
+			className={cn("min-w-0 max-w-full [--docs-wrapper-max-width:96rem]")}
+		>
 			<Sidebar
 				className="border-r *:data-[slot=sidebar-inner]:bg-background"
 				collapsible="offcanvas"
@@ -1314,19 +1816,19 @@ export function DocsPage() {
 				<SidebarRail />
 			</Sidebar>
 
-			<SidebarInset>
-				<header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-background/95 px-4 backdrop-blur">
-					<div className="flex items-center gap-3">
+			<SidebarInset className="min-w-0">
+				<header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b bg-background/95 px-4 backdrop-blur">
+					<div className="flex min-w-0 items-center gap-3">
 						<SidebarTrigger className="md:hidden" />
-						<div>
+						<div className="min-w-0">
 							<p className="font-medium text-sm">Docs</p>
-							<p className="text-muted-foreground text-xs">
+							<p className="truncate text-muted-foreground text-xs">
 								{currentSectionTitle}
 							</p>
 						</div>
 					</div>
 
-					<div className="flex items-center gap-2">
+					<div className="flex shrink-0 items-center gap-2">
 						<Link to="/sign-in">
 							<Button size="sm" variant="ghost">
 								Sign in
@@ -1341,9 +1843,9 @@ export function DocsPage() {
 					</div>
 				</header>
 
-				<div className="mx-auto flex w-full max-w-(--docs-wrapper-max-width) flex-1 flex-col p-4 md:p-6">
-					<div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_15rem]">
-						<main className="space-y-12">
+				<div className="mx-auto flex w-full min-w-0 max-w-(--docs-wrapper-max-width) flex-1 flex-col overflow-x-clip p-4 md:p-6">
+					<div className="grid min-w-0 grid-cols-1 gap-10 xl:grid-cols-[minmax(0,1fr)_15rem]">
+						<main className="min-w-0 space-y-12">
 							<section className="scroll-mt-24 space-y-6" id="overview">
 								<div className="space-y-4">
 									<div className="flex flex-wrap gap-2">
@@ -1518,7 +2020,7 @@ export function DocsPage() {
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="space-y-3">
-											<code className="block rounded bg-muted px-3 py-2 font-mono text-sm">
+											<code className="block break-all rounded bg-muted px-3 py-2 font-mono text-sm">
 												https://api.wherabouts.com/api/openapi.json
 											</code>
 											<p className="text-muted-foreground text-sm leading-6">
@@ -1585,7 +2087,7 @@ export function DocsPage() {
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="space-y-3">
-											<code className="block rounded bg-muted px-3 py-2 font-mono text-sm">
+											<code className="block break-all rounded bg-muted px-3 py-2 font-mono text-sm">
 												@wherabouts/sdk
 											</code>
 											<p className="text-muted-foreground text-sm leading-6">
@@ -1705,6 +2207,236 @@ export function DocsPage() {
 										</p>
 									</CardContent>
 								</Card>
+							</section>
+
+							<section className="scroll-mt-24 space-y-6" id="react-ui">
+								<div className="space-y-3">
+									<p className="font-medium text-muted-foreground text-xs uppercase tracking-[0.2em]">
+										React UI
+									</p>
+									<div className="space-y-2">
+										<h2 className="font-semibold text-2xl tracking-tight">
+											@wherabouts/react-ui
+										</h2>
+										<p className="max-w-3xl text-base text-muted-foreground leading-7">
+											Production-ready React components for address
+											autocomplete, forward and reverse geocoding, and
+											structured address fields. Built on the SDK, styled with
+											Tailwind, shipped with a prebuilt stylesheet, accessible
+											to WCAG AA, and compatible with TanStack Form.
+										</p>
+									</div>
+									<div className="flex flex-wrap gap-2">
+										<Badge variant="secondary">React 18 / 19</Badge>
+										<Badge variant="secondary">WCAG AA</Badge>
+										<Badge variant="secondary">Prebuilt styles</Badge>
+									</div>
+								</div>
+
+								<CodeBlock
+									code={"npm install @wherabouts/react-ui @wherabouts/sdk"}
+									label="Install"
+								/>
+								<CodeBlock
+									code={
+										'// Import the stylesheet once, near your app root\nimport "@wherabouts/react-ui/styles.css";'
+									}
+									label="Stylesheet"
+								/>
+
+								<div className="grid gap-4 md:grid-cols-2">
+									{reactComponents.map((component) => (
+										<a
+											className="group/link block"
+											href={component.href}
+											key={component.href}
+										>
+											<Card className="h-full transition-colors hover:border-primary">
+												<CardHeader>
+													<CardTitle className="flex items-center gap-2 text-base">
+														<Code2Icon className="size-4 text-muted-foreground" />
+														{component.name}
+													</CardTitle>
+													<CardDescription className="line-clamp-2">
+														{component.summary}
+													</CardDescription>
+												</CardHeader>
+											</Card>
+										</a>
+									))}
+								</div>
+							</section>
+
+							{reactComponents.map((component) => (
+								<ComponentReference
+									component={component}
+									key={component.href}
+								/>
+							))}
+
+							<section className="scroll-mt-24 space-y-6" id="vue-ui">
+								<div className="space-y-3">
+									<p className="font-medium text-muted-foreground text-xs uppercase tracking-[0.2em]">
+										Vue UI
+									</p>
+									<div className="space-y-2">
+										<h2 className="font-semibold text-2xl tracking-tight">
+											@wherabouts/vue-ui
+										</h2>
+										<p className="max-w-3xl text-base text-muted-foreground leading-7">
+											The Vue 3 counterpart to react-ui — the same address
+											autocomplete, geocoding inputs, and structured address
+											fields. Built on the SDK and styled with Tailwind.
+										</p>
+									</div>
+									<div className="flex flex-wrap gap-2">
+										<Badge variant="secondary">Vue 3.0+</Badge>
+										<Badge variant="outline">Early access · v0.1.0</Badge>
+									</div>
+								</div>
+
+								<div className="rounded-xl border border-dashed bg-card p-4">
+									<div className="flex items-start gap-3">
+										<AlertTriangleIcon className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+										<div className="space-y-1">
+											<p className="font-medium text-sm">
+												Components are planned for Phase 2
+											</p>
+											<p className="text-muted-foreground text-sm leading-6">
+												Today the package ships the shared types and utilities
+												the components build on. The Vue 3 SFC components are
+												not yet exported — the reference below documents the
+												intended API.
+											</p>
+										</div>
+									</div>
+								</div>
+
+								<CodeBlock
+									code={"npm install @wherabouts/vue-ui @wherabouts/sdk"}
+									label="Install"
+								/>
+							</section>
+
+							<section className="scroll-mt-24 space-y-5" id="vue-available">
+								<div className="space-y-2">
+									<h3 className="font-semibold text-xl tracking-tight">
+										Available today
+									</h3>
+									<p className="max-w-3xl text-base text-muted-foreground leading-7">
+										The package exports the building blocks the components share
+										— usable right now.
+									</p>
+								</div>
+
+								<CodeBlock
+									code={
+										'import {\n  toAddressWithParsed,\n  cn,\n  type AddressWithParsed,\n  type AddressI18nStrings,\n  type AddressSuggestionInput,\n} from "@wherabouts/vue-ui";'
+									}
+									label="Exports"
+								/>
+
+								<div className="grid gap-3">
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											toAddressWithParsed(suggestion)
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Maps a raw SDK AddressSuggestion into the flattened
+											AddressWithParsed shape the components use
+											(formattedAddress, latitude, longitude, plus parsed
+											streetAddress, suburb, state, postcode, and country).
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											cn(...classes)
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											The clsx + tailwind-merge class combiner used internally
+											for composing Tailwind classes without conflicts.
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											AddressWithParsed · AddressI18nStrings ·
+											AddressSuggestionInput
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Shared types: the flattened address shape, the overridable
+											UI strings, and the SDK suggestion input type.
+										</p>
+									</div>
+								</div>
+							</section>
+
+							<section className="scroll-mt-24 space-y-5" id="vue-components">
+								<div className="space-y-2">
+									<div className="flex flex-wrap items-center gap-2">
+										<h3 className="font-semibold text-xl tracking-tight">
+											Components
+										</h3>
+										<Badge variant="outline">Phase 2 · preview</Badge>
+									</div>
+									<p className="max-w-3xl text-base text-muted-foreground leading-7">
+										The Vue 3 SFC components mirror their react-ui counterparts.
+										Each takes a client created with createWheraboutsClient.
+										This is the intended API; the components are not yet
+										exported.
+									</p>
+								</div>
+
+								<CodeBlock
+									code={
+										'<script setup lang="ts">\nimport { createWheraboutsClient } from "@wherabouts/sdk";\nimport { AddressAutocomplete } from "@wherabouts/vue-ui";\nimport "@wherabouts/vue-ui/styles.css";\n\nconst client = createWheraboutsClient({\n  apiKey: import.meta.env.VITE_WHERABOUTS_KEY,\n});\n\nfunction onSelect(address) {\n  console.log(address.formattedAddress, address.latitude);\n}\n</script>\n\n<template>\n  <AddressAutocomplete :client="client" @select="onSelect" />\n</template>'
+									}
+									label="Preview (Phase 2)"
+								/>
+
+								<div className="grid gap-3">
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											AddressAutocomplete
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Accessible combobox address search with proximity bias and
+											i18n strings.
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											AddressFormField
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											AddressAutocomplete wrapped with a label and error
+											styling.
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											AddressFieldGroup
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Structured street, suburb, state, and postcode inputs.
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											ForwardGeocodeInput
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Resolves a free-text address string to coordinates.
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											ReverseGeocodeInput
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Resolves a latitude/longitude pair to the nearest address.
+										</p>
+									</div>
+								</div>
 							</section>
 
 							<div className="space-y-10">
@@ -2066,7 +2798,7 @@ const payload = JSON.parse(rawBody);`}
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="space-y-3">
-											<code className="block rounded bg-muted px-3 py-2 font-mono text-sm">
+											<code className="block break-all rounded bg-muted px-3 py-2 font-mono text-sm">
 												https://api.wherabouts.com/api/health
 											</code>
 											<p className="text-muted-foreground text-sm leading-6">

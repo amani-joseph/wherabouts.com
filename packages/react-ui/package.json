@@ -17,6 +17,7 @@
   },
   "files": [
     "dist",
+    "docs",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
@@ -26,7 +27,9 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "pnpm build",
+    "storybook": "storybook dev -p 6006 --no-open",
+    "build-storybook": "storybook build"
   },
   "peerDependencies": {
     "react": ">=19.0.0",
@@ -35,6 +38,8 @@
     "@wherabouts/react": ">=0.2.0"
   },
   "devDependencies": {
+    "@storybook/addon-a11y": "^9.0.0",
+    "@storybook/react-vite": "^9.0.0",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^15.0.0",
     "@testing-library/user-event": "^14.5.1",
@@ -47,9 +52,11 @@
     "jsdom": "^23.0.1",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "storybook": "^9.0.0",
     "tailwind-merge": "^2.3.0",
     "tsup": "^8.0.2",
     "typescript": "^5.4.4",
+    "vite": "^7.0.2",
     "vitest": "^1.2.0"
   }
 }

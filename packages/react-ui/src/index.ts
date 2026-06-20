@@ -1,31 +1,31 @@
 // biome-ignore lint/performance/noBarrelFile: public entry point
-export type {
-	AddressWithParsed,
-	AddressI18nStrings,
-	AddressValidateFn,
-	AddressSuggestionInput,
-} from "./types";
-export { toAddressWithParsed } from "./utils/parse-address";
-export { cn } from "./utils/cn";
 
 export {
 	AddressAutocomplete,
 	type AddressAutocompleteProps,
 } from "./components/address-autocomplete";
 export {
+	AddressFieldGroup,
+	type AddressFieldGroupProps,
+	type AddressFieldGroupValue,
+} from "./components/address-field-group";
+export {
 	AddressFormField,
 	type AddressFormFieldProps,
 } from "./components/address-form-field";
-export {
-	ReverseGeocodeInput,
-	type ReverseGeocodeInputProps,
-} from "./components/reverse-geocode-input";
 export {
 	ForwardGeocodeInput,
 	type ForwardGeocodeInputProps,
 } from "./components/forward-geocode-input";
 export {
-	AddressFieldGroup,
-	type AddressFieldGroupProps,
-	type AddressFieldGroupValue,
-} from "./components/address-field-group";
+	ReverseGeocodeInput,
+	type ReverseGeocodeInputProps,
+} from "./components/reverse-geocode-input";
+export type {
+	AddressI18nStrings,
+	AddressSuggestionInput,
+	AddressValidateFn,
+	AddressWithParsed,
+} from "./types";
+export { cn } from "./utils/cn";
+export { toAddressWithParsed } from "./utils/parse-address";

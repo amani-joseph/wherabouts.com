@@ -24,6 +24,10 @@ const updateProjectApiKeyInputSchema = z.object({
 	apiKeyId: z.string().uuid(),
 });
 
+const deleteProjectInputSchema = z.object({
+	projectId: z.string().uuid(),
+});
+
 function normalizeProjectName(name: string): string {
 	return name.trim().replace(/\s+/g, " ");
 }
@@ -138,6 +142,58 @@ async function assignApiKeyToProject(
 	}
 
 	return serializeApiKey(assignedKey, null);
+}
+
+/**
+ * Soft-delete a project the user owns: archive it (so it drops out of every
+ * `isNull(archivedAt)` read) and detach its API keys so they stay active and
+ * become reusable by other projects. Throws if the project does not exist,
+ * belongs to someone else, or is already archived.
+ */
+export async function deleteProjectForUser(
+	db: DatabaseLike,
+	input: {
+		projectId: string;
+		userId: string;
+	}
+): Promise<{ id: string }> {
+	const [projectRow] = await db
+		.select({ id: projects.id })
+		.from(projects)
+		.where(
+			and(
+				eq(projects.id, input.projectId),
+				eq(projects.userId, input.userId),
+				isNull(projects.archivedAt)
+			)
+		)
+		.limit(1);
+
+	if (!projectRow) {
+		throw new Error("Project not found.");
+	}
+
+	// Free the project's API keys first so they remain active and available to
+	// assign elsewhere — only revoked keys are left untouched.
+	await db
+		.update(apiKeys)
+		.set({ projectId: null })
+		.where(
+			and(
+				eq(apiKeys.userId, input.userId),
+				eq(apiKeys.projectId, input.projectId),
+				isNull(apiKeys.revokedAt)
+			)
+		);
+
+	await db
+		.update(projects)
+		.set({ archivedAt: new Date() })
+		.where(
+			and(eq(projects.id, input.projectId), eq(projects.userId, input.userId))
+		);
+
+	return { id: projectRow.id };
 }
 
 export const projectsRouter = {
@@ -299,5 +355,15 @@ export const projectsRouter = {
 					assignmentStatus: "assigned" as const,
 				},
 			};
+		}),
+	delete: protectedProcedure
+		.input(deleteProjectInputSchema)
+		.handler(async ({ context, input }) => {
+			const authUserId = context.session.user.id;
+
+			return await deleteProjectForUser(context.db, {
+				projectId: input.projectId,
+				userId: authUserId,
+			});
 		}),
 };

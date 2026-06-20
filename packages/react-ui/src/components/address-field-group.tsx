@@ -1,26 +1,39 @@
-import { type ReactNode } from "react";
 import type { WheraboutsClient } from "@wherabouts/sdk";
+import type { ReactNode } from "react";
 import type { AddressWithParsed } from "../types";
-import { AddressAutocomplete } from "./address-autocomplete";
 import { cn } from "../utils/cn";
+import { AddressAutocomplete } from "./address-autocomplete";
 
 export interface AddressFieldGroupValue {
-	street: string;
-	suburb: string;
-	state: string;
+	/** Postcode field value. */
 	postcode: string;
+	/** State field value. */
+	state: string;
+	/** Street address field value. */
+	street: string;
+	/** Suburb field value. */
+	suburb: string;
 }
 
 export interface AddressFieldGroupProps {
-	client: WheraboutsClient;
-	value: AddressFieldGroupValue;
-	onChange: (value: AddressFieldGroupValue) => void;
+	/** Class applied to the root container. */
 	className?: string;
+	/** Required. SDK client created with `createWheraboutsClient`. */
+	client: WheraboutsClient;
+	/** Disable all fields. */
 	disabled?: boolean;
-	streetLabel?: string;
-	suburbLabel?: string;
-	stateLabel?: string;
+	/** Required. Change handler, called with the updated value on any field edit. */
+	onChange: (value: AddressFieldGroupValue) => void;
+	/** Override the postcode field label. */
 	postcodeLabel?: string;
+	/** Override the state field label. */
+	stateLabel?: string;
+	/** Override the street address field label. */
+	streetLabel?: string;
+	/** Override the suburb field label. */
+	suburbLabel?: string;
+	/** Required. Controlled value for the field group. */
+	value: AddressFieldGroupValue;
 }
 
 export function AddressFieldGroup({
@@ -55,8 +68,8 @@ export function AddressFieldGroup({
 
 	return (
 		<div
-			data-slot="address-field-group"
 			className={cn("flex flex-col gap-4", className)}
+			data-slot="address-field-group"
 		>
 			<AddressAutocomplete
 				client={client}
@@ -66,78 +79,78 @@ export function AddressFieldGroup({
 			/>
 
 			<div
-				data-slot="address-field-group-inputs"
 				className="grid grid-cols-2 gap-4"
+				data-slot="address-field-group-inputs"
 			>
 				<div className="col-span-2">
 					<label
-						htmlFor="field-street"
 						className="mb-1 block font-medium text-foreground text-sm"
+						htmlFor="field-street"
 					>
 						{streetLabel}
 					</label>
 					<input
-						id="field-street"
-						type="text"
-						disabled={disabled}
-						value={value.street}
-						onChange={(e) => handleFieldChange("street", e.target.value)}
 						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+						disabled={disabled}
+						id="field-street"
+						onChange={(e) => handleFieldChange("street", e.target.value)}
 						placeholder="Street address"
+						type="text"
+						value={value.street}
 					/>
 				</div>
 
 				<div>
 					<label
-						htmlFor="field-suburb"
 						className="mb-1 block font-medium text-foreground text-sm"
+						htmlFor="field-suburb"
 					>
 						{suburbLabel}
 					</label>
 					<input
-						id="field-suburb"
-						type="text"
-						disabled={disabled}
-						value={value.suburb}
-						onChange={(e) => handleFieldChange("suburb", e.target.value)}
 						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+						disabled={disabled}
+						id="field-suburb"
+						onChange={(e) => handleFieldChange("suburb", e.target.value)}
 						placeholder="Suburb"
+						type="text"
+						value={value.suburb}
 					/>
 				</div>
 
 				<div>
 					<label
-						htmlFor="field-state"
 						className="mb-1 block font-medium text-foreground text-sm"
+						htmlFor="field-state"
 					>
 						{stateLabel}
 					</label>
 					<input
-						id="field-state"
-						type="text"
-						disabled={disabled}
-						value={value.state}
-						onChange={(e) => handleFieldChange("state", e.target.value)}
 						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+						disabled={disabled}
+						id="field-state"
+						onChange={(e) => handleFieldChange("state", e.target.value)}
 						placeholder="State"
+						type="text"
+						value={value.state}
 					/>
 				</div>
 
 				<div>
 					<label
-						htmlFor="field-postcode"
 						className="mb-1 block font-medium text-foreground text-sm"
+						htmlFor="field-postcode"
 					>
 						{postcodeLabel}
 					</label>
 					<input
-						id="field-postcode"
-						type="text"
-						disabled={disabled}
-						value={value.postcode}
-						onChange={(e) => handleFieldChange("postcode", e.target.value)}
 						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+						disabled={disabled}
+						id="field-postcode"
+						onChange={(e) => handleFieldChange("postcode", e.target.value)}
 						placeholder="Postcode"
+						type="text"
+						value={value.postcode}
 					/>
 				</div>
 			</div>

@@ -1,12 +1,15 @@
 import type { ReactNode } from "react";
+import { cn } from "../utils/cn";
 import type { AddressAutocompleteProps } from "./address-autocomplete";
 import { AddressAutocomplete } from "./address-autocomplete";
-import { cn } from "../utils/cn";
 
 export interface AddressFormFieldProps extends AddressAutocompleteProps {
-	label: string;
-	labelClassName?: string;
+	/** Class applied to the error text element. */
 	errorClassName?: string;
+	/** Required. Field label rendered above the input. */
+	label: string;
+	/** Class applied to the label element. */
+	labelClassName?: string;
 }
 
 export function AddressFormField({
@@ -23,16 +26,13 @@ export function AddressFormField({
 	const id = customId ?? "wherabouts-field";
 
 	return (
-		<div
-			data-slot="address-form-field"
-			className="flex flex-col gap-2"
-		>
+		<div className="flex flex-col gap-2" data-slot="address-form-field">
 			<label
-				htmlFor={id}
 				className={cn(
-					"block text-sm font-medium text-gray-900",
+					"block font-medium text-gray-900 text-sm",
 					labelClassName
 				)}
+				htmlFor={id}
 			>
 				{label}
 				{required && (
@@ -44,21 +44,18 @@ export function AddressFormField({
 
 			<AddressAutocomplete
 				{...autocompleteProps}
-				id={id}
-				required={required}
+				className={className}
 				disabled={disabled}
 				error={error}
-				className={className}
+				id={id}
+				required={required}
 			/>
 
 			{error && (
 				<p
-					role="alert"
 					aria-live="polite"
-					className={cn(
-						"text-sm text-red-600",
-						errorClassName
-					)}
+					className={cn("text-red-600 text-sm", errorClassName)}
+					role="alert"
 				>
 					{error}
 				</p>

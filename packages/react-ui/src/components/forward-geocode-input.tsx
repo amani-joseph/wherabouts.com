@@ -1,20 +1,27 @@
-import { useEffect, type ReactNode } from "react";
 import type { WheraboutsClient } from "@wherabouts/sdk";
+import { type ReactNode, useEffect } from "react";
 import { useForwardGeocode } from "../hooks/use-forward-geocode";
 import { cn } from "../utils/cn";
 
 export interface ForwardGeocodeInputProps {
+	/** Class applied to the input element. */
+	className?: string;
+	/** Required. SDK client created with `createWheraboutsClient`. */
 	client: WheraboutsClient;
-	query: string | null;
+	/** Disable the input. */
+	disabled?: boolean;
+	/** id forwarded to the input element. */
+	id?: string;
+	/** Geocode result callback, called whenever the resolved result changes. */
 	onResult?: (result: {
 		latitude: number | null;
 		longitude: number | null;
 		formattedAddress: string | null;
 	}) => void;
-	className?: string;
-	disabled?: boolean;
+	/** Input placeholder text. */
 	placeholder?: string;
-	id?: string;
+	/** Address text to geocode. */
+	query: string | null;
 }
 
 export function ForwardGeocodeInput({
@@ -42,17 +49,17 @@ export function ForwardGeocodeInput({
 
 	return (
 		<input
-			id={id}
-			data-slot="geocode-input"
-			type="text"
-			readOnly
-			disabled={disabled}
-			value={displayText}
-			placeholder={placeholder}
 			className={cn(
 				"block h-8 w-full cursor-default rounded-none border border-input bg-muted/40 px-2.5 py-1 text-foreground text-xs",
 				className
 			)}
+			data-slot="geocode-input"
+			disabled={disabled}
+			id={id}
+			placeholder={placeholder}
+			readOnly
+			type="text"
+			value={displayText}
 		/>
 	);
 }
