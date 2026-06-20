@@ -1,9 +1,12 @@
 # Migration Plan — make `addresses.state` nullable (audit item 1.2)
 
-**Status:** DRAFT — awaiting your approval. **No database action has been taken.**
-**Author:** prepared for review on 2026-06-20.
+**Status (2026-06-20):** Option A selected. Code + migration shipped in commit
+`5a3254c` (schema nullable; ingest promote writes `NULLIF(state,'')`; migration
+`0015_state_nullable.sql` generated). **DB application is HELD by user decision —
+migration 0015 is committed but NOT applied to any database.** To apply later,
+resume at §6 Step 3 (Neon branch snapshot) → Step 4 (`db:migrate`).
 **Rule for this work:** every step that touches the database (including read-only
-queries) stops for your explicit approval first. Nothing here runs until you say so.
+queries) stops for explicit per-step approval first. Nothing runs until you say so.
 
 ---
 
