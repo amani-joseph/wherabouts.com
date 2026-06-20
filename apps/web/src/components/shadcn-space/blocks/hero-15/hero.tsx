@@ -754,7 +754,7 @@ const HeroSection = () => {
 						LIVE · drag to spin
 					</div>
 					<HeroGlobe
-						className="mx-auto max-w-md lg:max-w-none"
+						className="mx-auto w-full max-w-sm sm:max-w-md lg:w-[128%] lg:max-w-none lg:translate-x-[6%]"
 						markers={DEMO_MARKERS}
 						reduceMotion={shouldReduceMotion}
 						target={activeLocation}

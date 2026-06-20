@@ -133,6 +133,8 @@ export function HeroGlobe({
 	// Markers are read once when the globe is created; held in a ref so the
 	// create-once effect needs no dependencies.
 	const markersRef = useRef(markers);
+	// Which marker a tap cycles to next.
+	const clickIndexRef = useRef(0);
 
 	// Keep the focus rotation in sync with the active target coordinate.
 	useEffect(() => {
@@ -182,9 +184,19 @@ export function HeroGlobe({
 			phiRef.current = drag.phi + dx * 0.005;
 		};
 		const onPointerUp = () => {
+			const moved = dragRef.current?.moved ?? 0;
 			draggingRef.current = false;
 			dragRef.current = null;
 			canvas.style.cursor = "grab";
+			// A tap (negligible movement) flies to the next marker location.
+			const list = markersRef.current;
+			if (moved < 6 && list.length > 0) {
+				clickIndexRef.current = (clickIndexRef.current + 1) % list.length;
+				const next = list[clickIndexRef.current];
+				if (next) {
+					focusRef.current = latLngToRotation(next.lat, next.lng);
+				}
+			}
 		};
 
 		const start = async () => {
