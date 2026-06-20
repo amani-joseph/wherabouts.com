@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Production-ready Vue 3 components for Wherabouts SDK — address autocomplete, geocoding, and form fields with accessibility and customization.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -13,7 +13,8 @@
     "./styles.css": "./dist/styles.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "scripts": {
     "build": "vite build && node scripts/build-css.mjs",

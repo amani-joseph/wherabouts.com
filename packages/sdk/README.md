@@ -2,11 +2,11 @@
 
 Official TypeScript SDK for the [Wherabouts](https://wherabouts.com) location API —
 geocoding, geofencing zones, device tracking, routing, and webhooks over
-authoritative G‑NAF / ABS data.
+authoritative open address data.
 
-> **Coverage:** Authoritative Australian addresses (G‑NAF). International coverage
-> (US, parts of the EU, and more) is in **beta** and rolling out — availability may
-> vary by deployment.
+> **Coverage:** International — authoritative open address datasets including
+> Australia (G‑NAF), the United States, Canada, and parts of Europe. Per-country
+> depth and freshness vary by source; routing coverage is currently Australia only.
 
 - **Dependency-free** and runtime-agnostic (Node, edge, browser) — built on `fetch`.
 - **Fully typed**, resource-namespaced surface (`client.zones.create(...)`).
@@ -176,11 +176,11 @@ try {
 
 **Key differences:**
 
-- **Authoritative data:** Wherabouts uses G-NAF — Australia's official address register maintained by PSMA Australia. Addresses match what Australia Post, ABS, and government systems use.
-- **Structured components:** Every address includes `streetNumber`, `streetName`, `streetType`, `locality`, `state`, `postcode` as first-class fields — no parsing needed.
+- **Authoritative data:** Wherabouts builds on official open address sources per country — e.g. G-NAF (Australia's address register maintained by PSMA Australia, matching Australia Post/ABS records), Overture, and OpenAddresses elsewhere — rather than crowdsourced points.
+- **Structured components:** Every address includes `streetNumber`, `streetName`, `streetType`, `locality`, `state`, `postcode` as first-class fields — no parsing needed. (Some fields, e.g. `state`, are empty for countries that don't use them.)
 - **No session tokens:** Autocomplete billing is per-call. No session token complexity.
-- **Unique identifiers:** Each address has a `gnafPid` (G-NAF Persistent Identifier) and `id` for stable cross-system referencing.
+- **Unique identifiers:** Each address has a stable `id`; Australian addresses also carry a `gnafPid` (G-NAF Persistent Identifier) for cross-system referencing.
 
 ## License
 
-UNLICENSED — © Wherabouts. Contact the maintainers for usage terms.
+MIT — © Wherabouts.
