@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md — Install BetterAuth packages and configure Convex backend (component, auth, HTTP routes)
 - [x] 01-02-PLAN.md — Wire BetterAuth into TanStack Start frontend (auth client, proxy, provider swap, route guard)
-- [ ] 01-03-PLAN.md — Fix UAT gaps: post-auth redirects and route guard error handling (gap closure)
+- [x] 01-03-PLAN.md — Fix UAT gaps: post-auth redirects and route guard error handling (gap closure)
 
 ### Phase 2: Auth Flows
 **Goal**: Users can sign up, sign in, verify email, reset passwords, and use Google/GitHub OAuth -- all through BetterAuth
@@ -88,7 +88,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. BetterAuth Infrastructure | 0/3 | In progress | - |
+| 1. BetterAuth Infrastructure | 3/3 | Complete | - |
 | 2. Auth Flows | 0/3 | Not started | - |
 | 3. Legacy Auth Removal | 0/1 | Not started | - |
 | 4. oRPC API Layer | 0/2 | Not started | - |
