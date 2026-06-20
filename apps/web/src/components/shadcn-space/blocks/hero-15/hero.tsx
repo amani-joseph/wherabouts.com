@@ -681,7 +681,7 @@ const HeroSection = () => {
 					<Link
 						className={cn(
 							buttonVariants({ variant: "default" }),
-							"h-auto cursor-pointer rounded-full px-5 py-2.5 md:px-6 md:py-3.5"
+							"h-auto cursor-pointer rounded-full bg-cyan-400 px-5 py-2.5 font-semibold text-slate-950 shadow-[0_8px_30px_-10px_rgba(34,211,238,0.7)] transition-colors hover:bg-cyan-300 md:px-6 md:py-3.5"
 						)}
 						to="/sign-up"
 					>
@@ -690,7 +690,7 @@ const HeroSection = () => {
 					<Link
 						className={cn(
 							buttonVariants({ variant: "outline" }),
-							"inline-flex h-auto cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-foreground md:px-6 md:py-3.5"
+							"inline-flex h-auto cursor-pointer items-center gap-2 rounded-full border-white/30 bg-white/10 px-5 py-2.5 font-medium text-foreground transition-colors hover:bg-white/20 md:px-6 md:py-3.5 dark:border-white/30 dark:bg-white/10 dark:hover:bg-white/20"
 						)}
 						to="/docs"
 					>
