@@ -150,10 +150,10 @@ const docsNavGroups: DocsSectionGroup[] = [
 ];
 
 const quickstartCode = {
-	curl: `curl "https://api.wherabouts.com/api/v1/addresses/autocomplete?q=123+Main+St&country=AU" \\
+	curl: `curl "https://api.wherabouts.com/api/v1/addresses/autocomplete?q=123+Main+St&country=US" \\
   -H "Authorization: Bearer wh_live_your_api_key"`,
 	javascript: `const response = await fetch(
-  "https://api.wherabouts.com/api/v1/addresses/autocomplete?q=123+Main+St&country=AU",
+  "https://api.wherabouts.com/api/v1/addresses/autocomplete?q=123+Main+St&country=US",
   {
     headers: {
       Authorization: "Bearer wh_live_your_api_key",
@@ -174,14 +174,14 @@ const client = createWheraboutsClient({
 
 const payload = await client.addresses.autocomplete({
   q: "123 Main St",
-  country: "AU",
+  country: "US",
   limit: 5,
 });`,
 	python: `import requests
 
 response = requests.get(
     "https://api.wherabouts.com/api/v1/addresses/autocomplete",
-    params={"q": "123 Main St", "country": "AU"},
+    params={"q": "123 Main St", "country": "US"},
     headers={"Authorization": "Bearer wh_live_your_api_key"},
     timeout=10,
 )
@@ -209,13 +209,14 @@ const endpointDocs: EndpointDoc[] = [
 				name: "country",
 				type: "string",
 				required: false,
-				description: "Optional country filter such as `AU`.",
+				description: "Optional country filter such as `US`, `GB`, or `AU`.",
 			},
 			{
 				name: "state",
 				type: "string",
 				required: false,
-				description: "Optional state filter such as `VIC` or `NSW`.",
+				description:
+					"Optional state/region filter such as `NY`, `ON`, or `NSW`.",
 			},
 			{
 				name: "limit",
@@ -234,14 +235,14 @@ const endpointDocs: EndpointDoc[] = [
   "results": [
     {
       "id": 104233,
-      "formattedAddress": "123 Main St, Melbourne VIC 3000, AU",
-      "streetAddress": "123 Main St",
-      "locality": "Melbourne",
-      "state": "VIC",
-      "postcode": "3000",
-      "country": "AU",
-      "latitude": -37.8136,
-      "longitude": 144.9631
+      "formattedAddress": "20 W 34th St, New York NY 10001, US",
+      "streetAddress": "20 W 34th St",
+      "locality": "New York",
+      "state": "NY",
+      "postcode": "10001",
+      "country": "US",
+      "latitude": 40.7484,
+      "longitude": -73.9857
     }
   ],
   "count": 1
@@ -276,21 +277,21 @@ const endpointDocs: EndpointDoc[] = [
 		],
 		exampleResponse: `{
   "address": {
-    "id": 104233,
-    "formattedAddress": "123 Main St, Melbourne VIC 3000, AU",
-    "streetAddress": "123 Main St",
-    "locality": "Melbourne",
-    "state": "VIC",
-    "postcode": "3000",
-    "country": "AU",
-    "longitude": 144.9631,
-    "latitude": -37.8136,
-    "confidence": 92
+    "id": 215078,
+    "formattedAddress": "221B Baker St, London NW1 6XE, GB",
+    "streetAddress": "221B Baker St",
+    "locality": "London",
+    "state": "",
+    "postcode": "NW1 6XE",
+    "country": "GB",
+    "longitude": -0.1585,
+    "latitude": 51.5237,
+    "confidence": 90
   },
-  "distance": 18,
+  "distance": 14,
   "query": {
-    "lat": -37.8136,
-    "lng": 144.9631
+    "lat": 51.5237,
+    "lng": -0.1585
   }
 }`,
 	},
@@ -333,7 +334,7 @@ const endpointDocs: EndpointDoc[] = [
 				name: "country",
 				type: "string",
 				required: false,
-				description: "Optional country filter such as `AU`.",
+				description: "Optional country filter such as `US`, `GB`, or `AU`.",
 			},
 		],
 		notes: [
@@ -344,23 +345,23 @@ const endpointDocs: EndpointDoc[] = [
 		exampleResponse: `{
   "results": [
     {
-      "id": 104233,
-      "country": "AU",
-      "state": "VIC",
-      "locality": "Melbourne",
-      "postcode": "3000",
-      "streetName": "Main",
-      "streetType": "St",
-      "numberFirst": "123",
-      "longitude": 144.9631,
-      "latitude": -37.8136,
-      "distance": 42
+      "id": 318842,
+      "country": "IS",
+      "state": "",
+      "locality": "Reykjavík",
+      "postcode": "101",
+      "streetName": "Laugavegur",
+      "streetType": "",
+      "numberFirst": "26",
+      "longitude": -21.9270,
+      "latitude": 64.1430,
+      "distance": 35
     }
   ],
   "count": 1,
   "query": {
-    "lat": -37.8136,
-    "lng": 144.9631,
+    "lat": 64.1466,
+    "lng": -21.9426,
     "radius": 500
   }
 }`,
@@ -387,12 +388,12 @@ const endpointDocs: EndpointDoc[] = [
 			"The full address payload includes canonical fields such as `gnafPid` and `confidence` when available.",
 		],
 		exampleResponse: `{
-  "id": 104233,
-  "country": "AU",
-  "state": "VIC",
-  "locality": "Melbourne",
-  "postcode": "3000",
-  "streetName": "Main",
+  "id": 287513,
+  "country": "CA",
+  "state": "ON",
+  "locality": "Ottawa",
+  "postcode": "K1A 0B1",
+  "streetName": "Elgin",
   "streetType": "St",
   "streetSuffix": null,
   "buildingName": null,
@@ -400,12 +401,12 @@ const endpointDocs: EndpointDoc[] = [
   "flatNumber": null,
   "levelType": null,
   "levelNumber": null,
-  "numberFirst": "123",
+  "numberFirst": "150",
   "numberLast": null,
-  "longitude": 144.9631,
-  "latitude": -37.8136,
-  "confidence": 92,
-  "gnafPid": "GAVIC123456789"
+  "longitude": -75.6989,
+  "latitude": 45.4201,
+  "confidence": 88,
+  "gnafPid": null
 }`,
 	},
 	// --- Geocoding ---
@@ -448,7 +449,8 @@ const endpointDocs: EndpointDoc[] = [
 				name: "state",
 				type: "string",
 				required: false,
-				description: "State abbreviation such as `VIC` (structured mode).",
+				description:
+					"State/region code such as `NY` or `VIC` (structured mode).",
 			},
 			{
 				name: "postcode",
@@ -460,7 +462,7 @@ const endpointDocs: EndpointDoc[] = [
 				name: "country",
 				type: "string",
 				required: false,
-				description: "Country code such as `AU`.",
+				description: "Country code such as `US`.",
 			},
 		],
 		notes: [
@@ -469,16 +471,16 @@ const endpointDocs: EndpointDoc[] = [
 			"The response shape mirrors the autocomplete candidate object.",
 		],
 		exampleResponse: `{
-  "id": 104233,
-  "formattedAddress": "123 Main St, Melbourne VIC 3000, AU",
-  "streetAddress": "123 Main St",
-  "locality": "Melbourne",
-  "state": "VIC",
-  "postcode": "3000",
-  "country": "AU",
-  "latitude": -37.8136,
-  "longitude": 144.9631,
-  "confidence": 92
+  "id": 198452,
+  "formattedAddress": "1600 Pennsylvania Ave NW, Washington DC 20500, US",
+  "streetAddress": "1600 Pennsylvania Ave NW",
+  "locality": "Washington",
+  "state": "DC",
+  "postcode": "20500",
+  "country": "US",
+  "latitude": 38.8977,
+  "longitude": -77.0365,
+  "confidence": 95
 }`,
 	},
 	{
@@ -557,13 +559,13 @@ const endpointDocs: EndpointDoc[] = [
 		exampleResponse: `{
   "results": [
     {
-      "input": "123 Main St Melbourne VIC",
+      "input": "20 W 34th St New York NY",
       "match": {
         "id": 104233,
-        "formattedAddress": "123 Main St, Melbourne VIC 3000, AU",
-        "latitude": -37.8136,
-        "longitude": 144.9631,
-        "confidence": 92
+        "formattedAddress": "20 W 34th St, New York NY 10001, US",
+        "latitude": 40.7484,
+        "longitude": -73.9857,
+        "confidence": 95
       }
     },
     {
@@ -1811,7 +1813,7 @@ const { jobId } = await fetch("https://api.wherabouts.com/api/v1/geocode/batch",
     "Content-Type": "application/json",
     "X-API-Key": "wh_live_your_api_key",
   },
-  body: JSON.stringify({ addresses: ["123 Main St Melbourne VIC", "456 George St Sydney NSW"] }),
+  body: JSON.stringify({ addresses: ["20 W 34th St New York NY", "221B Baker St London"] }),
 }).then((r) => r.json());
 
 // Step 2 — poll until completed
