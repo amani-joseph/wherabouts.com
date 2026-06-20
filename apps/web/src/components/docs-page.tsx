@@ -88,6 +88,25 @@ const docsNavGroups: DocsSectionGroup[] = [
 		],
 	},
 	{
+		label: "React UI",
+		items: [
+			{ title: "Overview", href: "#react-ui" },
+			{ title: "AddressAutocomplete", href: "#react-address-autocomplete" },
+			{ title: "AddressFormField", href: "#react-address-form-field" },
+			{ title: "AddressFieldGroup", href: "#react-address-field-group" },
+			{ title: "ForwardGeocodeInput", href: "#react-forward-geocode" },
+			{ title: "ReverseGeocodeInput", href: "#react-reverse-geocode" },
+		],
+	},
+	{
+		label: "Vue UI",
+		items: [
+			{ title: "Overview", href: "#vue-ui" },
+			{ title: "Available Today", href: "#vue-available" },
+			{ title: "Components (Phase 2)", href: "#vue-components" },
+		],
+	},
+	{
 		label: "Core Endpoints",
 		items: [
 			{ title: "Autocomplete", href: "#autocomplete" },
@@ -145,25 +164,6 @@ const docsNavGroups: DocsSectionGroup[] = [
 			{ title: "Health Checks", href: "#health-checks" },
 			{ title: "Integration Checklist", href: "#integration-checklist" },
 			{ title: "Next Steps", href: "#next-steps" },
-		],
-	},
-	{
-		label: "React UI",
-		items: [
-			{ title: "Overview", href: "#react-ui" },
-			{ title: "AddressAutocomplete", href: "#react-address-autocomplete" },
-			{ title: "AddressFormField", href: "#react-address-form-field" },
-			{ title: "AddressFieldGroup", href: "#react-address-field-group" },
-			{ title: "ForwardGeocodeInput", href: "#react-forward-geocode" },
-			{ title: "ReverseGeocodeInput", href: "#react-reverse-geocode" },
-		],
-	},
-	{
-		label: "Vue UI",
-		items: [
-			{ title: "Overview", href: "#vue-ui" },
-			{ title: "Available Today", href: "#vue-available" },
-			{ title: "Components (Phase 2)", href: "#vue-components" },
 		],
 	},
 ];
@@ -2207,6 +2207,236 @@ export function DocsPage() {
 								</Card>
 							</section>
 
+							<section className="scroll-mt-24 space-y-6" id="react-ui">
+								<div className="space-y-3">
+									<p className="font-medium text-muted-foreground text-xs uppercase tracking-[0.2em]">
+										React UI
+									</p>
+									<div className="space-y-2">
+										<h2 className="font-semibold text-2xl tracking-tight">
+											@wherabouts/react-ui
+										</h2>
+										<p className="max-w-3xl text-base text-muted-foreground leading-7">
+											Production-ready React components for address
+											autocomplete, forward and reverse geocoding, and
+											structured address fields. Built on the SDK, styled with
+											Tailwind, shipped with a prebuilt stylesheet, accessible
+											to WCAG AA, and compatible with TanStack Form.
+										</p>
+									</div>
+									<div className="flex flex-wrap gap-2">
+										<Badge variant="secondary">React 18 / 19</Badge>
+										<Badge variant="secondary">WCAG AA</Badge>
+										<Badge variant="secondary">Prebuilt styles</Badge>
+									</div>
+								</div>
+
+								<CodeBlock
+									code={"npm install @wherabouts/react-ui @wherabouts/sdk"}
+									label="Install"
+								/>
+								<CodeBlock
+									code={
+										'// Import the stylesheet once, near your app root\nimport "@wherabouts/react-ui/styles.css";'
+									}
+									label="Stylesheet"
+								/>
+
+								<div className="grid gap-4 md:grid-cols-2">
+									{reactComponents.map((component) => (
+										<a
+											className="group/link block"
+											href={component.href}
+											key={component.href}
+										>
+											<Card className="h-full transition-colors hover:border-primary">
+												<CardHeader>
+													<CardTitle className="flex items-center gap-2 text-base">
+														<Code2Icon className="size-4 text-muted-foreground" />
+														{component.name}
+													</CardTitle>
+													<CardDescription className="line-clamp-2">
+														{component.summary}
+													</CardDescription>
+												</CardHeader>
+											</Card>
+										</a>
+									))}
+								</div>
+							</section>
+
+							{reactComponents.map((component) => (
+								<ComponentReference
+									component={component}
+									key={component.href}
+								/>
+							))}
+
+							<section className="scroll-mt-24 space-y-6" id="vue-ui">
+								<div className="space-y-3">
+									<p className="font-medium text-muted-foreground text-xs uppercase tracking-[0.2em]">
+										Vue UI
+									</p>
+									<div className="space-y-2">
+										<h2 className="font-semibold text-2xl tracking-tight">
+											@wherabouts/vue-ui
+										</h2>
+										<p className="max-w-3xl text-base text-muted-foreground leading-7">
+											The Vue 3 counterpart to react-ui — the same address
+											autocomplete, geocoding inputs, and structured address
+											fields. Built on the SDK and styled with Tailwind.
+										</p>
+									</div>
+									<div className="flex flex-wrap gap-2">
+										<Badge variant="secondary">Vue 3.0+</Badge>
+										<Badge variant="outline">Early access · v0.1.0</Badge>
+									</div>
+								</div>
+
+								<div className="rounded-xl border border-dashed bg-card p-4">
+									<div className="flex items-start gap-3">
+										<AlertTriangleIcon className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+										<div className="space-y-1">
+											<p className="font-medium text-sm">
+												Components are planned for Phase 2
+											</p>
+											<p className="text-muted-foreground text-sm leading-6">
+												Today the package ships the shared types and utilities
+												the components build on. The Vue 3 SFC components are
+												not yet exported — the reference below documents the
+												intended API.
+											</p>
+										</div>
+									</div>
+								</div>
+
+								<CodeBlock
+									code={"npm install @wherabouts/vue-ui @wherabouts/sdk"}
+									label="Install"
+								/>
+							</section>
+
+							<section className="scroll-mt-24 space-y-5" id="vue-available">
+								<div className="space-y-2">
+									<h3 className="font-semibold text-xl tracking-tight">
+										Available today
+									</h3>
+									<p className="max-w-3xl text-base text-muted-foreground leading-7">
+										The package exports the building blocks the components share
+										— usable right now.
+									</p>
+								</div>
+
+								<CodeBlock
+									code={
+										'import {\n  toAddressWithParsed,\n  cn,\n  type AddressWithParsed,\n  type AddressI18nStrings,\n  type AddressSuggestionInput,\n} from "@wherabouts/vue-ui";'
+									}
+									label="Exports"
+								/>
+
+								<div className="grid gap-3">
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											toAddressWithParsed(suggestion)
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Maps a raw SDK AddressSuggestion into the flattened
+											AddressWithParsed shape the components use
+											(formattedAddress, latitude, longitude, plus parsed
+											streetAddress, suburb, state, postcode, and country).
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											cn(...classes)
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											The clsx + tailwind-merge class combiner used internally
+											for composing Tailwind classes without conflicts.
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											AddressWithParsed · AddressI18nStrings ·
+											AddressSuggestionInput
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Shared types: the flattened address shape, the overridable
+											UI strings, and the SDK suggestion input type.
+										</p>
+									</div>
+								</div>
+							</section>
+
+							<section className="scroll-mt-24 space-y-5" id="vue-components">
+								<div className="space-y-2">
+									<div className="flex flex-wrap items-center gap-2">
+										<h3 className="font-semibold text-xl tracking-tight">
+											Components
+										</h3>
+										<Badge variant="outline">Phase 2 · preview</Badge>
+									</div>
+									<p className="max-w-3xl text-base text-muted-foreground leading-7">
+										The Vue 3 SFC components mirror their react-ui counterparts.
+										Each takes a client created with createWheraboutsClient.
+										This is the intended API; the components are not yet
+										exported.
+									</p>
+								</div>
+
+								<CodeBlock
+									code={
+										'<script setup lang="ts">\nimport { createWheraboutsClient } from "@wherabouts/sdk";\nimport { AddressAutocomplete } from "@wherabouts/vue-ui";\nimport "@wherabouts/vue-ui/styles.css";\n\nconst client = createWheraboutsClient({\n  apiKey: import.meta.env.VITE_WHERABOUTS_KEY,\n});\n\nfunction onSelect(address) {\n  console.log(address.formattedAddress, address.latitude);\n}\n</script>\n\n<template>\n  <AddressAutocomplete :client="client" @select="onSelect" />\n</template>'
+									}
+									label="Preview (Phase 2)"
+								/>
+
+								<div className="grid gap-3">
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											AddressAutocomplete
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Accessible combobox address search with proximity bias and
+											i18n strings.
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											AddressFormField
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											AddressAutocomplete wrapped with a label and error
+											styling.
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											AddressFieldGroup
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Structured street, suburb, state, and postcode inputs.
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											ForwardGeocodeInput
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Resolves a free-text address string to coordinates.
+										</p>
+									</div>
+									<div className="rounded-lg border p-3">
+										<code className="break-all font-semibold text-sm">
+											ReverseGeocodeInput
+										</code>
+										<p className="mt-1 text-muted-foreground text-sm leading-6">
+											Resolves a latitude/longitude pair to the nearest address.
+										</p>
+									</div>
+								</div>
+							</section>
+
 							<div className="space-y-10">
 								<SectionHeading
 									description="These are the four address endpoints currently exposed in the app. The docs below mirror the actual path names and request validation behavior implemented on the server today."
@@ -2741,235 +2971,6 @@ const payload = JSON.parse(rawBody);`}
 											</Link>
 										</CardContent>
 									</Card>
-								</div>
-							</section>
-							<section className="scroll-mt-24 space-y-6" id="react-ui">
-								<div className="space-y-3">
-									<p className="font-medium text-muted-foreground text-xs uppercase tracking-[0.2em]">
-										React UI
-									</p>
-									<div className="space-y-2">
-										<h2 className="font-semibold text-2xl tracking-tight">
-											@wherabouts/react-ui
-										</h2>
-										<p className="max-w-3xl text-base text-muted-foreground leading-7">
-											Production-ready React components for address
-											autocomplete, forward and reverse geocoding, and
-											structured address fields. Built on the SDK, styled with
-											Tailwind, shipped with a prebuilt stylesheet, accessible
-											to WCAG AA, and compatible with TanStack Form.
-										</p>
-									</div>
-									<div className="flex flex-wrap gap-2">
-										<Badge variant="secondary">React 18 / 19</Badge>
-										<Badge variant="secondary">WCAG AA</Badge>
-										<Badge variant="secondary">Prebuilt styles</Badge>
-									</div>
-								</div>
-
-								<CodeBlock
-									code={"npm install @wherabouts/react-ui @wherabouts/sdk"}
-									label="Install"
-								/>
-								<CodeBlock
-									code={
-										'// Import the stylesheet once, near your app root\nimport "@wherabouts/react-ui/styles.css";'
-									}
-									label="Stylesheet"
-								/>
-
-								<div className="grid gap-4 md:grid-cols-2">
-									{reactComponents.map((component) => (
-										<a
-											className="group/link block"
-											href={component.href}
-											key={component.href}
-										>
-											<Card className="h-full transition-colors hover:border-primary">
-												<CardHeader>
-													<CardTitle className="flex items-center gap-2 text-base">
-														<Code2Icon className="size-4 text-muted-foreground" />
-														{component.name}
-													</CardTitle>
-													<CardDescription className="line-clamp-2">
-														{component.summary}
-													</CardDescription>
-												</CardHeader>
-											</Card>
-										</a>
-									))}
-								</div>
-							</section>
-
-							{reactComponents.map((component) => (
-								<ComponentReference
-									component={component}
-									key={component.href}
-								/>
-							))}
-
-							<section className="scroll-mt-24 space-y-6" id="vue-ui">
-								<div className="space-y-3">
-									<p className="font-medium text-muted-foreground text-xs uppercase tracking-[0.2em]">
-										Vue UI
-									</p>
-									<div className="space-y-2">
-										<h2 className="font-semibold text-2xl tracking-tight">
-											@wherabouts/vue-ui
-										</h2>
-										<p className="max-w-3xl text-base text-muted-foreground leading-7">
-											The Vue 3 counterpart to react-ui — the same address
-											autocomplete, geocoding inputs, and structured address
-											fields. Built on the SDK and styled with Tailwind.
-										</p>
-									</div>
-									<div className="flex flex-wrap gap-2">
-										<Badge variant="secondary">Vue 3.0+</Badge>
-										<Badge variant="outline">Early access · v0.1.0</Badge>
-									</div>
-								</div>
-
-								<div className="rounded-xl border border-dashed bg-card p-4">
-									<div className="flex items-start gap-3">
-										<AlertTriangleIcon className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-										<div className="space-y-1">
-											<p className="font-medium text-sm">
-												Components are planned for Phase 2
-											</p>
-											<p className="text-muted-foreground text-sm leading-6">
-												Today the package ships the shared types and utilities
-												the components build on. The Vue 3 SFC components are
-												not yet exported — the reference below documents the
-												intended API.
-											</p>
-										</div>
-									</div>
-								</div>
-
-								<CodeBlock
-									code={"npm install @wherabouts/vue-ui @wherabouts/sdk"}
-									label="Install"
-								/>
-							</section>
-
-							<section className="scroll-mt-24 space-y-5" id="vue-available">
-								<div className="space-y-2">
-									<h3 className="font-semibold text-xl tracking-tight">
-										Available today
-									</h3>
-									<p className="max-w-3xl text-base text-muted-foreground leading-7">
-										The package exports the building blocks the components share
-										— usable right now.
-									</p>
-								</div>
-
-								<CodeBlock
-									code={
-										'import {\n  toAddressWithParsed,\n  cn,\n  type AddressWithParsed,\n  type AddressI18nStrings,\n  type AddressSuggestionInput,\n} from "@wherabouts/vue-ui";'
-									}
-									label="Exports"
-								/>
-
-								<div className="grid gap-3">
-									<div className="rounded-lg border p-3">
-										<code className="break-all font-semibold text-sm">
-											toAddressWithParsed(suggestion)
-										</code>
-										<p className="mt-1 text-muted-foreground text-sm leading-6">
-											Maps a raw SDK AddressSuggestion into the flattened
-											AddressWithParsed shape the components use
-											(formattedAddress, latitude, longitude, plus parsed
-											streetAddress, suburb, state, postcode, and country).
-										</p>
-									</div>
-									<div className="rounded-lg border p-3">
-										<code className="break-all font-semibold text-sm">
-											cn(...classes)
-										</code>
-										<p className="mt-1 text-muted-foreground text-sm leading-6">
-											The clsx + tailwind-merge class combiner used internally
-											for composing Tailwind classes without conflicts.
-										</p>
-									</div>
-									<div className="rounded-lg border p-3">
-										<code className="break-all font-semibold text-sm">
-											AddressWithParsed · AddressI18nStrings ·
-											AddressSuggestionInput
-										</code>
-										<p className="mt-1 text-muted-foreground text-sm leading-6">
-											Shared types: the flattened address shape, the overridable
-											UI strings, and the SDK suggestion input type.
-										</p>
-									</div>
-								</div>
-							</section>
-
-							<section className="scroll-mt-24 space-y-5" id="vue-components">
-								<div className="space-y-2">
-									<div className="flex flex-wrap items-center gap-2">
-										<h3 className="font-semibold text-xl tracking-tight">
-											Components
-										</h3>
-										<Badge variant="outline">Phase 2 · preview</Badge>
-									</div>
-									<p className="max-w-3xl text-base text-muted-foreground leading-7">
-										The Vue 3 SFC components mirror their react-ui counterparts.
-										Each takes a client created with createWheraboutsClient.
-										This is the intended API; the components are not yet
-										exported.
-									</p>
-								</div>
-
-								<CodeBlock
-									code={
-										'<script setup lang="ts">\nimport { createWheraboutsClient } from "@wherabouts/sdk";\nimport { AddressAutocomplete } from "@wherabouts/vue-ui";\nimport "@wherabouts/vue-ui/styles.css";\n\nconst client = createWheraboutsClient({\n  apiKey: import.meta.env.VITE_WHERABOUTS_KEY,\n});\n\nfunction onSelect(address) {\n  console.log(address.formattedAddress, address.latitude);\n}\n</script>\n\n<template>\n  <AddressAutocomplete :client="client" @select="onSelect" />\n</template>'
-									}
-									label="Preview (Phase 2)"
-								/>
-
-								<div className="grid gap-3">
-									<div className="rounded-lg border p-3">
-										<code className="break-all font-semibold text-sm">
-											AddressAutocomplete
-										</code>
-										<p className="mt-1 text-muted-foreground text-sm leading-6">
-											Accessible combobox address search with proximity bias and
-											i18n strings.
-										</p>
-									</div>
-									<div className="rounded-lg border p-3">
-										<code className="break-all font-semibold text-sm">
-											AddressFormField
-										</code>
-										<p className="mt-1 text-muted-foreground text-sm leading-6">
-											AddressAutocomplete wrapped with a label and error
-											styling.
-										</p>
-									</div>
-									<div className="rounded-lg border p-3">
-										<code className="break-all font-semibold text-sm">
-											AddressFieldGroup
-										</code>
-										<p className="mt-1 text-muted-foreground text-sm leading-6">
-											Structured street, suburb, state, and postcode inputs.
-										</p>
-									</div>
-									<div className="rounded-lg border p-3">
-										<code className="break-all font-semibold text-sm">
-											ForwardGeocodeInput
-										</code>
-										<p className="mt-1 text-muted-foreground text-sm leading-6">
-											Resolves a free-text address string to coordinates.
-										</p>
-									</div>
-									<div className="rounded-lg border p-3">
-										<code className="break-all font-semibold text-sm">
-											ReverseGeocodeInput
-										</code>
-										<p className="mt-1 text-muted-foreground text-sm leading-6">
-											Resolves a latitude/longitude pair to the nearest address.
-										</p>
-									</div>
 								</div>
 							</section>
 						</main>
