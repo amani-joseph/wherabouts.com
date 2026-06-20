@@ -20,7 +20,11 @@ export const addresses = pgTable(
 	{
 		id: integer().primaryKey().generatedAlwaysAsIdentity(),
 		country: varchar({ length: 2 }).notNull(),
-		state: varchar({ length: 10 }).notNull(),
+		// Nullable: single-level-addressing countries (Iceland, Belgium, etc.) have
+		// no state/region. Existing rows may carry '' (legacy); both '' and NULL mean
+		// "no state" and the read paths (autocomplete filter, structured rerank,
+		// formatAddress) tolerate either. See docs/migrations/2026-06-20-state-nullable.
+		state: varchar({ length: 10 }),
 		locality: text().notNull(),
 		postcode: varchar({ length: 10 }).notNull(),
 		streetName: text("street_name").notNull(),

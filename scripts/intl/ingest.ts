@@ -135,8 +135,12 @@ const STAGING_COLUMNS =
 // Dedup moved into the adapters' extract SQL (DuckDB window function) — the
 // Postgres ctid self-join went quadratic past ~6M staged rows.
 
+// The `state` column is written as NULLIF(state, '') so single-level-addressing
+// countries land as NULL (not '') — matching the nullable schema. Real codes
+// (US/AU/CA) are non-empty and pass through unchanged. Existing rows are not
+// rewritten; only future loads are affected. See docs/migrations/2026-06-20-state-nullable.
 // search_text mirrors drizzle/0004_autocomplete_search.sql, with NULLIF on
-// empty strings so single-level countries (state='') don't get double spaces
+// empty strings so single-level countries don't get double spaces
 // (Iceland smoke-test finding #1).
 const PROMOTE_SQL = `
 INSERT INTO addresses
@@ -144,7 +148,7 @@ INSERT INTO addresses
   building_name, flat_type, flat_number, level_type, level_number,
   number_first, number_last, longitude, latitude, confidence, gnaf_pid,
   search_text, geom, population_score, admin_level)
-SELECT country, state, locality, postcode, street_name, street_type, street_suffix,
+SELECT country, NULLIF(state, ''), locality, postcode, street_name, street_type, street_suffix,
   building_name, flat_type, flat_number, level_type, level_number,
   number_first, number_last, longitude, latitude, confidence, NULL,
   trim(concat_ws(' ',
