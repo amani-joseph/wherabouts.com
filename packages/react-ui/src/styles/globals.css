@@ -76,14 +76,14 @@
 	display: block;
 	width: 100%;
 	padding: var(--wherabouts-spacing-sm) var(--wherabouts-spacing-md);
-	border: var(--wherabouts-border-width) solid
-		var(--wherabouts-color-border);
-	border-radius: var(--wherabouts-border-radius);
-	background-color: var(--wherabouts-color-input-bg);
-	color: var(--wherabouts-color-input-text);
 	font-size: var(--wherabouts-font-size-base);
 	font-weight: var(--wherabouts-font-weight-normal);
-	transition: border-color var(--wherabouts-transition-fast),
+	color: var(--wherabouts-color-input-text);
+	background-color: var(--wherabouts-color-input-bg);
+	border: var(--wherabouts-border-width) solid var(--wherabouts-color-border);
+	border-radius: var(--wherabouts-border-radius);
+	transition:
+		border-color var(--wherabouts-transition-fast),
 		box-shadow var(--wherabouts-transition-fast);
 }
 
@@ -94,14 +94,13 @@
 [data-slot="address-input"]:focus {
 	outline: none;
 	border-color: var(--wherabouts-color-focus-ring);
-	box-shadow: 0 0 0 3px
-		hsl(221.2 83.2% 53.3% / 0.1);
+	box-shadow: 0 0 0 3px hsl(221.2 83.2% 53.3% / 0.1);
 }
 
 [data-slot="address-input"]:disabled {
-	opacity: 0.5;
 	cursor: not-allowed;
 	background-color: hsl(0 0% 95% / 0.5);
+	opacity: 0.5;
 }
 
 [data-slot="address-input"][aria-invalid="true"] {
@@ -109,28 +108,33 @@
 }
 
 [data-slot="address-input"][aria-invalid="true"]:focus {
-	box-shadow: 0 0 0 3px
-		hsl(0 84.2% 60.2% / 0.1);
+	box-shadow: 0 0 0 3px hsl(0 84.2% 60.2% / 0.1);
 }
 
-/* ── Dropdown Listbox ──────────────────────────────────────── */
-[data-slot="address-listbox"] {
-	position: absolute;
-	top: 100%;
-	left: 0;
-	right: 0;
-	margin-top: var(--wherabouts-spacing-xs);
-	max-height: 300px;
-	overflow-y: auto;
+/* ── Dropdown Container ────────────────────────────────────── */
+/* The component positions this (position: fixed) inline and portals it to
+   <body>, so no ancestor overflow can clip it. This rule supplies the visual
+   chrome and clips the inner scroll area to the rounded corners. */
+[data-slot="address-dropdown"] {
 	z-index: var(--wherabouts-z-dropdown);
-	list-style: none;
-	padding: var(--wherabouts-spacing-sm);
-	margin: var(--wherabouts-spacing-xs) 0 0 0;
+	overflow: hidden;
+	background-color: var(--wherabouts-color-dropdown-bg);
 	border: var(--wherabouts-border-width) solid
 		var(--wherabouts-color-dropdown-border);
 	border-radius: var(--wherabouts-border-radius);
-	background-color: var(--wherabouts-color-dropdown-bg);
 	box-shadow: var(--wherabouts-color-dropdown-shadow);
+}
+
+/* ── Dropdown Listbox ──────────────────────────────────────── */
+/* The scroll area itself. It lives in normal flow inside the fixed container
+   above (NOT absolutely positioned), so a long suggestion list scrolls here at
+   max-height instead of extending past the container and the viewport. */
+[data-slot="address-listbox"] {
+	max-height: 300px;
+	padding: var(--wherabouts-spacing-sm);
+	margin: 0;
+	overflow-y: auto;
+	list-style: none;
 }
 
 [data-slot="address-listbox"]::-webkit-scrollbar {
@@ -146,19 +150,28 @@
 	border-radius: 4px;
 }
 
+/* Branding footer — pinned below the scroll area, inside the dropdown border. */
+[data-slot="address-powered-by"] {
+	padding: var(--wherabouts-spacing-sm) var(--wherabouts-spacing-md);
+	font-size: var(--wherabouts-font-size-sm);
+	color: var(--wherabouts-color-text-muted);
+	border-top: var(--wherabouts-border-width) solid
+		var(--wherabouts-color-dropdown-border);
+}
+
 /* ── Suggestion Item ───────────────────────────────────────── */
 [data-slot="address-item"] {
-	padding: var(--wherabouts-spacing-sm) var(--wherabouts-spacing-md);
-	margin: 2px 0;
-	border-radius: var(--wherabouts-border-radius-sm);
-	background-color: var(--wherabouts-color-item-bg);
-	color: var(--wherabouts-color-item-text);
-	cursor: pointer;
-	font-size: var(--wherabouts-font-size-base);
-	transition: background-color var(--wherabouts-transition-fast);
-	min-height: 44px;
 	display: flex;
 	align-items: center;
+	min-height: 44px;
+	padding: var(--wherabouts-spacing-sm) var(--wherabouts-spacing-md);
+	margin: 2px 0;
+	font-size: var(--wherabouts-font-size-base);
+	color: var(--wherabouts-color-item-text);
+	cursor: pointer;
+	background-color: var(--wherabouts-color-item-bg);
+	border-radius: var(--wherabouts-border-radius-sm);
+	transition: background-color var(--wherabouts-transition-fast);
 }
 
 [data-slot="address-item"]:hover {
@@ -173,11 +186,11 @@
 [data-slot="address-item"][data-status="loading"],
 [data-slot="address-item"][data-status="error"],
 [data-slot="address-item"][data-status="empty"] {
-	cursor: default;
 	justify-content: center;
+	min-height: 40px;
 	font-size: var(--wherabouts-font-size-sm);
 	color: var(--wherabouts-color-text-muted);
-	min-height: 40px;
+	cursor: default;
 }
 
 [data-slot="address-item"][data-status="error"] {
@@ -199,15 +212,15 @@
 }
 
 [data-slot="address-form-field"] label [aria-hidden="true"] {
-	color: var(--wherabouts-color-error);
 	margin-left: 2px;
+	color: var(--wherabouts-color-error);
 }
 
 [data-slot="address-form-field"] [role="alert"] {
 	display: block;
+	margin-top: 2px;
 	font-size: var(--wherabouts-font-size-sm);
 	color: var(--wherabouts-color-error);
-	margin-top: 2px;
 }
 
 /* ── Field Group ───────────────────────────────────────────── */
@@ -246,13 +259,12 @@
 	display: block;
 	width: 100%;
 	padding: var(--wherabouts-spacing-sm) var(--wherabouts-spacing-md);
-	border: var(--wherabouts-border-width) solid
-		var(--wherabouts-color-border);
-	border-radius: var(--wherabouts-border-radius);
-	background-color: hsl(0 0% 97%);
-	color: var(--wherabouts-color-input-text);
 	font-size: var(--wherabouts-font-size-base);
+	color: var(--wherabouts-color-input-text);
 	cursor: default;
+	background-color: hsl(0 0% 97%);
+	border: var(--wherabouts-border-width) solid var(--wherabouts-color-border);
+	border-radius: var(--wherabouts-border-radius);
 }
 
 .dark [data-slot="geocode-input"] {
@@ -278,7 +290,7 @@
 /* High contrast mode support */
 @media (prefers-contrast: more) {
 	[data-slot="address-input"],
-	[data-slot="address-listbox"] {
+	[data-slot="address-dropdown"] {
 		border-width: 2px;
 	}
 
