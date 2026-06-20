@@ -1,9 +1,9 @@
 export type Capability = "geocode" | "reverse" | "autocomplete";
 
 export interface CoverageCountry {
-	capabilities: Capability[];
 	iso2: string;
 	name: string;
+	capabilities: Capability[];
 }
 
 export const CAPABILITY_LABELS: Record<Capability, string> = {
