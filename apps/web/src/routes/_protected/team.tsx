@@ -203,6 +203,212 @@ function CreateTeamDialog({ onDone }: { onDone: () => void }) {
 	);
 }
 
+function RenameTeamDialog({
+	teamId,
+	currentName,
+	onDone,
+}: {
+	teamId: string;
+	currentName: string;
+	onDone: () => void;
+}) {
+	const [open, setOpen] = useState(false);
+	const [name, setName] = useState(currentName);
+	const [submitting, setSubmitting] = useState(false);
+
+	const handleOpenChange = (next: boolean) => {
+		setOpen(next);
+		if (next) {
+			setName(currentName);
+		}
+	};
+
+	const submit = async () => {
+		setSubmitting(true);
+		try {
+			await orpcClient.teams.rename({ teamId, name: name.trim() });
+			toast.success("Team renamed");
+			setOpen(false);
+			onDone();
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Could not rename team");
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
+	return (
+		<Dialog onOpenChange={handleOpenChange} open={open}>
+			<DialogTrigger
+				render={
+					<Button size="sm" variant="outline">
+						Rename
+					</Button>
+				}
+			/>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Rename team</DialogTitle>
+					<DialogDescription>
+						Update the display name for this team.
+					</DialogDescription>
+				</DialogHeader>
+				<div className="flex flex-col gap-2">
+					<Label htmlFor="rename-team-name">Team name</Label>
+					<Input
+						id="rename-team-name"
+						onChange={(e) => setName(e.target.value)}
+						placeholder="Acme Inc."
+						value={name}
+					/>
+				</div>
+				<DialogFooter>
+					<Button
+						disabled={
+							submitting ||
+							name.trim().length === 0 ||
+							name.trim() === currentName
+						}
+						onClick={submit}
+					>
+						{submitting ? "Saving…" : "Save"}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+function DeleteTeamDialog({
+	teamId,
+	teamName,
+	onDone,
+}: {
+	teamId: string;
+	teamName: string;
+	onDone: () => void;
+}) {
+	const [open, setOpen] = useState(false);
+	const [submitting, setSubmitting] = useState(false);
+
+	const submit = async () => {
+		setSubmitting(true);
+		try {
+			await orpcClient.teams.delete({ teamId });
+			toast.success(`Deleted ${teamName}`);
+			setOpen(false);
+			onDone();
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Could not delete team");
+			// Keep dialog open so the user sees the error reason (e.g. team still owns projects)
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
+	return (
+		<Dialog onOpenChange={setOpen} open={open}>
+			<DialogTrigger
+				render={
+					<Button size="sm" variant="ghost">
+						Delete
+					</Button>
+				}
+			/>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Delete team</DialogTitle>
+					<DialogDescription>
+						This action is permanent and cannot be undone. All members will lose
+						access. The team must have no projects before it can be deleted.
+					</DialogDescription>
+				</DialogHeader>
+				<p className="text-sm">
+					Are you sure you want to delete{" "}
+					<span className="font-medium">{teamName}</span>?
+				</p>
+				<DialogFooter>
+					<Button
+						disabled={submitting}
+						onClick={() => setOpen(false)}
+						variant="outline"
+					>
+						Cancel
+					</Button>
+					<Button disabled={submitting} onClick={submit} variant="destructive">
+						{submitting ? "Deleting…" : "Delete team"}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+function LeaveTeamDialog({
+	teamId,
+	teamName,
+	onDone,
+}: {
+	teamId: string;
+	teamName: string;
+	onDone: () => void;
+}) {
+	const [open, setOpen] = useState(false);
+	const [submitting, setSubmitting] = useState(false);
+
+	const submit = async () => {
+		setSubmitting(true);
+		try {
+			await orpcClient.teams.leave({ teamId });
+			toast.success(`Left ${teamName}`);
+			setOpen(false);
+			onDone();
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Could not leave team");
+			// Keep dialog open so the user sees why (e.g. last owner)
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
+	return (
+		<Dialog onOpenChange={setOpen} open={open}>
+			<DialogTrigger
+				render={
+					<Button size="sm" variant="ghost">
+						Leave
+					</Button>
+				}
+			/>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Leave team</DialogTitle>
+					<DialogDescription>
+						You will lose access to this team's projects and API keys. If you
+						are the last owner, you must transfer ownership before leaving.
+					</DialogDescription>
+				</DialogHeader>
+				<p className="text-sm">
+					Are you sure you want to leave{" "}
+					<span className="font-medium">{teamName}</span>?
+				</p>
+				<DialogFooter>
+					<Button
+						disabled={submitting}
+						onClick={() => setOpen(false)}
+						variant="outline"
+					>
+						Cancel
+					</Button>
+					<Button disabled={submitting} onClick={submit} variant="destructive">
+						{submitting ? "Leaving…" : "Leave team"}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
 function TeamSection({
 	entry,
 	currentUserId,
@@ -213,6 +419,7 @@ function TeamSection({
 	onChanged: () => void;
 }) {
 	const canManage = entry.myRole === "owner" || entry.myRole === "admin";
+	const isOwner = entry.myRole === "owner";
 
 	const removeMember = async (userId: string) => {
 		try {
@@ -249,6 +456,23 @@ function TeamSection({
 		}
 	};
 
+	const changeRole = async (
+		userId: string,
+		role: "owner" | "admin" | "member"
+	) => {
+		try {
+			await orpcClient.teams.changeRole({
+				teamId: entry.team.id,
+				userId,
+				role,
+			});
+			toast.success("Role updated");
+			onChanged();
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Could not update role");
+		}
+	};
+
 	return (
 		<Card>
 			<CardHeader>
@@ -263,9 +487,30 @@ function TeamSection({
 							{entry.members.length === 1 ? "" : "s"} · you are {entry.myRole}
 						</CardDescription>
 					</div>
-					{canManage && (
-						<InviteDialog onDone={onChanged} teamId={entry.team.id} />
-					)}
+					<div className="flex flex-wrap items-center gap-2">
+						{canManage && (
+							<RenameTeamDialog
+								currentName={entry.team.name}
+								onDone={onChanged}
+								teamId={entry.team.id}
+							/>
+						)}
+						{isOwner && (
+							<DeleteTeamDialog
+								onDone={onChanged}
+								teamId={entry.team.id}
+								teamName={entry.team.name}
+							/>
+						)}
+						<LeaveTeamDialog
+							onDone={onChanged}
+							teamId={entry.team.id}
+							teamName={entry.team.name}
+						/>
+						{canManage && (
+							<InviteDialog onDone={onChanged} teamId={entry.team.id} />
+						)}
+					</div>
 				</div>
 			</CardHeader>
 			<CardContent className="flex flex-col gap-6">
@@ -302,6 +547,28 @@ function TeamSection({
 									<Badge variant={roleBadgeVariant(member.role)}>
 										{member.role}
 									</Badge>
+									{canManage && !isSelf && (
+										<Select
+											onValueChange={(v) =>
+												changeRole(
+													member.userId,
+													v as "owner" | "admin" | "member"
+												)
+											}
+											value={member.role}
+										>
+											<SelectTrigger className="h-8 w-28 text-xs">
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{isOwner && (
+													<SelectItem value="owner">Owner</SelectItem>
+												)}
+												<SelectItem value="admin">Admin</SelectItem>
+												<SelectItem value="member">Member</SelectItem>
+											</SelectContent>
+										</Select>
+									)}
 									{canManage && !isSelf && (
 										<Button
 											onClick={() => removeMember(member.userId)}
