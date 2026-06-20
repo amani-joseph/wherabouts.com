@@ -51,6 +51,9 @@ coverage
 tmp
 temp
 
+# tsx runtime temp dirs (e.g. tsx-501)
+tsx-*/
+
 # Local datasets (large)
 apps/web/data-resources/
 
