@@ -1,6 +1,6 @@
 {
   "name": "@wherabouts/sdk",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Official TypeScript SDK for the Wherabouts location API — international geocoding, geofencing zones, device tracking, and webhooks over authoritative open address data (G-NAF, Overture, OpenAddresses, and more).",
   "type": "module",
   "license": "MIT",
