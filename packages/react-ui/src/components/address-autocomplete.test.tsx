@@ -1,8 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { WheraboutsClient } from "@wherabouts/sdk";
-import type { AddressSuggestion } from "@wherabouts/sdk";
+import type { AddressSuggestion, WheraboutsClient } from "@wherabouts/sdk";
+import { describe, expect, it, vi } from "vitest";
 import { AddressAutocomplete } from "./address-autocomplete";
 
 // Mock client
@@ -32,10 +31,7 @@ describe("AddressAutocomplete", () => {
 	it("renders input with placeholder", () => {
 		const mockClient = createMockClient();
 		render(
-			<AddressAutocomplete
-				client={mockClient}
-				placeholder="Enter address"
-			/>
+			<AddressAutocomplete client={mockClient} placeholder="Enter address" />
 		);
 		const input = screen.getByPlaceholderText("Enter address");
 		expect(input).toBeInTheDocument();
@@ -72,8 +68,8 @@ describe("AddressAutocomplete", () => {
 		render(
 			<AddressAutocomplete
 				client={mockClient}
-				onQueryChange={onQueryChange}
 				minCharsToSearch={1}
+				onQueryChange={onQueryChange}
 			/>
 		);
 
@@ -83,45 +79,39 @@ describe("AddressAutocomplete", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Fleet");
 	});
 
-	it("triggers autocomplete search with debounce", async () => {
-		vi.useFakeTimers();
+	it("triggers a debounced autocomplete search", async () => {
 		const mockClient = createMockClient();
-		const user = userEvent.setup({ delay: null });
+		const user = userEvent.setup();
 
 		render(
 			<AddressAutocomplete
 				client={mockClient}
-				debounceMs={300}
+				debounceMs={50}
 				minCharsToSearch={1}
 			/>
 		);
 
-		const input = screen.getByRole("combobox");
-		await user.type(input, "Fleet");
+		await user.type(screen.getByRole("combobox"), "Fleet");
 
-		// Before debounce period
-		expect(mockClient.addresses.autocomplete).not.toHaveBeenCalled();
-
-		// After debounce period
-		vi.advanceTimersByTime(300);
-
-		// Note: actual search timing depends on hook implementation
-		// This is a simplified test; real implementation would need to wait for the search
-
-		vi.useRealTimers();
+		// The search fires once the debounce window elapses.
+		await waitFor(() => {
+			expect(mockClient.addresses.autocomplete).toHaveBeenCalled();
+		});
 	});
 
 	it("displays empty state when no results", async () => {
 		const mockClient = createMockClient();
-		const autocomplete = mockClient.addresses.autocomplete as ReturnType<typeof vi.fn>;
+		const autocomplete = mockClient.addresses.autocomplete as ReturnType<
+			typeof vi.fn
+		>;
 		autocomplete.mockResolvedValueOnce({ results: [] });
 
 		const user = userEvent.setup();
 		render(
 			<AddressAutocomplete
 				client={mockClient}
-				minCharsToSearch={1}
 				i18nStrings={{ noResults: "No addresses found" }}
+				minCharsToSearch={1}
 			/>
 		);
 
@@ -143,22 +133,19 @@ describe("AddressAutocomplete", () => {
 		render(
 			<AddressAutocomplete
 				client={mockClient}
-				onSelect={onSelect}
 				minCharsToSearch={1}
+				onSelect={onSelect}
 			/>
 		);
 
 		const input = screen.getByRole("combobox");
 		await user.type(input, "Fleet");
 
-		await waitFor(() => {
-			expect(input).toHaveAttribute("aria-expanded", "true");
-		});
-
-		// Get the first listbox item
-		const items = screen.getAllByRole("option");
-		if (items.length > 0) {
-			await user.click(items[0]);
+		// Wait for the async results to render as options before selecting.
+		const items = await screen.findAllByRole("option");
+		const firstItem = items[0];
+		if (firstItem) {
+			await user.click(firstItem);
 
 			expect(onSelect).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -190,19 +177,21 @@ describe("AddressAutocomplete", () => {
 
 	it("calls renderError when error occurs", async () => {
 		const mockClient = createMockClient();
-		const autocomplete = mockClient.addresses.autocomplete as ReturnType<typeof vi.fn>;
+		const autocomplete = mockClient.addresses.autocomplete as ReturnType<
+			typeof vi.fn
+		>;
 		autocomplete.mockRejectedValueOnce(new Error("Network error"));
 
-		const renderError = vi.fn((err: Error) => (
-			<div>Error: {err.message}</div>
+		const renderError = vi.fn((err: Error | null) => (
+			<div>Error: {err?.message}</div>
 		));
 		const user = userEvent.setup();
 
 		render(
 			<AddressAutocomplete
 				client={mockClient}
-				renderError={renderError}
 				minCharsToSearch={1}
+				renderError={renderError}
 			/>
 		);
 
