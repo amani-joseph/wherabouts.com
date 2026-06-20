@@ -1,9 +1,9 @@
 export type Capability = "geocode" | "reverse" | "autocomplete";
 
 export interface CoverageCountry {
+	capabilities: Capability[];
 	iso2: string;
 	name: string;
-	capabilities: Capability[];
 }
 
 export const CAPABILITY_LABELS: Record<Capability, string> = {
@@ -20,23 +20,23 @@ const ALL_CAPABILITIES: Capability[] = ["geocode", "reverse", "autocomplete"];
 // countries share the same addresses table and query paths, hence the uniform
 // capability set; the per-country array allows divergence later.
 export const COVERAGE_COUNTRIES: CoverageCountry[] = [
-	{ iso2: "AU", name: "Australia", capabilities: ALL_CAPABILITIES },
-	{ iso2: "AT", name: "Austria", capabilities: ALL_CAPABILITIES },
-	{ iso2: "BE", name: "Belgium", capabilities: ALL_CAPABILITIES },
-	{ iso2: "CA", name: "Canada", capabilities: ALL_CAPABILITIES },
-	{ iso2: "DK", name: "Denmark", capabilities: ALL_CAPABILITIES },
-	{ iso2: "FI", name: "Finland", capabilities: ALL_CAPABILITIES },
-	{ iso2: "FR", name: "France", capabilities: ALL_CAPABILITIES },
-	{ iso2: "DE", name: "Germany", capabilities: ALL_CAPABILITIES },
-	{ iso2: "IT", name: "Italy", capabilities: ALL_CAPABILITIES },
-	{ iso2: "NL", name: "Netherlands", capabilities: ALL_CAPABILITIES },
-	{ iso2: "NO", name: "Norway", capabilities: ALL_CAPABILITIES },
-	{ iso2: "PL", name: "Poland", capabilities: ALL_CAPABILITIES },
-	{ iso2: "PT", name: "Portugal", capabilities: ALL_CAPABILITIES },
-	{ iso2: "ES", name: "Spain", capabilities: ALL_CAPABILITIES },
-	{ iso2: "CH", name: "Switzerland", capabilities: ALL_CAPABILITIES },
-	{ iso2: "GB", name: "United Kingdom", capabilities: ALL_CAPABILITIES },
-	{ iso2: "US", name: "United States", capabilities: ALL_CAPABILITIES },
+	{ iso2: "AU", name: "Australia", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "AT", name: "Austria", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "BE", name: "Belgium", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "CA", name: "Canada", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "DK", name: "Denmark", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "FI", name: "Finland", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "FR", name: "France", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "DE", name: "Germany", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "IT", name: "Italy", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "NL", name: "Netherlands", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "NO", name: "Norway", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "PL", name: "Poland", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "PT", name: "Portugal", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "ES", name: "Spain", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "CH", name: "Switzerland", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "GB", name: "United Kingdom", capabilities: [...ALL_CAPABILITIES] },
+	{ iso2: "US", name: "United States", capabilities: [...ALL_CAPABILITIES] },
 ];
 
 const REGIONAL_INDICATOR_BASE = 0x1_f1_e6;
