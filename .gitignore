@@ -63,3 +63,6 @@ apps/web/data-resources/
 
 # OSRM prebuilt routing graph (multi-GB; built locally via infra/osrm/build-graph.sh)
 infra/osrm/data/
+
+# Design-handoff archives (kept on disk, not committed to git history)
+*.zip
