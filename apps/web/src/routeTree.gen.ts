@@ -15,6 +15,7 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RpcSplatRouteImport } from './routes/rpc/$'
+import { Route as InviteIdRouteImport } from './routes/invite.$id'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ProtectedZonesRouteImport } from './routes/_protected/zones'
 import { Route as ProtectedWebhooksRouteImport } from './routes/_protected/webhooks'
@@ -36,6 +37,7 @@ import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
 import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
+import { Route as DotwellKnownApiCatalogRouteImport } from './routes/[.]well-known.api-catalog'
 import { Route as ApiV1SplatRouteImport } from './routes/api/v1/$'
 import { Route as ApiOpenapiJsonRouteImport } from './routes/api/openapi.json'
 import { Route as ApiAuthSignOutRouteImport } from './routes/api/auth/sign-out'
@@ -73,6 +75,11 @@ const IndexRoute = IndexRouteImport.update({
 const RpcSplatRoute = RpcSplatRouteImport.update({
   id: '/rpc/$',
   path: '/rpc/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteIdRoute = InviteIdRouteImport.update({
+  id: '/invite/$id',
+  path: '/invite/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -180,6 +187,11 @@ const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotwellKnownApiCatalogRoute = DotwellKnownApiCatalogRouteImport.update({
+  id: '/.well-known/api-catalog',
+  path: '/.well-known/api-catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1SplatRoute = ApiV1SplatRouteImport.update({
   id: '/api/v1/$',
   path: '/api/v1/$',
@@ -231,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.well-known/api-catalog': typeof DotwellKnownApiCatalogRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
@@ -252,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/webhooks': typeof ProtectedWebhooksRoute
   '/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
+  '/invite/$id': typeof InviteIdRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
@@ -268,6 +282,7 @@ export interface FileRoutesByTo {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.well-known/api-catalog': typeof DotwellKnownApiCatalogRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
@@ -289,6 +304,7 @@ export interface FileRoutesByTo {
   '/webhooks': typeof ProtectedWebhooksRoute
   '/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
+  '/invite/$id': typeof InviteIdRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
@@ -307,6 +323,7 @@ export interface FileRoutesById {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.well-known/api-catalog': typeof DotwellKnownApiCatalogRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
   '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_auth/sign-in': typeof AuthSignInRoute
@@ -328,6 +345,7 @@ export interface FileRoutesById {
   '/_protected/webhooks': typeof ProtectedWebhooksRoute
   '/_protected/zones': typeof ProtectedZonesRoute
   '/api/health': typeof ApiHealthRoute
+  '/invite/$id': typeof InviteIdRoute
   '/rpc/$': typeof RpcSplatRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
@@ -346,6 +364,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/pricing'
     | '/sitemap.xml'
+    | '/.well-known/api-catalog'
     | '/forgot-password'
     | '/reset-password'
     | '/sign-in'
@@ -367,6 +386,7 @@ export interface FileRouteTypes {
     | '/webhooks'
     | '/zones'
     | '/api/health'
+    | '/invite/$id'
     | '/rpc/$'
     | '/api/auth/get-session'
     | '/api/auth/ok'
@@ -383,6 +403,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/pricing'
     | '/sitemap.xml'
+    | '/.well-known/api-catalog'
     | '/forgot-password'
     | '/reset-password'
     | '/sign-in'
@@ -404,6 +425,7 @@ export interface FileRouteTypes {
     | '/webhooks'
     | '/zones'
     | '/api/health'
+    | '/invite/$id'
     | '/rpc/$'
     | '/api/auth/get-session'
     | '/api/auth/ok'
@@ -421,6 +443,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/pricing'
     | '/sitemap.xml'
+    | '/.well-known/api-catalog'
     | '/_auth/forgot-password'
     | '/_auth/reset-password'
     | '/_auth/sign-in'
@@ -442,6 +465,7 @@ export interface FileRouteTypes {
     | '/_protected/webhooks'
     | '/_protected/zones'
     | '/api/health'
+    | '/invite/$id'
     | '/rpc/$'
     | '/api/auth/get-session'
     | '/api/auth/ok'
@@ -460,11 +484,13 @@ export interface RootRouteChildren {
   DocsRoute: typeof DocsRoute
   PricingRoute: typeof PricingRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  DotwellKnownApiCatalogRoute: typeof DotwellKnownApiCatalogRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  InviteIdRoute: typeof InviteIdRoute
   RpcSplatRoute: typeof RpcSplatRoute
   ApiAuthGetSessionRoute: typeof ApiAuthGetSessionRoute
   ApiAuthOkRoute: typeof ApiAuthOkRoute
@@ -519,6 +545,13 @@ declare module '@tanstack/react-router' {
       path: '/rpc/$'
       fullPath: '/rpc/$'
       preLoaderRoute: typeof RpcSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$id': {
+      id: '/invite/$id'
+      path: '/invite/$id'
+      fullPath: '/invite/$id'
+      preLoaderRoute: typeof InviteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -668,6 +701,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/api-catalog': {
+      id: '/.well-known/api-catalog'
+      path: '/.well-known/api-catalog'
+      fullPath: '/.well-known/api-catalog'
+      preLoaderRoute: typeof DotwellKnownApiCatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/$': {
       id: '/api/v1/$'
       path: '/api/v1/$'
@@ -782,11 +822,13 @@ const rootRouteChildren: RootRouteChildren = {
   DocsRoute: DocsRoute,
   PricingRoute: PricingRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  DotwellKnownApiCatalogRoute: DotwellKnownApiCatalogRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   ApiHealthRoute: ApiHealthRoute,
+  InviteIdRoute: InviteIdRoute,
   RpcSplatRoute: RpcSplatRoute,
   ApiAuthGetSessionRoute: ApiAuthGetSessionRoute,
   ApiAuthOkRoute: ApiAuthOkRoute,
