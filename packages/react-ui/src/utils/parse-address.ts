@@ -1,9 +1,25 @@
 import type { AddressSuggestion } from "@wherabouts/sdk";
 import type { AddressWithParsed } from "../types";
 
-const COUNTRY_NAMES: Record<string, string> = {
-	AU: "Australia",
-};
+// Resolve ISO 3166-1 country codes to display names via the platform Intl data —
+// full international coverage with zero maintenance. Falls back to the raw code
+// when Intl.DisplayNames is unavailable or the code is unrecognized.
+const REGION_DISPLAY_NAMES =
+	typeof Intl !== "undefined" && "DisplayNames" in Intl
+		? new Intl.DisplayNames(["en"], { type: "region" })
+		: null;
+
+function countryName(code: string): string {
+	if (!code) {
+		return code;
+	}
+	try {
+		return REGION_DISPLAY_NAMES?.of(code.toUpperCase()) ?? code;
+	} catch {
+		// of() throws RangeError on malformed codes — keep the raw value.
+		return code;
+	}
+}
 
 /**
  * Light client-side cleanup before sending to the API for snappier typeahead.
@@ -30,6 +46,6 @@ export function toAddressWithParsed(
 		suburb: suggestion.locality,
 		state: suggestion.state,
 		postcode: suggestion.postcode,
-		country: COUNTRY_NAMES[suggestion.country] ?? suggestion.country,
+		country: countryName(suggestion.country),
 	};
 }
