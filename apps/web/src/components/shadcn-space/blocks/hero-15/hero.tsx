@@ -684,16 +684,16 @@ const HeroSection = () => {
 					>
 						<div className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.9)]" />
 						<p className="font-normal text-foreground text-sm">
-							Location &amp; geocoding API — US, Australia &amp; expanding
+							Location &amp; geocoding API 
 						</p>
 						<ArrowRight className="text-foreground" size={16} />
 					</motion.div>
 
 					<motion.h1
-						className="max-w-xl text-wrap text-balance font-semibold text-3xl text-foreground leading-[1.05] tracking-tight sm:text-4xl md:text-5xl"
+						className="max-w-xl text-wrap text-balance font-semibold text-2xl text-foreground leading-[1.05] tracking-tight sm:text-4xl md:text-3xl"
 						variants={h1Variants}
 					>
-						{"Production-ready APIs for every location workflow"
+						{"Production-ready APIs for every location workflows"
 							.split("")
 							.map((char, i, chars) => (
 								<motion.span
@@ -705,14 +705,14 @@ const HeroSection = () => {
 							))}
 					</motion.h1>
 
-					<motion.p
+					{/*<motion.p
 						className="max-w-lg text-pretty font-normal text-base text-muted-foreground md:text-lg"
 						variants={itemVariants}
 					>
 						Address autocomplete, geocoding, geofencing, routing, device
 						tracking, and webhooks — ship location features without the
 						complexity.
-					</motion.p>
+					</motion.p>*/}
 
 					<motion.div
 						className="flex flex-wrap gap-2 pt-1"
@@ -754,7 +754,7 @@ const HeroSection = () => {
 						LIVE · drag to spin
 					</div>
 					<HeroGlobe
-						className="mx-auto w-full max-w-sm sm:max-w-md lg:w-[128%] lg:max-w-none lg:translate-x-[6%]"
+						className="mx-auto w-full max-w-md sm:max-w-lg lg:w-[141%] lg:max-w-none lg:translate-x-[4%] lg:translate-y-[7%]"
 						markers={DEMO_MARKERS}
 						reduceMotion={shouldReduceMotion}
 						target={activeLocation}

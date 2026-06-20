@@ -31,18 +31,17 @@ const Integration = () => {
 						className="h-auto rounded-full px-3 py-1 font-normal text-sm"
 						variant={"outline"}
 					>
-						In your stack
+						Built to integrate
 					</Badge>
 					<div className="flex flex-col items-center gap-4">
 						<h2 className="font-semibold text-3xl text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
-							Drop-in HTTP, not a maps widget
+							Every location workflow, one API
 						</h2>
 						<p className="max-w-xl font-normal text-base text-muted-foreground">
-							Call Wherabouts from your backend or edge with plain REST—no
-							embedded map SDK required to validate an address, power
-							autocomplete, or geocode a signup. US and Australia are at the
-							core, with coverage expanding across Europe, South America,
-							Africa, and Asia.
+							Address autocomplete, geocoding, geofencing, routing, device
+							tracking, and webhooks — ship location features without the
+							complexity. Call Wherabouts with plain REST from your backend or
+							edge, no map SDK required.
 						</p>
 					</div>
 					<a

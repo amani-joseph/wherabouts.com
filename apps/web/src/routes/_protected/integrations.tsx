@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Badge } from "@wherabouts.com/ui/components/badge";
 import { Button } from "@wherabouts.com/ui/components/button";
 import {
@@ -12,6 +12,11 @@ import { Switch } from "@wherabouts.com/ui/components/switch";
 import { ArrowRightIcon, CheckCircleIcon, WebhookIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_protected/integrations")({
+	// Hidden for now — Integrations is a future feature. Redirect any direct
+	// navigation back to the dashboard until it ships.
+	beforeLoad: () => {
+		throw redirect({ to: "/dashboard" });
+	},
 	component: RouteComponent,
 });
 

@@ -25,6 +25,10 @@ export const navigationData: NavigationSection[] = [
 		href: "/docs",
 	},
 	{
+		name: "Coverage",
+		href: "/coverage",
+	},
+	{
 		name: "Pricing",
 		href: "/pricing",
 	},
