@@ -675,7 +675,7 @@ const HeroSection = () => {
 					</motion.div>
 				</div>
 				<motion.div
-					className="flex flex-wrap justify-center gap-2 pt-2"
+					className="relative z-10 flex flex-wrap justify-center gap-2 pt-2"
 					variants={itemVariants}
 				>
 					<Link
