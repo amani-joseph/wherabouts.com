@@ -6,8 +6,12 @@ export const PUBLIC_PATHS: readonly { path: string; priority: string }[] = [
 	{ path: "/docs", priority: "0.9" },
 	{ path: "/coverage", priority: "0.8" },
 	{ path: "/pricing", priority: "0.8" },
+	{ path: "/changelog", priority: "0.6" },
 	{ path: "/sign-in", priority: "0.5" },
 	{ path: "/sign-up", priority: "0.5" },
+	{ path: "/legal/privacy", priority: "0.3" },
+	{ path: "/legal/terms", priority: "0.3" },
+	{ path: "/legal/acceptable-use", priority: "0.3" },
 ];
 
 function escapeXml(text: string): string {

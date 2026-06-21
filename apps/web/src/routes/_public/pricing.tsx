@@ -11,6 +11,7 @@ import {
 import { cn } from "@wherabouts.com/ui/lib/utils";
 import { CheckIcon } from "lucide-react";
 import { PricingBackground } from "@/components/backgrounds/pricing-background";
+import { PricingCalculator } from "@/components/pricing/pricing-calculator";
 
 export const Route = createFileRoute("/_public/pricing")({
 	component: PricingPage,
@@ -95,19 +96,63 @@ function PricingPage() {
 							</Link>
 						</CardContent>
 					</Card>
+				</section>
 
-					<p className="mt-6 text-center text-muted-foreground text-sm">
-						Need scale, volume discounts, or an SLA?{" "}
-						<a
-							className="underline underline-offset-4"
-							href="mailto:hello@wherabouts.com"
-						>
-							Contact sales
-						</a>
+				{/* Interactive cost estimate */}
+				<section
+					aria-label="Cost estimate"
+					className="mx-auto mt-20 w-full max-w-2xl"
+				>
+					<div className="text-center">
+						<h2 className="font-bold text-2xl tracking-tight sm:text-3xl">
+							Estimate your monthly cost
+						</h2>
+						<p className="mt-2 text-balance text-muted-foreground text-sm">
+							Drag to see what a given request volume costs. The first{" "}
+							{FREE_REQUESTS} requests each month are always free.
+						</p>
+					</div>
+					<div className="mt-8">
+						<PricingCalculator />
+					</div>
+					<p className="mt-4 text-muted-foreground text-sm">
+						<span className="font-medium text-foreground">
+							What counts as a request?
+						</span>{" "}
+						Every successful API call — autocomplete, geocoding, reverse
+						geocoding, or geofencing — counts as one request. Requests that fail
+						authentication or validation aren't billed.
 					</p>
 				</section>
 
-				<p className="mt-12 text-center text-muted-foreground text-sm">
+				{/* Enterprise / volume */}
+				<section
+					aria-label="Enterprise"
+					className="mx-auto mt-16 w-full max-w-2xl"
+				>
+					<Card className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+						<div>
+							<h2 className="font-semibold text-lg">
+								Scaling past millions of requests?
+							</h2>
+							<p className="mt-1 max-w-md text-muted-foreground text-sm">
+								Talk to us about volume pricing, committed-use discounts, an
+								uptime SLA, SSO, and dedicated support for production workloads.
+							</p>
+						</div>
+						<a
+							className={cn(
+								buttonVariants({ variant: "default", size: "lg" }),
+								"shrink-0"
+							)}
+							href="mailto:hello@wherabouts.com"
+						>
+							Talk to us
+						</a>
+					</Card>
+				</section>
+
+				<p className="mt-16 text-center text-muted-foreground text-sm">
 					All usage includes access to the full{" "}
 					<Link className="underline underline-offset-4" to="/docs">
 						API documentation

@@ -19,6 +19,7 @@ import { Route as InviteIdRouteImport } from './routes/invite.$id'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as PublicPricingRouteImport } from './routes/_public/pricing'
 import { Route as PublicCoverageRouteImport } from './routes/_public/coverage'
+import { Route as PublicChangelogRouteImport } from './routes/_public/changelog'
 import { Route as ProtectedZonesRouteImport } from './routes/_protected/zones'
 import { Route as ProtectedWebhooksRouteImport } from './routes/_protected/webhooks'
 import { Route as ProtectedTeamRouteImport } from './routes/_protected/team'
@@ -45,6 +46,9 @@ import { Route as ApiOpenapiJsonRouteImport } from './routes/api/openapi.json'
 import { Route as ApiAuthSignOutRouteImport } from './routes/api/auth/sign-out'
 import { Route as ApiAuthOkRouteImport } from './routes/api/auth/ok'
 import { Route as ApiAuthGetSessionRouteImport } from './routes/api/auth/get-session'
+import { Route as PublicLegalTermsRouteImport } from './routes/_public/legal/terms'
+import { Route as PublicLegalPrivacyRouteImport } from './routes/_public/legal/privacy'
+import { Route as PublicLegalAcceptableUseRouteImport } from './routes/_public/legal/acceptable-use'
 import { Route as ApiAuthSignUpEmailRouteImport } from './routes/api/auth/sign-up/email'
 import { Route as ApiAuthSignInSocialRouteImport } from './routes/api/auth/sign-in/social'
 import { Route as ApiAuthSignInEmailRouteImport } from './routes/api/auth/sign-in/email'
@@ -96,6 +100,11 @@ const PublicPricingRoute = PublicPricingRouteImport.update({
 const PublicCoverageRoute = PublicCoverageRouteImport.update({
   id: '/coverage',
   path: '/coverage',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicChangelogRoute = PublicChangelogRouteImport.update({
+  id: '/changelog',
+  path: '/changelog',
   getParentRoute: () => PublicRoute,
 } as any)
 const ProtectedZonesRoute = ProtectedZonesRouteImport.update({
@@ -228,6 +237,22 @@ const ApiAuthGetSessionRoute = ApiAuthGetSessionRouteImport.update({
   path: '/api/auth/get-session',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PublicLegalTermsRoute = PublicLegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicLegalPrivacyRoute = PublicLegalPrivacyRouteImport.update({
+  id: '/legal/privacy',
+  path: '/legal/privacy',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicLegalAcceptableUseRoute =
+  PublicLegalAcceptableUseRouteImport.update({
+    id: '/legal/acceptable-use',
+    path: '/legal/acceptable-use',
+    getParentRoute: () => PublicRoute,
+  } as any)
 const ApiAuthSignUpEmailRoute = ApiAuthSignUpEmailRouteImport.update({
   id: '/api/auth/sign-up/email',
   path: '/api/auth/sign-up/email',
@@ -274,11 +299,15 @@ export interface FileRoutesByFullPath {
   '/team': typeof ProtectedTeamRoute
   '/webhooks': typeof ProtectedWebhooksRoute
   '/zones': typeof ProtectedZonesRoute
+  '/changelog': typeof PublicChangelogRoute
   '/coverage': typeof PublicCoverageRoute
   '/pricing': typeof PublicPricingRoute
   '/api/health': typeof ApiHealthRoute
   '/invite/$id': typeof InviteIdRoute
   '/rpc/$': typeof RpcSplatRoute
+  '/legal/acceptable-use': typeof PublicLegalAcceptableUseRoute
+  '/legal/privacy': typeof PublicLegalPrivacyRoute
+  '/legal/terms': typeof PublicLegalTermsRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
   '/api/auth/sign-out': typeof ApiAuthSignOutRoute
@@ -314,11 +343,15 @@ export interface FileRoutesByTo {
   '/team': typeof ProtectedTeamRoute
   '/webhooks': typeof ProtectedWebhooksRoute
   '/zones': typeof ProtectedZonesRoute
+  '/changelog': typeof PublicChangelogRoute
   '/coverage': typeof PublicCoverageRoute
   '/pricing': typeof PublicPricingRoute
   '/api/health': typeof ApiHealthRoute
   '/invite/$id': typeof InviteIdRoute
   '/rpc/$': typeof RpcSplatRoute
+  '/legal/acceptable-use': typeof PublicLegalAcceptableUseRoute
+  '/legal/privacy': typeof PublicLegalPrivacyRoute
+  '/legal/terms': typeof PublicLegalTermsRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
   '/api/auth/sign-out': typeof ApiAuthSignOutRoute
@@ -357,11 +390,15 @@ export interface FileRoutesById {
   '/_protected/team': typeof ProtectedTeamRoute
   '/_protected/webhooks': typeof ProtectedWebhooksRoute
   '/_protected/zones': typeof ProtectedZonesRoute
+  '/_public/changelog': typeof PublicChangelogRoute
   '/_public/coverage': typeof PublicCoverageRoute
   '/_public/pricing': typeof PublicPricingRoute
   '/api/health': typeof ApiHealthRoute
   '/invite/$id': typeof InviteIdRoute
   '/rpc/$': typeof RpcSplatRoute
+  '/_public/legal/acceptable-use': typeof PublicLegalAcceptableUseRoute
+  '/_public/legal/privacy': typeof PublicLegalPrivacyRoute
+  '/_public/legal/terms': typeof PublicLegalTermsRoute
   '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/ok': typeof ApiAuthOkRoute
   '/api/auth/sign-out': typeof ApiAuthSignOutRoute
@@ -399,11 +436,15 @@ export interface FileRouteTypes {
     | '/team'
     | '/webhooks'
     | '/zones'
+    | '/changelog'
     | '/coverage'
     | '/pricing'
     | '/api/health'
     | '/invite/$id'
     | '/rpc/$'
+    | '/legal/acceptable-use'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/api/auth/get-session'
     | '/api/auth/ok'
     | '/api/auth/sign-out'
@@ -439,11 +480,15 @@ export interface FileRouteTypes {
     | '/team'
     | '/webhooks'
     | '/zones'
+    | '/changelog'
     | '/coverage'
     | '/pricing'
     | '/api/health'
     | '/invite/$id'
     | '/rpc/$'
+    | '/legal/acceptable-use'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/api/auth/get-session'
     | '/api/auth/ok'
     | '/api/auth/sign-out'
@@ -481,11 +526,15 @@ export interface FileRouteTypes {
     | '/_protected/team'
     | '/_protected/webhooks'
     | '/_protected/zones'
+    | '/_public/changelog'
     | '/_public/coverage'
     | '/_public/pricing'
     | '/api/health'
     | '/invite/$id'
     | '/rpc/$'
+    | '/_public/legal/acceptable-use'
+    | '/_public/legal/privacy'
+    | '/_public/legal/terms'
     | '/api/auth/get-session'
     | '/api/auth/ok'
     | '/api/auth/sign-out'
@@ -592,6 +641,13 @@ declare module '@tanstack/react-router' {
       path: '/coverage'
       fullPath: '/coverage'
       preLoaderRoute: typeof PublicCoverageRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/changelog': {
+      id: '/_public/changelog'
+      path: '/changelog'
+      fullPath: '/changelog'
+      preLoaderRoute: typeof PublicChangelogRouteImport
       parentRoute: typeof PublicRoute
     }
     '/_protected/zones': {
@@ -776,6 +832,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthGetSessionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_public/legal/terms': {
+      id: '/_public/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof PublicLegalTermsRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/legal/privacy': {
+      id: '/_public/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof PublicLegalPrivacyRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/legal/acceptable-use': {
+      id: '/_public/legal/acceptable-use'
+      path: '/legal/acceptable-use'
+      fullPath: '/legal/acceptable-use'
+      preLoaderRoute: typeof PublicLegalAcceptableUseRouteImport
+      parentRoute: typeof PublicRoute
+    }
     '/api/auth/sign-up/email': {
       id: '/api/auth/sign-up/email'
       path: '/api/auth/sign-up/email'
@@ -850,13 +927,21 @@ const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
 )
 
 interface PublicRouteChildren {
+  PublicChangelogRoute: typeof PublicChangelogRoute
   PublicCoverageRoute: typeof PublicCoverageRoute
   PublicPricingRoute: typeof PublicPricingRoute
+  PublicLegalAcceptableUseRoute: typeof PublicLegalAcceptableUseRoute
+  PublicLegalPrivacyRoute: typeof PublicLegalPrivacyRoute
+  PublicLegalTermsRoute: typeof PublicLegalTermsRoute
 }
 
 const PublicRouteChildren: PublicRouteChildren = {
+  PublicChangelogRoute: PublicChangelogRoute,
   PublicCoverageRoute: PublicCoverageRoute,
   PublicPricingRoute: PublicPricingRoute,
+  PublicLegalAcceptableUseRoute: PublicLegalAcceptableUseRoute,
+  PublicLegalPrivacyRoute: PublicLegalPrivacyRoute,
+  PublicLegalTermsRoute: PublicLegalTermsRoute,
 }
 
 const PublicRouteWithChildren =
