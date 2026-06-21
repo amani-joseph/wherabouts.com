@@ -10,6 +10,7 @@ import {
 } from "@wherabouts.com/ui/components/card";
 import { cn } from "@wherabouts.com/ui/lib/utils";
 import { CheckIcon } from "lucide-react";
+import { PricingBackground } from "@/components/backgrounds/pricing-background";
 
 export const Route = createFileRoute("/_public/pricing")({
 	component: PricingPage,
@@ -33,83 +34,88 @@ const FEATURES: readonly string[] = [
 
 function PricingPage() {
 	return (
-		<main className="mx-auto w-full max-w-6xl px-6 py-24">
-			<header className="mx-auto flex max-w-2xl flex-col items-center text-center">
-				<Badge variant="secondary">Pricing</Badge>
-				<h1 className="mt-4 font-bold text-4xl tracking-tight sm:text-5xl">
-					Geocoding that scales with you
-				</h1>
-				<p className="mt-4 text-balance text-muted-foreground">
-					Australian address autocomplete, reverse geocoding, and geofencing on
-					G-NAF data. Pay only for what you use — start free, no card required.
-				</p>
-			</header>
+		<main className="relative isolate overflow-hidden">
+			<PricingBackground />
+			<div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-24">
+				<header className="mx-auto flex max-w-2xl flex-col items-center text-center">
+					<Badge variant="secondary">Pricing</Badge>
+					<h1 className="mt-4 font-bold text-4xl tracking-tight sm:text-5xl">
+						Geocoding that scales with you
+					</h1>
+					<p className="mt-4 text-balance text-muted-foreground">
+						Australian address autocomplete, reverse geocoding, and geofencing
+						on G-NAF data. Pay only for what you use — start free, no card
+						required.
+					</p>
+				</header>
 
-			<section aria-label="Pricing" className="mx-auto mt-16 w-full max-w-md">
-				<Card className="flex flex-col border-primary shadow-lg ring-1 ring-primary">
-					<CardHeader>
-						<div className="flex items-center justify-between gap-2">
-							<CardTitle className="text-lg">Pay-as-you-go</CardTitle>
-							<Badge>No card to start</Badge>
-						</div>
-						<CardDescription>
-							Only pay for what you use, billed monthly.
-						</CardDescription>
-						<div className="mt-4 flex items-baseline gap-1">
-							<span className="font-bold text-4xl tracking-tight">$0</span>
-							<span className="text-muted-foreground text-sm">
-								/month to start
-							</span>
-						</div>
-						<p className="mt-1 text-muted-foreground text-sm">
-							{FREE_REQUESTS} requests/month free, then {RATE_PER_1K} per 1,000.
-						</p>
-					</CardHeader>
+				<section aria-label="Pricing" className="mx-auto mt-16 w-full max-w-md">
+					<Card className="flex flex-col border-primary shadow-lg ring-1 ring-primary">
+						<CardHeader>
+							<div className="flex items-center justify-between gap-2">
+								<CardTitle className="text-lg">Pay-as-you-go</CardTitle>
+								<Badge>No card to start</Badge>
+							</div>
+							<CardDescription>
+								Only pay for what you use, billed monthly.
+							</CardDescription>
+							<div className="mt-4 flex items-baseline gap-1">
+								<span className="font-bold text-4xl tracking-tight">$0</span>
+								<span className="text-muted-foreground text-sm">
+									/month to start
+								</span>
+							</div>
+							<p className="mt-1 text-muted-foreground text-sm">
+								{FREE_REQUESTS} requests/month free, then {RATE_PER_1K} per
+								1,000.
+							</p>
+						</CardHeader>
 
-					<CardContent className="flex flex-1 flex-col">
-						<ul className="flex flex-1 flex-col gap-3 text-sm">
-							{FEATURES.map((feature) => (
-								<li className="flex items-start gap-2" key={feature}>
-									<CheckIcon
-										aria-hidden="true"
-										className="mt-0.5 size-4 shrink-0 text-primary"
-									/>
-									<span>{feature}</span>
-								</li>
-							))}
-						</ul>
+						<CardContent className="flex flex-1 flex-col">
+							<ul className="flex flex-1 flex-col gap-3 text-sm">
+								{FEATURES.map((feature) => (
+									<li className="flex items-start gap-2" key={feature}>
+										<CheckIcon
+											aria-hidden="true"
+											className="mt-0.5 size-4 shrink-0 text-primary"
+										/>
+										<span>{feature}</span>
+									</li>
+								))}
+							</ul>
 
-						<Link
-							className={cn(
-								buttonVariants({ variant: "default", size: "lg" }),
-								"mt-8 w-full"
-							)}
-							to="/sign-up"
-						>
-							Start for free
+							<Link
+								className={cn(
+									buttonVariants({ variant: "default", size: "lg" }),
+									"mt-8 w-full"
+								)}
+								to="/sign-up"
+							>
+								Start for free
+							</Link>
+						</CardContent>
+					</Card>
+
+					<p className="mt-6 text-center text-muted-foreground text-sm">
+						Need scale, volume discounts, or an SLA?{" "}
+						<Link className="underline underline-offset-4" to="/sign-up">
+							Contact sales
 						</Link>
-					</CardContent>
-				</Card>
+					</p>
+				</section>
 
-				<p className="mt-6 text-center text-muted-foreground text-sm">
-					Need scale, volume discounts, or an SLA?{" "}
-					<Link className="underline underline-offset-4" to="/sign-up">
-						Contact sales
+				<p className="mt-12 text-center text-muted-foreground text-sm">
+					All usage includes access to the full{" "}
+					<Link className="underline underline-offset-4" to="/docs">
+						API documentation
 					</Link>
+					. Questions about pricing?{" "}
+					<Link className="underline underline-offset-4" to="/sign-up">
+						Get in touch
+					</Link>
+					.
 				</p>
-			</section>
-
-			<p className="mt-12 text-center text-muted-foreground text-sm">
-				All usage includes access to the full{" "}
-				<Link className="underline underline-offset-4" to="/docs">
-					API documentation
-				</Link>
-				. Questions about pricing?{" "}
-				<Link className="underline underline-offset-4" to="/sign-up">
-					Get in touch
-				</Link>
-				.
-			</p>
+			</div>
 		</main>
 	);
 }
