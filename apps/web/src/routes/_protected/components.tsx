@@ -35,6 +35,16 @@ export const Route = createFileRoute("/_protected/components")({
 	component: RouteComponent,
 });
 
+// Sentinel used when no demo key is configured. The live demos can't reach the
+// API without a publishable key, so we detect this and show an explicit notice
+// instead of letting every component fire a doomed request that surfaces only as
+// a bare red (aria-invalid) border with no explanation.
+const DEMO_KEY_FALLBACK = "demo-key-not-configured";
+
+// Whether a real publishable demo key is configured (VITE_DEMO_API_KEY). When
+// false, the live demos are gated behind DemoKeyNotice.
+const demoKeyConfigured = Boolean(env.VITE_DEMO_API_KEY);
+
 // Demo client factory.
 // Call the API same-origin so the in-dashboard demo never trips CORS: the web
 // app proxies /api/v1/* to the backend server-side (see api/v1/$.ts), so the
@@ -42,7 +52,7 @@ export const Route = createFileRoute("/_protected/components")({
 // preflight. This works in both local dev and production. SDK resource paths
 // are absolute (/api/v1/...), so the origin alone is the correct baseUrl.
 const createDemoClient = (): WheraboutsClient => {
-	const apiKey = env.VITE_DEMO_API_KEY || "demo-key-not-configured";
+	const apiKey = env.VITE_DEMO_API_KEY || DEMO_KEY_FALLBACK;
 	const baseUrl =
 		typeof window === "undefined"
 			? "https://api.wherabouts.com"
@@ -179,6 +189,39 @@ function ComponentDocumentation({
 					<strong>Package:</strong>{" "}
 					<code className="rounded bg-black/20 px-1">@wherabouts/react-ui</code>
 				</p>
+			</CardContent>
+		</Card>
+	);
+}
+
+// Shown in place of the live demos when no publishable demo key is configured.
+// Without a key every component would just render a red error border, which
+// looks like a broken demo rather than a configuration gap.
+function DemoKeyNotice() {
+	return (
+		<Card className="border-amber-300 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20">
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2 text-amber-700 text-base dark:text-amber-400">
+					<AlertCircle className="h-4 w-4" />
+					Live demos need a demo API key
+				</CardTitle>
+				<CardDescription className="text-amber-700/80 dark:text-amber-400/80">
+					These components query the live API, which requires a publishable key.
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-3 text-amber-800 text-sm dark:text-amber-300">
+				<p>
+					Set{" "}
+					<code className="rounded bg-black/10 px-1">VITE_DEMO_API_KEY</code> to
+					a publishable key (starts with{" "}
+					<code className="rounded bg-black/10 px-1">wh_</code>) in{" "}
+					<code className="rounded bg-black/10 px-1">apps/web/.env</code>, then
+					restart the dev server. The documentation and usage examples below
+					stay available without a key.
+				</p>
+				<pre className="overflow-x-auto rounded bg-black/10 p-2 text-xs">
+					<code>VITE_DEMO_API_KEY=wh_live_...</code>
+				</pre>
 			</CardContent>
 		</Card>
 	);
@@ -596,8 +639,9 @@ function RouteComponent() {
 
 				<TabsContent className="mt-6 space-y-10" value="react">
 					<div className="space-y-8">
+						{demoKeyConfigured ? null : <DemoKeyNotice />}
 						<div className="grid items-start gap-6 lg:grid-cols-2">
-							<AddressAutocompleteDemo />
+							{demoKeyConfigured ? <AddressAutocompleteDemo /> : null}
 							<ComponentDocumentation
 								description="Search and select addresses with autocomplete suggestions"
 								features={[
@@ -630,7 +674,7 @@ const client = createWheraboutsClient({
 						</div>
 
 						<div className="grid items-start gap-6 lg:grid-cols-2">
-							<AddressFormFieldDemo />
+							{demoKeyConfigured ? <AddressFormFieldDemo /> : null}
 							<ComponentDocumentation
 								description="Wrapped autocomplete for form integration with labels"
 								features={[
@@ -655,7 +699,7 @@ const client = createWheraboutsClient({
 						</div>
 
 						<div className="grid items-start gap-6 lg:grid-cols-2">
-							<AddressFieldGroupDemo />
+							{demoKeyConfigured ? <AddressFieldGroupDemo /> : null}
 							<ComponentDocumentation
 								description="Multi-field form with parsed address components"
 								features={[
@@ -687,7 +731,7 @@ const client = createWheraboutsClient({
 						</div>
 
 						<div className="grid items-start gap-6 lg:grid-cols-2">
-							<ForwardGeocodeDemo />
+							{demoKeyConfigured ? <ForwardGeocodeDemo /> : null}
 							<ComponentDocumentation
 								description="Search address to get coordinates (lat/lng)"
 								features={[
@@ -710,7 +754,7 @@ const client = createWheraboutsClient({
 						</div>
 
 						<div className="grid items-start gap-6 lg:grid-cols-2">
-							<ReverseGeocodeDemo />
+							{demoKeyConfigured ? <ReverseGeocodeDemo /> : null}
 							<ComponentDocumentation
 								description="Search by coordinates to get address details"
 								features={[
