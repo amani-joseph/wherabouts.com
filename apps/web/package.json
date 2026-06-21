@@ -35,6 +35,7 @@
     "@wherabouts/react": "workspace:*",
     "@wherabouts/react-ui": "workspace:*",
     "@wherabouts/sdk": "workspace:*",
+    "@wherabouts/vue-ui": "workspace:*",
     "better-auth": "^1.5.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -60,6 +61,7 @@
     "three": "^0.183.2",
     "three-globe": "^2.45.2",
     "vite-tsconfig-paths": "^5.1.4",
+    "vue": "^3.5.38",
     "zod": "catalog:"
   },
   "devDependencies": {
