@@ -2,6 +2,9 @@ import type { NavigationSection } from "@/components/shadcn-space/blocks/hero-15
 
 // Shared top-nav source of truth for both the landing hero and the
 // `_public` layout (pricing, coverage) so the marketing nav stays in sync.
+// Homepage section links are root-relative (e.g. "/#capabilities") so they
+// resolve from any public page, not just "/". The Dashboard entry is only
+// shown to authenticated users (filtered in the navbar).
 export const navigationData: NavigationSection[] = [
 	{
 		name: "Dashboard",
@@ -9,16 +12,15 @@ export const navigationData: NavigationSection[] = [
 	},
 	{
 		name: "Why Wherabouts",
-		href: "#why",
-		isActive: true,
+		href: "/#why",
 	},
 	{
 		name: "Capabilities",
-		href: "#capabilities",
+		href: "/#capabilities",
 	},
 	{
 		name: "API",
-		href: "#api",
+		href: "/#api",
 	},
 	{
 		name: "Docs",

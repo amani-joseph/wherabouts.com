@@ -684,7 +684,7 @@ const HeroSection = () => {
 					>
 						<div className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.9)]" />
 						<p className="font-normal text-foreground text-sm">
-							Location &amp; geocoding API 
+							Location &amp; geocoding API
 						</p>
 						<ArrowRight className="text-foreground" size={16} />
 					</motion.div>
@@ -738,6 +738,13 @@ const HeroSection = () => {
 							<ArrowRight className="text-foreground" size={16} />
 						</Link>
 					</motion.div>
+
+					<motion.p
+						className="text-muted-foreground text-sm"
+						variants={itemVariants}
+					>
+						Start free — 10,000 requests every month, no credit card required.
+					</motion.p>
 
 					<motion.div className="w-full pt-2" variants={itemVariants}>
 						<AddressDemoInput onResolve={handleResolve} />
