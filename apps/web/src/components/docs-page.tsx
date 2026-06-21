@@ -45,6 +45,7 @@ import {
 	TerminalIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { DocsBackground } from "@/components/backgrounds/docs-background";
 import { LogoIcon } from "@/components/logo";
 
 interface DocsSectionLink {
@@ -1816,7 +1817,8 @@ export function DocsPage() {
 				<SidebarRail />
 			</Sidebar>
 
-			<SidebarInset className="min-w-0">
+			<SidebarInset className="relative isolate min-w-0">
+				<DocsBackground />
 				<header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b bg-background/95 px-4 backdrop-blur">
 					<div className="flex min-w-0 items-center gap-3">
 						<SidebarTrigger className="md:hidden" />
@@ -1843,7 +1845,7 @@ export function DocsPage() {
 					</div>
 				</header>
 
-				<div className="mx-auto flex w-full min-w-0 max-w-(--docs-wrapper-max-width) flex-1 flex-col overflow-x-clip p-4 md:p-6">
+				<div className="relative z-10 mx-auto flex w-full min-w-0 max-w-(--docs-wrapper-max-width) flex-1 flex-col overflow-x-clip p-4 md:p-6">
 					<div className="grid min-w-0 grid-cols-1 gap-10 xl:grid-cols-[minmax(0,1fr)_15rem]">
 						<main className="min-w-0 space-y-12">
 							<section className="scroll-mt-24 space-y-6" id="overview">
