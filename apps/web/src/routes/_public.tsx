@@ -14,7 +14,10 @@ function RouteComponent() {
 	return (
 		<div className="flex min-h-screen flex-col bg-background">
 			<Navbar navigationData={navigationData} />
-			<div className="flex-1">
+			{/* Skip-link target. Public pages render their own <main> landmark
+			    inside, so this stays a <div> (no nested main) with tabIndex=-1
+			    so focus can land here from "Skip to main content". */}
+			<div className="flex-1" id="main-content" tabIndex={-1}>
 				<Outlet />
 			</div>
 			<Footer />
