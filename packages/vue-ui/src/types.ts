@@ -23,3 +23,10 @@ export type AddressValidateFn =
 	(address: AddressWithParsed) => Promise<{ message: string } | null>;
 
 export type AddressSuggestionInput = AddressSuggestion;
+
+export interface AddressFieldGroupValue {
+	postcode: string;
+	state: string;
+	street: string;
+	suburb: string;
+}
