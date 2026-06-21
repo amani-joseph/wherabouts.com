@@ -4,10 +4,16 @@ import {
 	HeadContent,
 	Outlet,
 	Scripts,
+	useRouter,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Toaster } from "@wherabouts.com/ui/components/sonner";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
+import {
+	LiveAnnouncerProvider,
+	useAnnounce,
+} from "@/components/a11y/live-announcer";
+import { SkipLink } from "@/components/a11y/skip-link";
 import { authClient } from "@/lib/auth-client";
 import { type BetterAuthSession, getSession } from "@/lib/auth-server";
 
@@ -110,6 +116,36 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 	},
 });
 
+// Announces each client-side route change to screen readers. SPA navigations
+// don't reload the document, so assistive tech otherwise gives no feedback that
+// the page changed. Subscribing to `onResolved` skips the very first load
+// (which the browser announces natively) and reads the per-route <title> that
+// HeadContent has just written.
+function RouteAnnouncer() {
+	const router = useRouter();
+	const announce = useAnnounce();
+
+	useEffect(() => {
+		const unsubscribe = router.subscribe("onResolved", () => {
+			const read = () => {
+				const title = typeof document === "undefined" ? "" : document.title;
+				if (title) {
+					announce(title);
+				}
+			};
+			// Defer a frame so the route's <title> has flushed to the document.
+			if (typeof requestAnimationFrame === "function") {
+				requestAnimationFrame(read);
+			} else {
+				read();
+			}
+		});
+		return unsubscribe;
+	}, [router, announce]);
+
+	return null;
+}
+
 function RootDocument() {
 	return (
 		<html className="dark" lang="en">
@@ -117,9 +153,13 @@ function RootDocument() {
 				<HeadContent />
 			</head>
 			<body>
-				<div className="grid h-svh grid-rows-[auto_1fr]">
-					<Outlet />
-				</div>
+				<LiveAnnouncerProvider>
+					<SkipLink />
+					<div className="grid h-svh grid-rows-[auto_1fr]">
+						<Outlet />
+					</div>
+					<RouteAnnouncer />
+				</LiveAnnouncerProvider>
 				<Toaster richColors />
 				<Suspense>
 					<TanStackRouterDevtools position="bottom-left" />

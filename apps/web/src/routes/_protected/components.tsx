@@ -29,8 +29,9 @@ import {
 	TabsTrigger,
 } from "@wherabouts.com/ui/components/tabs";
 import { AlertCircle, CheckCircle2, Loader2, MapPin } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Component } from "vue";
+import { useAnnounce } from "@/components/a11y/live-announcer";
 import { VueIsland } from "@/components/vue-island";
 
 export const Route = createFileRoute("/_protected/components")({
@@ -98,6 +99,19 @@ function ResultCard<T>({
 	error?: string | null;
 	renderData: (data: T) => React.ReactNode;
 }) {
+	// Announce async outcomes to screen readers. One effect here covers every
+	// live demo since they all surface results through ResultCard.
+	const announce = useAnnounce();
+	const errorMessage = error || result.error;
+	const hasResult = Boolean(result.data) && !isLoading && !errorMessage;
+	useEffect(() => {
+		if (errorMessage) {
+			announce(`${title} failed: ${errorMessage}`, { assertive: true });
+		} else if (hasResult) {
+			announce(`${title} ready`);
+		}
+	}, [hasResult, errorMessage, title, announce]);
+
 	if (isLoading) {
 		return (
 			<Card>
