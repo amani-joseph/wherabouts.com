@@ -63,20 +63,19 @@ const DEMO_KEY_FALLBACK = "demo-key-not-configured";
 const demoKeyConfigured = Boolean(env.VITE_DEMO_API_KEY);
 
 // Demo client factory.
-// Call the API same-origin so the in-dashboard demo never trips CORS: the web
-// app proxies /api/v1/* to the backend server-side (see api/v1/$.ts), so the
-// browser request stays same-origin and the proxy reaches the backend without
-// preflight. This works in both local dev and production. SDK resource paths
-// are absolute (/api/v1/...), so the origin alone is the correct baseUrl.
+// Call the backend API directly via VITE_SERVER_URL (api.wherabouts.com in
+// production, the local backend in dev). The public /api/v1/* endpoints send
+// permissive CORS, so a cross-origin browser call works without a preflight
+// failure. We deliberately do NOT route through the same-origin /api/v1/*
+// proxy: in production that proxy issues a Worker→Worker subrequest to
+// api.wherabouts.com on the same Cloudflare zone, which Cloudflare blocks with
+// a 403 (the request never reaches the backend). SDK resource paths are
+// absolute (/api/v1/...), so VITE_SERVER_URL (origin only) is the correct base.
 const createDemoClient = (): WheraboutsClient => {
 	const apiKey = env.VITE_DEMO_API_KEY || DEMO_KEY_FALLBACK;
-	const baseUrl =
-		typeof window === "undefined"
-			? "https://api.wherabouts.com"
-			: window.location.origin;
 	return createWheraboutsClient({
 		apiKey,
-		baseUrl,
+		baseUrl: env.VITE_SERVER_URL,
 	});
 };
 
