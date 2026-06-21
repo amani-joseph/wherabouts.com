@@ -7,6 +7,7 @@ export default function Footer() {
 		{ label: "Coverage", href: "/coverage" },
 		{ label: "Pricing", href: "/pricing" },
 		{ label: "Documentation", href: "/docs" },
+		{ label: "Changelog", href: "/changelog" },
 		// Root-relative so they resolve from any page, not just the homepage.
 		{ label: "Capabilities", href: "/#capabilities" },
 		{ label: "API in action", href: "/#api" },
@@ -14,13 +15,18 @@ export default function Footer() {
 	const footerLinksCompany = [
 		{ label: "Contact", href: "mailto:hello@wherabouts.com" },
 	];
+	const footerLinksLegal = [
+		{ label: "Privacy Policy", href: "/legal/privacy" },
+		{ label: "Terms of Service", href: "/legal/terms" },
+		{ label: "Acceptable Use", href: "/legal/acceptable-use" },
+	];
 	return (
 		<footer className="dark bg-background">
 			<div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-24 lg:px-8">
 				<div className="flex flex-col gap-16">
 					<div className="grid grid-cols-12 gap-6">
 						<div
-							className="fade-in slide-in-from-bottom-10 col-span-12 animate-in fill-mode-both delay-100 duration-1000 ease-in-out md:col-span-7"
+							className="fade-in slide-in-from-bottom-10 col-span-12 animate-in fill-mode-both delay-100 duration-1000 ease-in-out md:col-span-6"
 							id="pricing"
 						>
 							<p className="mb-2 font-medium text-muted-foreground text-sm">
@@ -45,7 +51,6 @@ export default function Footer() {
 								Talk to us
 							</a>
 						</div>
-						<div className="md:col-span-1" />
 						<div className="fade-in slide-in-from-bottom-10 col-span-12 animate-in fill-mode-both delay-100 duration-1000 ease-in-out md:col-span-2">
 							<p className="mb-3 font-medium text-foreground text-sm">
 								Product
@@ -68,6 +73,20 @@ export default function Footer() {
 							</p>
 							<div className="flex flex-col gap-4">
 								{footerLinksCompany.map((link) => (
+									<a
+										className="block text-base text-muted-foreground hover:text-primary"
+										href={link.href}
+										key={link.label}
+									>
+										{link.label}
+									</a>
+								))}
+							</div>
+						</div>
+						<div className="fade-in slide-in-from-bottom-10 col-span-12 animate-in fill-mode-both delay-300 duration-1000 ease-in-out md:col-span-2">
+							<p className="mb-3 font-medium text-foreground text-sm">Legal</p>
+							<div className="flex flex-col gap-4">
+								{footerLinksLegal.map((link) => (
 									<a
 										className="block text-base text-muted-foreground hover:text-primary"
 										href={link.href}
