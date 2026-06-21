@@ -20,7 +20,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "vite build && node scripts/build-css.mjs",
+    "build": "vite build && vue-tsc -p tsconfig.build.json && node scripts/build-css.mjs",
     "dev": "vite build --watch",
     "test": "vitest run"
   },
@@ -29,15 +29,16 @@
     "tailwind-merge": "^2.3.0"
   },
   "peerDependencies": {
-    "vue": ">=3.0.0",
-    "@wherabouts/sdk": ">=0.5.0"
+    "@wherabouts/sdk": ">=0.5.0",
+    "vue": ">=3.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.4",
     "@wherabouts/sdk": "workspace:*",
     "typescript": "^5.4.4",
     "vite": "^5.1.6",
+    "vitest": "^1.2.0",
     "vue": "^3.4.0",
-    "vitest": "^1.2.0"
+    "vue-tsc": "^2.2.12"
   }
 }
