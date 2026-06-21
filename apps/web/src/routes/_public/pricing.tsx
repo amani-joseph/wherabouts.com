@@ -43,9 +43,9 @@ function PricingPage() {
 						Geocoding that scales with you
 					</h1>
 					<p className="mt-4 text-balance text-muted-foreground">
-						Australian address autocomplete, reverse geocoding, and geofencing
-						on G-NAF data. Pay only for what you use — start free, no card
-						required.
+						Address autocomplete, reverse geocoding, geofencing, and routing
+						across the US, Australia, and a growing set of European countries.
+						Pay only for what you use — start free, no card required.
 					</p>
 				</header>
 
@@ -98,9 +98,12 @@ function PricingPage() {
 
 					<p className="mt-6 text-center text-muted-foreground text-sm">
 						Need scale, volume discounts, or an SLA?{" "}
-						<Link className="underline underline-offset-4" to="/sign-up">
+						<a
+							className="underline underline-offset-4"
+							href="mailto:hello@wherabouts.com"
+						>
 							Contact sales
-						</Link>
+						</a>
 					</p>
 				</section>
 
@@ -110,9 +113,12 @@ function PricingPage() {
 						API documentation
 					</Link>
 					. Questions about pricing?{" "}
-					<Link className="underline underline-offset-4" to="/sign-up">
+					<a
+						className="underline underline-offset-4"
+						href="mailto:hello@wherabouts.com"
+					>
 						Get in touch
-					</Link>
+					</a>
 					.
 				</p>
 			</div>

@@ -4,13 +4,14 @@ import { cn } from "@/lib/utils";
 
 export default function Footer() {
 	const footerLinksProduct = [
-		{ label: "Documentation", href: "/docs" },
 		{ label: "Coverage", href: "/coverage" },
-		{ label: "Capabilities", href: "#capabilities" },
-		{ label: "API in action", href: "#api" },
-	];
-	const footerLinksLegal = [
 		{ label: "Pricing", href: "/pricing" },
+		{ label: "Documentation", href: "/docs" },
+		// Root-relative so they resolve from any page, not just the homepage.
+		{ label: "Capabilities", href: "/#capabilities" },
+		{ label: "API in action", href: "/#api" },
+	];
+	const footerLinksCompany = [
 		{ label: "Contact", href: "mailto:hello@wherabouts.com" },
 	];
 	return (
@@ -66,7 +67,7 @@ export default function Footer() {
 								Company
 							</p>
 							<div className="flex flex-col gap-4">
-								{footerLinksLegal.map((link) => (
+								{footerLinksCompany.map((link) => (
 									<a
 										className="block text-base text-muted-foreground hover:text-primary"
 										href={link.href}

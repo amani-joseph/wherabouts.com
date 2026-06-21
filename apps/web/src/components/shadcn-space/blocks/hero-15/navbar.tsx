@@ -1,5 +1,5 @@
 "use client";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
@@ -19,11 +19,11 @@ import {
 	NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { useSession } from "@/lib/auth-client";
+import { navItemMatchesPath } from "@/lib/nav-item-matches-path";
 import { cn } from "@/lib/utils";
 
 export interface NavigationSection {
 	href: string;
-	isActive?: boolean;
 	name: string;
 }
 
@@ -31,40 +31,50 @@ interface NavbarProps {
 	navigationData: NavigationSection[];
 }
 
+// Homepage section links ("/#why") stay plain anchors so they navigate home and
+// scroll; real app routes use TanStack `Link` to keep navigation client-side.
+const isRouteLink = (href: string) =>
+	href.startsWith("/") && !href.includes("#");
+
 const NavLink = ({
 	item,
+	active,
 	onClick,
 }: {
 	item: NavigationSection;
+	active?: boolean;
 	onClick?: () => void;
 }) => {
+	const linkClassName = cn(
+		"font-medium text-2xl leading-8 transition-colors duration-300 sm:text-3xl sm:leading-10",
+		active ? "text-foreground" : "text-foreground/80"
+	);
 	return (
 		<li
 			className={cn(
 				"group flex w-fit items-center transition-all duration-500 ease-in-out",
-				item.isActive ? "gap-3" : "gap-0 hover:gap-3"
+				active ? "gap-3" : "gap-0 hover:gap-3"
 			)}
 		>
 			<div
 				className={cn(
 					"flex items-center overflow-hidden transition-all duration-500 ease-in-out",
-					item.isActive
+					active
 						? "max-w-6 opacity-100"
 						: "max-w-0 opacity-0 group-hover:max-w-6 group-hover:opacity-100"
 				)}
 			>
 				<div className="h-0.5 w-6 rounded-full bg-foreground" />
 			</div>
-			<a
-				className={cn(
-					"font-medium text-2xl leading-8 transition-colors duration-300 sm:text-3xl sm:leading-10",
-					item.isActive ? "text-foreground" : "text-foreground/80"
-				)}
-				href={item.href}
-				onClick={onClick}
-			>
-				{item.name}
-			</a>
+			{isRouteLink(item.href) ? (
+				<Link className={linkClassName} onClick={onClick} to={item.href}>
+					{item.name}
+				</Link>
+			) : (
+				<a className={linkClassName} href={item.href} onClick={onClick}>
+					{item.name}
+				</a>
+			)}
 		</li>
 	);
 };
@@ -73,6 +83,13 @@ const Navbar = ({ navigationData }: NavbarProps) => {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const { data: session } = useSession();
 	const isAuthenticated = Boolean(session?.user);
+	const { pathname } = useLocation();
+
+	// Only surface the Dashboard link to signed-in visitors; for logged-out
+	// users it reads as a misplaced app link.
+	const items = isAuthenticated
+		? navigationData
+		: navigationData.filter((item) => item.href !== "/dashboard");
 
 	useEffect(() => {
 		const handleResize = () => {
@@ -87,24 +104,34 @@ const Navbar = ({ navigationData }: NavbarProps) => {
 		<header className="sticky top-0 z-40 bg-background backdrop-blur-2xl">
 			<div className="mx-auto w-full max-w-7xl px-4 py-5 lg:px-8 xl:px-16">
 				<nav className="flex items-center justify-between">
-					<a className="inline-flex items-center" href="/">
+					<Link className="inline-flex items-center" to="/">
 						<Logo />
-					</a>
+					</Link>
 					<NavigationMenu className="max-lg:hidden">
 						<NavigationMenuList className="gap-6">
-							{navigationData.map((navItem) => (
-								<NavigationMenuItem key={navItem.name}>
-									<NavigationMenuLink
-										className={cn(
-											"p-0 font-normal text-base text-foreground hover:bg-transparent hover:text-foreground/80 focus:bg-transparent data-[state=open]:bg-transparent data-active:bg-transparent",
-											navItem.isActive && "font-medium"
-										)}
-										href={navItem.href}
-									>
-										{navItem.name}
-									</NavigationMenuLink>
-								</NavigationMenuItem>
-							))}
+							{items.map((navItem) => {
+								const active = navItemMatchesPath(pathname, navItem.href);
+								return (
+									<NavigationMenuItem key={navItem.name}>
+										<NavigationMenuLink
+											className={cn(
+												"p-0 font-normal text-base text-foreground hover:bg-transparent hover:text-foreground/80 focus:bg-transparent data-[state=open]:bg-transparent data-active:bg-transparent",
+												active && "font-medium"
+											)}
+											render={
+												isRouteLink(navItem.href) ? (
+													<Link to={navItem.href} />
+												) : (
+													// biome-ignore lint/a11y/useAnchorContent: NavigationMenuLink merges the label as children via the Base UI render prop.
+													<a href={navItem.href} />
+												)
+											}
+										>
+											{navItem.name}
+										</NavigationMenuLink>
+									</NavigationMenuItem>
+								);
+							})}
 						</NavigationMenuList>
 					</NavigationMenu>
 					<div className="flex items-center gap-2 max-lg:hidden">
@@ -174,8 +201,9 @@ const Navbar = ({ navigationData }: NavbarProps) => {
 									<hr className="border-border" />
 									{/* Navigation */}
 									<ul className="flex flex-col gap-3.5">
-										{navigationData.map((item) => (
+										{items.map((item) => (
 											<NavLink
+												active={navItemMatchesPath(pathname, item.href)}
 												item={item}
 												key={item.href}
 												onClick={() => setMenuOpen(false)}
