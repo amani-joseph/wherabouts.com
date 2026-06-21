@@ -30,10 +30,26 @@ import {
 } from "@wherabouts.com/ui/components/tabs";
 import { AlertCircle, CheckCircle2, Loader2, MapPin } from "lucide-react";
 import { useMemo, useState } from "react";
+import type { Component } from "vue";
+import { VueIsland } from "@/components/vue-island";
 
 export const Route = createFileRoute("/_protected/components")({
 	component: RouteComponent,
 });
+
+// Stable loaders for the live Vue demos. Kept at module scope so each
+// VueIsland mounts once (the loader identity never changes), and written as
+// dynamic imports so the Vue runtime + vue-ui bundle stay out of the SSR graph.
+const loadVueAutocomplete = (): Promise<Component> =>
+	import("@wherabouts/vue-ui").then((m) => m.AddressAutocomplete);
+const loadVueFormField = (): Promise<Component> =>
+	import("@wherabouts/vue-ui").then((m) => m.AddressFormField);
+const loadVueFieldGroup = (): Promise<Component> =>
+	import("@wherabouts/vue-ui").then((m) => m.AddressFieldGroup);
+const loadVueForwardGeocode = (): Promise<Component> =>
+	import("@wherabouts/vue-ui").then((m) => m.ForwardGeocodeInput);
+const loadVueReverseGeocode = (): Promise<Component> =>
+	import("@wherabouts/vue-ui").then((m) => m.ReverseGeocodeInput);
 
 // Sentinel used when no demo key is configured. The live demos can't reach the
 // API without a publishable key, so we detect this and show an explicit notice
@@ -146,12 +162,14 @@ function ComponentDocumentation({
 	features,
 	props,
 	usage,
+	packageName = "@wherabouts/react-ui",
 }: {
 	name: string;
 	description: string;
 	features: string[];
 	props: string;
 	usage: string;
+	packageName?: string;
 }) {
 	return (
 		<Card>
@@ -187,7 +205,7 @@ function ComponentDocumentation({
 
 				<p className="text-muted-foreground text-xs">
 					<strong>Package:</strong>{" "}
-					<code className="rounded bg-black/20 px-1">@wherabouts/react-ui</code>
+					<code className="rounded bg-black/20 px-1">{packageName}</code>
 				</p>
 			</CardContent>
 		</Card>
@@ -587,6 +605,315 @@ function ReverseGeocodeDemo() {
 	);
 }
 
+// --- Live Vue demos (mounted into the React tree via VueIsland) ---
+
+function VueLiveDemoCard({ children }: { children: React.ReactNode }) {
+	return (
+		<Card className="border-2 border-emerald-200 dark:border-emerald-900">
+			<CardHeader className="bg-emerald-50 dark:bg-emerald-950/30">
+				<CardTitle className="text-base">Live Demo (Vue)</CardTitle>
+				<CardDescription>
+					Real @wherabouts/vue-ui component — queries live database
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-2 pt-6">{children}</CardContent>
+		</Card>
+	);
+}
+
+function VueAddressAutocompleteDemo() {
+	const client = useMemo(() => createDemoClient(), []);
+	const [selected, setSelected] = useState<AddressWithParsed | null>(null);
+
+	return (
+		<>
+			<VueLiveDemoCard>
+				<Label htmlFor="vue-autocomplete-demo">Address Search</Label>
+				<VueIsland
+					load={loadVueAutocomplete}
+					props={{
+						client,
+						id: "vue-autocomplete-demo",
+						minCharsToSearch: 3,
+						placeholder: "e.g., 34 Boxgrove Avenue, Belmore NSW",
+						onSelect: (address: AddressWithParsed) => setSelected(address),
+					}}
+				/>
+				<p className="text-muted-foreground text-xs">
+					Identical Vue 3 SFC of the React component — keyboard nav, streaming
+					suggestions, and live results.
+				</p>
+			</VueLiveDemoCard>
+
+			<ResultCard
+				error={null}
+				isLoading={false}
+				renderData={(data) => (
+					<div className="space-y-2 text-sm">
+						<div>
+							<span className="font-semibold">Street:</span>{" "}
+							{data.streetAddress}
+						</div>
+						<div>
+							<span className="font-semibold">Suburb:</span> {data.suburb}
+						</div>
+						<div>
+							<span className="font-semibold">State:</span> {data.state}
+						</div>
+						<div>
+							<span className="font-semibold">Postcode:</span> {data.postcode}
+						</div>
+					</div>
+				)}
+				result={{ data: selected, isLoading: false, error: null }}
+				title="Address Result"
+			/>
+		</>
+	);
+}
+
+function VueAddressFormFieldDemo() {
+	const client = useMemo(() => createDemoClient(), []);
+	const [selected, setSelected] = useState<AddressWithParsed | null>(null);
+
+	return (
+		<>
+			<VueLiveDemoCard>
+				<VueIsland
+					load={loadVueFormField}
+					props={{
+						client,
+						label: "Address",
+						minCharsToSearch: 3,
+						placeholder: "Enter your address",
+						onSelect: (address: AddressWithParsed) => setSelected(address),
+					}}
+				/>
+			</VueLiveDemoCard>
+
+			<ResultCard
+				error={null}
+				isLoading={false}
+				renderData={(data) => (
+					<div className="flex items-start gap-2 text-sm">
+						<MapPin className="mt-1 h-4 w-4 flex-shrink-0 text-green-600" />
+						<div>
+							<div className="font-semibold">{data.streetAddress}</div>
+							<div className="text-muted-foreground">
+								{data.suburb}, {data.state} {data.postcode}
+							</div>
+						</div>
+					</div>
+				)}
+				result={{ data: selected, isLoading: false, error: null }}
+				title="Selected Address"
+			/>
+		</>
+	);
+}
+
+function VueAddressFieldGroupDemo() {
+	const client = useMemo(() => createDemoClient(), []);
+	const [value, setValue] = useState<AddressFieldGroupValue>({
+		street: "",
+		suburb: "",
+		state: "",
+		postcode: "",
+	});
+	const hasValue = Boolean(
+		value.street || value.suburb || value.state || value.postcode
+	);
+
+	return (
+		<>
+			<VueLiveDemoCard>
+				<VueIsland
+					load={loadVueFieldGroup}
+					props={{
+						client,
+						value,
+						onChange: (next: AddressFieldGroupValue) => setValue(next),
+					}}
+				/>
+				<p className="text-muted-foreground text-xs">
+					Search to auto-fill the fields, or edit any field directly.
+				</p>
+			</VueLiveDemoCard>
+
+			<ResultCard
+				error={null}
+				isLoading={false}
+				renderData={(data) => (
+					<div className="grid grid-cols-2 gap-4 text-sm">
+						<div>
+							<div className="font-semibold text-muted-foreground text-xs">
+								Street
+							</div>
+							<div>{data.street || "—"}</div>
+						</div>
+						<div>
+							<div className="font-semibold text-muted-foreground text-xs">
+								Suburb
+							</div>
+							<div>{data.suburb || "—"}</div>
+						</div>
+						<div>
+							<div className="font-semibold text-muted-foreground text-xs">
+								State
+							</div>
+							<div>{data.state || "—"}</div>
+						</div>
+						<div>
+							<div className="font-semibold text-muted-foreground text-xs">
+								Postcode
+							</div>
+							<div>{data.postcode || "—"}</div>
+						</div>
+					</div>
+				)}
+				result={{
+					data: hasValue ? value : null,
+					isLoading: false,
+					error: null,
+				}}
+				title="Parsed Address"
+			/>
+		</>
+	);
+}
+
+function VueForwardGeocodeDemo() {
+	const client = useMemo(() => createDemoClient(), []);
+	const [query, setQuery] = useState("1 Macquarie Street Sydney NSW 2000");
+	const [coords, setCoords] = useState<ForwardCoords | null>(null);
+	const hasCoords = coords?.latitude != null && coords?.longitude != null;
+
+	return (
+		<>
+			<VueLiveDemoCard>
+				<Label htmlFor="vue-forward-geocode-query">Address</Label>
+				<Input
+					id="vue-forward-geocode-query"
+					onChange={(event) => setQuery(event.target.value)}
+					placeholder="Enter an address to geocode"
+					value={query}
+				/>
+				<VueIsland
+					load={loadVueForwardGeocode}
+					props={{
+						client,
+						query: query.trim().length >= 3 ? query : null,
+						placeholder: "Coordinates appear here as you type",
+						onResult: (result: ForwardCoords) => setCoords(result),
+					}}
+				/>
+			</VueLiveDemoCard>
+
+			<ResultCard
+				error={null}
+				isLoading={false}
+				renderData={(data) => (
+					<div className="space-y-2 text-sm">
+						<div>
+							<span className="font-semibold">Latitude:</span>{" "}
+							{data.latitude?.toFixed(6)}
+						</div>
+						<div>
+							<span className="font-semibold">Longitude:</span>{" "}
+							{data.longitude?.toFixed(6)}
+						</div>
+						{data.formattedAddress && (
+							<div className="pt-2 text-muted-foreground text-xs">
+								{data.formattedAddress}
+							</div>
+						)}
+					</div>
+				)}
+				result={{
+					data: hasCoords ? coords : null,
+					isLoading: false,
+					error: null,
+				}}
+				title="Coordinates"
+			/>
+		</>
+	);
+}
+
+function VueReverseGeocodeDemo() {
+	const client = useMemo(() => createDemoClient(), []);
+	const [lat, setLat] = useState("-33.9249");
+	const [lng, setLng] = useState("151.1753");
+	const [resolved, setResolved] = useState<ReverseResult | null>(null);
+
+	const latitude = parseCoord(lat);
+	const longitude = parseCoord(lng);
+
+	return (
+		<>
+			<VueLiveDemoCard>
+				<div className="grid grid-cols-2 gap-4">
+					<div className="space-y-1">
+						<Label htmlFor="vue-reverse-lat">Latitude</Label>
+						<Input
+							id="vue-reverse-lat"
+							onChange={(event) => setLat(event.target.value)}
+							placeholder="-33.9249"
+							step="0.0001"
+							type="number"
+							value={lat}
+						/>
+					</div>
+					<div className="space-y-1">
+						<Label htmlFor="vue-reverse-lng">Longitude</Label>
+						<Input
+							id="vue-reverse-lng"
+							onChange={(event) => setLng(event.target.value)}
+							placeholder="151.1753"
+							step="0.0001"
+							type="number"
+							value={lng}
+						/>
+					</div>
+				</div>
+				<VueIsland
+					load={loadVueReverseGeocode}
+					props={{
+						client,
+						latitude,
+						longitude,
+						placeholder: "Address appears here as you adjust the coordinates",
+						onResult: (result: ReverseResult) => setResolved(result),
+					}}
+				/>
+			</VueLiveDemoCard>
+
+			<ResultCard
+				error={null}
+				isLoading={false}
+				renderData={(data) => (
+					<div className="space-y-2 text-sm">
+						<div>
+							<span className="font-semibold">Address:</span> {data.address}
+						</div>
+						{data.distance != null && (
+							<div className="text-muted-foreground text-xs">
+								~{data.distance.toFixed(1)} m from the point
+							</div>
+						)}
+					</div>
+				)}
+				result={{
+					data: resolved?.address ? resolved : null,
+					isLoading: false,
+					error: null,
+				}}
+				title="Address Result"
+			/>
+		</>
+	);
+}
+
 function RouteComponent() {
 	const [activeTab, setActiveTab] = useState("react");
 
@@ -634,7 +961,7 @@ function RouteComponent() {
 					<TabsTrigger value="react">
 						React UI (v0.1.0) — 5 Components
 					</TabsTrigger>
-					<TabsTrigger value="vue">Vue UI (Phase 2)</TabsTrigger>
+					<TabsTrigger value="vue">Vue UI (v0.3.0) — 5 Components</TabsTrigger>
 				</TabsList>
 
 				<TabsContent className="mt-6 space-y-10" value="react">
@@ -808,53 +1135,166 @@ const client = createWheraboutsClient({
 					</Card>
 				</TabsContent>
 
-				<TabsContent className="mt-6 space-y-6" value="vue">
-					<Card>
-						<CardHeader>
-							<CardTitle>@wherabouts/vue-ui (Phase 2)</CardTitle>
-							<CardDescription>
-								Vue 3 composable-based component library
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-4">
-							<div>
-								<h4 className="mb-2 font-semibold text-sm">
-									Status: Scaffolded & Ready
-								</h4>
-								<div className="flex flex-wrap gap-2">
-									<Badge variant="outline">Vue 3 SFC</Badge>
-									<Badge variant="outline">Composition API</Badge>
-									<Badge variant="outline">TailwindCSS</Badge>
-									<Badge variant="outline">TypeScript</Badge>
-								</div>
-							</div>
+				<TabsContent className="mt-6 space-y-10" value="vue">
+					<div className="space-y-8">
+						<Card className="border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/20">
+							<CardHeader>
+								<CardTitle className="flex items-center gap-2 text-base">
+									<MapPin className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+									Live Vue 3 components
+								</CardTitle>
+								<CardDescription>
+									These are real <strong>@wherabouts/vue-ui</strong> Vue 3 SFCs,
+									mounted into this React dashboard via a small{" "}
+									<code className="rounded bg-black/10 px-1">VueIsland</code>{" "}
+									bridge (each Vue app is mounted into a DOM ref). Same SDK,
+									same API, same accessible behavior as the React components.
+								</CardDescription>
+							</CardHeader>
+						</Card>
 
-							<div>
-								<h4 className="mb-2 font-semibold text-sm">Phase 2 Roadmap</h4>
-								<ul className="space-y-1 text-sm">
-									<li>✓ Vite lib mode configured (ESM + UMD, .vue SFC)</li>
-									<li>
-										✓ Shared utilities copied (parse-address, styles, types)
-									</li>
-									<li>🔄 Implement Vue composables</li>
-									<li>🔄 Implement Vue components (5 total)</li>
-									<li>🔄 Finalize exports and build</li>
-								</ul>
-							</div>
+						{demoKeyConfigured ? null : <DemoKeyNotice />}
 
-							<div className="rounded bg-muted p-3">
-								<p className="text-sm">
-									<strong>Location:</strong>{" "}
-									<code className="rounded bg-black/20 px-1">
-										packages/vue-ui/
-									</code>
-								</p>
-								<p className="mt-2 text-sm">
-									Shares utilities and styling with React UI for consistency.
-								</p>
-							</div>
-						</CardContent>
-					</Card>
+						<div className="grid items-start gap-6 lg:grid-cols-2">
+							{demoKeyConfigured ? <VueAddressAutocompleteDemo /> : null}
+							<ComponentDocumentation
+								description="Search and select addresses with autocomplete suggestions"
+								features={[
+									"Geolocation",
+									"Slots for custom rendering",
+									"i18n support",
+									"Keyboard nav",
+								]}
+								name="AddressAutocomplete"
+								packageName="@wherabouts/vue-ui"
+								props={`{
+  client: WheraboutsClient
+  minCharsToSearch?: number
+  enableGeolocation?: boolean
+  placeholder?: string
+  debounceMs?: number
+}
+emits: select, queryChange`}
+								usage={`<script setup>
+import { AddressAutocomplete } from '@wherabouts/vue-ui';
+import { createWheraboutsClient } from '@wherabouts/sdk';
+
+const client = createWheraboutsClient({ apiKey: 'pk_...' });
+</script>
+
+<template>
+  <AddressAutocomplete
+    :client="client"
+    @select="(addr) => console.log(addr)"
+  />
+</template>`}
+							/>
+						</div>
+
+						<div className="grid items-start gap-6 lg:grid-cols-2">
+							{demoKeyConfigured ? <VueAddressFormFieldDemo /> : null}
+							<ComponentDocumentation
+								description="Wrapped autocomplete for form integration with labels"
+								features={[
+									"Label support",
+									"Error styling",
+									"Required field",
+									"Disabled state",
+								]}
+								name="AddressFormField"
+								packageName="@wherabouts/vue-ui"
+								props={`{
+  client: WheraboutsClient
+  label: string
+  error?: string
+  required?: boolean
+}
+emits: select`}
+								usage={`<AddressFormField
+  :client="client"
+  label="Address"
+  @select="handleSelect"
+/>`}
+							/>
+						</div>
+
+						<div className="grid items-start gap-6 lg:grid-cols-2">
+							{demoKeyConfigured ? <VueAddressFieldGroupDemo /> : null}
+							<ComponentDocumentation
+								description="Multi-field form with parsed address components"
+								features={[
+									"Parsed fields",
+									"Autocomplete integration",
+									"Customizable labels",
+									"Controlled",
+								]}
+								name="AddressFieldGroup"
+								packageName="@wherabouts/vue-ui"
+								props={`{
+  client: WheraboutsClient
+  value: { street, suburb, state, postcode }
+}
+emits: change`}
+								usage={`<AddressFieldGroup
+  :client="client"
+  :value="value"
+  @change="value = $event"
+/>`}
+							/>
+						</div>
+
+						<div className="grid items-start gap-6 lg:grid-cols-2">
+							{demoKeyConfigured ? <VueForwardGeocodeDemo /> : null}
+							<ComponentDocumentation
+								description="Search address to get coordinates (lat/lng)"
+								features={[
+									"Address search",
+									"Coordinate output",
+									"Reactive query",
+									"Read-only",
+								]}
+								name="ForwardGeocodeInput"
+								packageName="@wherabouts/vue-ui"
+								props={`{
+  client: WheraboutsClient
+  query: string | null
+}
+emits: result`}
+								usage={`<ForwardGeocodeInput
+  :client="client"
+  :query="query"
+  @result="setCoords"
+/>`}
+							/>
+						</div>
+
+						<div className="grid items-start gap-6 lg:grid-cols-2">
+							{demoKeyConfigured ? <VueReverseGeocodeDemo /> : null}
+							<ComponentDocumentation
+								description="Search by coordinates to get address details"
+								features={[
+									"Coordinate input",
+									"Address lookup",
+									"Reactive coords",
+									"Read-only",
+								]}
+								name="ReverseGeocodeInput"
+								packageName="@wherabouts/vue-ui"
+								props={`{
+  client: WheraboutsClient
+  latitude: number | null
+  longitude: number | null
+}
+emits: result`}
+								usage={`<ReverseGeocodeInput
+  :client="client"
+  :latitude="lat"
+  :longitude="lng"
+  @result="setAddress"
+/>`}
+							/>
+						</div>
+					</div>
 				</TabsContent>
 			</Tabs>
 
