@@ -64,8 +64,8 @@ async function deriveApiKeyHash(
 export interface ValidatedApiKey {
 	apiKeyId: string;
 	projectId: string | null;
-	userId: string;
 	teamId: string | null;
+	userId: string;
 }
 
 export function parseApiKeyFromRequest(request: Request): string | null {
@@ -216,21 +216,39 @@ export async function recordUsage(
 		teamId?: string | null;
 		endpoint: string;
 		requestSource?: string;
+		/**
+		 * Billing account already resolved by `apiKeyAuth` for this request.
+		 * Passing it through avoids a second getOrCreate round trip on the hot
+		 * path. Falls back to resolving when absent (e.g. explorer_test, which
+		 * skips the production auth branch).
+		 */
+		billingAccountId?: string | null;
+		/**
+		 * When the Durable Object usage meter owns the billing counter, the
+		 * caller has already incremented it there; skip the Postgres counter
+		 * write to avoid double counting. The per-endpoint `api_usage_daily`
+		 * analytics upsert below still runs.
+		 */
+		skipBillingIncrement?: boolean;
 	}
 ): Promise<void> {
 	const usageDate = todayUtcDateString();
-	const owner = billingOwnerFromKey({
-		teamId: input.teamId ?? null,
-		userId: input.userId,
-	});
-	const account = await getOrCreateBillingAccount(db, owner);
+	let billingAccountId = input.billingAccountId ?? null;
+	if (!billingAccountId) {
+		const owner = billingOwnerFromKey({
+			teamId: input.teamId ?? null,
+			userId: input.userId,
+		});
+		const account = await getOrCreateBillingAccount(db, owner);
+		billingAccountId = account.id;
+	}
 
 	await db
 		.insert(apiUsageDaily)
 		.values({
 			apiKeyId: input.apiKeyId,
 			projectId: input.projectId ?? null,
-			billingAccountId: account.id,
+			billingAccountId,
 			userId: input.userId,
 			usageDate,
 			endpoint: input.endpoint,
@@ -249,8 +267,8 @@ export async function recordUsage(
 			},
 		});
 	const source = input.requestSource ?? REQUEST_SOURCE_PRODUCTION;
-	if (source === REQUEST_SOURCE_PRODUCTION) {
-		await incrementBillingUsage(db, account);
+	if (source === REQUEST_SOURCE_PRODUCTION && !input.skipBillingIncrement) {
+		await incrementBillingUsage(db, billingAccountId);
 	}
 }
 
