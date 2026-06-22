@@ -15,6 +15,13 @@ export interface AddressFieldGroupValue {
 	suburb: string;
 }
 
+/** Base classes for each structured sub-field input. */
+const baseInputClass =
+	"block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30";
+
+/** Base classes for each sub-field label. */
+const baseLabelClass = "mb-1 block font-medium text-foreground text-sm";
+
 export interface AddressFieldGroupProps {
 	/** Class applied to the root container. */
 	className?: string;
@@ -22,6 +29,14 @@ export interface AddressFieldGroupProps {
 	client: WheraboutsClient;
 	/** Disable all fields. */
 	disabled?: boolean;
+	/**
+	 * Class merged into every structured sub-field `<input>` (street, suburb,
+	 * state, postcode). Use this to restyle the inputs with your own design
+	 * system / Tailwind utilities.
+	 */
+	inputClassName?: string;
+	/** Class merged into every sub-field `<label>`. */
+	labelClassName?: string;
 	/** Required. Change handler, called with the updated value on any field edit. */
 	onChange: (value: AddressFieldGroupValue) => void;
 	/** Override the postcode field label. */
@@ -42,11 +57,15 @@ export function AddressFieldGroup({
 	onChange,
 	className,
 	disabled,
+	inputClassName,
+	labelClassName,
 	streetLabel = "Street Address",
 	suburbLabel = "Suburb",
 	stateLabel = "State",
 	postcodeLabel = "Postcode",
 }: AddressFieldGroupProps): ReactNode {
+	const inputClass = cn(baseInputClass, inputClassName);
+	const labelClass = cn(baseLabelClass, labelClassName);
 	const handleAutocompleteSelect = (address: AddressWithParsed) => {
 		onChange({
 			street: address.streetAddress,
@@ -84,13 +103,13 @@ export function AddressFieldGroup({
 			>
 				<div className="col-span-2">
 					<label
-						className="mb-1 block font-medium text-foreground text-sm"
+						className={labelClass}
 						htmlFor="field-street"
 					>
 						{streetLabel}
 					</label>
 					<input
-						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+						className={inputClass}
 						disabled={disabled}
 						id="field-street"
 						onChange={(e) => handleFieldChange("street", e.target.value)}
@@ -102,13 +121,13 @@ export function AddressFieldGroup({
 
 				<div>
 					<label
-						className="mb-1 block font-medium text-foreground text-sm"
+						className={labelClass}
 						htmlFor="field-suburb"
 					>
 						{suburbLabel}
 					</label>
 					<input
-						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+						className={inputClass}
 						disabled={disabled}
 						id="field-suburb"
 						onChange={(e) => handleFieldChange("suburb", e.target.value)}
@@ -120,13 +139,13 @@ export function AddressFieldGroup({
 
 				<div>
 					<label
-						className="mb-1 block font-medium text-foreground text-sm"
+						className={labelClass}
 						htmlFor="field-state"
 					>
 						{stateLabel}
 					</label>
 					<input
-						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+						className={inputClass}
 						disabled={disabled}
 						id="field-state"
 						onChange={(e) => handleFieldChange("state", e.target.value)}
@@ -138,13 +157,13 @@ export function AddressFieldGroup({
 
 				<div>
 					<label
-						className="mb-1 block font-medium text-foreground text-sm"
+						className={labelClass}
 						htmlFor="field-postcode"
 					>
 						{postcodeLabel}
 					</label>
 					<input
-						className="block h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-foreground text-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+						className={inputClass}
 						disabled={disabled}
 						id="field-postcode"
 						onChange={(e) => handleFieldChange("postcode", e.target.value)}

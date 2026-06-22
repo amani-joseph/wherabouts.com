@@ -12,12 +12,12 @@ setup. This is the Vue counterpart to [`@wherabouts/react-ui`](../react-ui/READM
 
 ## Status
 
-> **Early access (v0.1.0).** This package currently ships the shared **types** and
-> **utilities** (`toAddressWithParsed`, `cn`) that back the components. The Vue 3 SFC
-> components (`AddressAutocomplete`, `AddressFormField`, `ForwardGeocodeInput`,
-> `ReverseGeocodeInput`, `AddressFieldGroup`) are **planned for Phase 2** and are not yet
-> exported — see [`src/index.ts`](./src/index.ts). The API below documents the intended
-> surface; check the [exports](#whats-available-today) section for what's usable right now.
+> **Available (v0.3.0).** All five Vue 3 SFC components — `AddressAutocomplete`,
+> `AddressFormField`, `AddressFieldGroup`, `ForwardGeocodeInput`, `ReverseGeocodeInput` —
+> plus the backing composables (`useAutocomplete`, `useForwardGeocode`,
+> `useReverseGeocode`, `useAddressGeolocation`, `useCombobox`) are implemented and
+> exported. They mirror the [`@wherabouts/react-ui`](../react-ui/README.md) API, surfacing
+> callbacks as Vue `@`-events.
 
 ## Requirements
 
@@ -37,23 +37,38 @@ pnpm add @wherabouts/vue-ui @wherabouts/sdk
 yarn add @wherabouts/vue-ui @wherabouts/sdk
 ```
 
-Peer dependencies: `vue` (>=3.0.0) and `@wherabouts/sdk` (>=0.4.2).
+Peer dependencies: `vue` (>=3.0.0) and `@wherabouts/sdk` (>=0.5.0).
 
-Once the components ship, import the stylesheet once, near your app root:
+Import the stylesheet once, near your app root:
 
 ```ts
 import "@wherabouts/vue-ui/styles.css";
 ```
 
-## What's available today
+## Exports
 
-The package exports the building blocks the components share:
+Components, composables, shared utilities, and types are all exported from the package
+root:
 
 ```ts
 import {
+  // Components
+  AddressAutocomplete,
+  AddressFormField,
+  AddressFieldGroup,
+  ForwardGeocodeInput,
+  ReverseGeocodeInput,
+  // Composables (headless logic, bring your own markup)
+  useAutocomplete,
+  useForwardGeocode,
+  useReverseGeocode,
+  useAddressGeolocation,
+  useCombobox,
+  // Utilities + types
   toAddressWithParsed,
   cn,
   type AddressWithParsed,
+  type AddressFieldGroupValue,
   type AddressI18nStrings,
   type AddressSuggestionInput,
 } from "@wherabouts/vue-ui";
@@ -74,9 +89,9 @@ import {
 | `AddressI18nStrings` | Overridable UI strings: `noResults`, `enterManually`, `errorRetry`, `geolocationError`. |
 | `AddressSuggestionInput` | Re-export of the SDK's `AddressSuggestion` (the input to `toAddressWithParsed`). |
 
-## Quick start (Phase 2 — preview)
+## Quick start
 
-Each component will take a `client` created with the SDK. Create it once and share it.
+Each component takes a `client` created with the SDK. Create it once and share it.
 
 ```vue
 <script setup lang="ts">
@@ -103,23 +118,37 @@ function onSelect(address) {
 > **Note:** Use a **publishable** key scoped to your origin for browser use. Never ship a
 > secret server key to the client.
 
-## Components (planned)
-
-These mirror the React package's API and will land in Phase 2:
+## Components
 
 - **`AddressAutocomplete`** — debounced address search with an accessible (WAI-ARIA
   combobox) suggestion list, keyboard navigation, optional geolocation proximity bias, and
-  customizable rendering.
+  slot-based custom rendering. Emits `select` (an `AddressWithParsed`) and `queryChange`.
 - **`AddressFormField`** — `AddressAutocomplete` wrapped with a label and error styling for
-  drop-in form use.
-- **`ForwardGeocodeInput`** — resolves free-text address input to coordinates.
-- **`ReverseGeocodeInput`** — resolves `latitude`/`longitude` to the nearest address.
+  drop-in form use. Emits `select`.
+- **`ForwardGeocodeInput`** — resolves free-text address input to coordinates. Emits
+  `result` (`{ latitude, longitude, formattedAddress }`).
+- **`ReverseGeocodeInput`** — resolves `latitude`/`longitude` to the nearest address. Emits
+  `result` (`{ address, distance }`).
 - **`AddressFieldGroup`** — a controlled group of structured inputs (street, suburb, state,
-  postcode) for editing a full address.
+  postcode) for editing a full address. Takes a `value` and emits `change`
+  (`AddressFieldGroupValue`).
 
-For the full prop and event reference today, see the
-[`@wherabouts/react-ui` README](../react-ui/README.md) — the Vue components are designed to
-match it (props as Vue props, callbacks surfaced as `@`-events).
+Props mirror the [`@wherabouts/react-ui`](../react-ui/README.md) components (props as Vue
+props; React callbacks surfaced as `@`-events). Custom render-prop slots on
+`AddressAutocomplete` are exposed as named slots: `suggestion`, `loading`, `error`,
+`empty`.
+
+### Composables
+
+When you want the logic without the markup, the components are built on headless
+composables you can use directly:
+
+- **`useAutocomplete(client, options)`** — owns the `query` ref; debounces input, aborts
+  stale requests, and exposes reactive `results`, `status`, `error`, and `setQuery`.
+- **`useForwardGeocode(client, query)`** — reactive forward geocoding from a query source.
+- **`useReverseGeocode(client, coords)`** — reactive reverse geocoding from a coords source.
+- **`useAddressGeolocation(enabled)`** — one-shot browser geolocation for proximity bias.
+- **`useCombobox(options)`** — the headless WAI-ARIA combobox keyboard state machine.
 
 ## Development
 

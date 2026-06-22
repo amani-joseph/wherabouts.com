@@ -5,6 +5,7 @@ import type {
 } from "@wherabouts/sdk";
 import { isRateLimitError } from "@wherabouts/sdk";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { logDevError } from "./dev-log.ts";
 import {
 	type AutocompleteCacheKeyParts,
 	buildCacheKey,
@@ -139,6 +140,7 @@ async function executeAutocomplete(
 		}
 	} catch (e) {
 		if (!controller.signal.aborted) {
+			logDevError("address autocomplete failed", e);
 			const err = e instanceof Error ? e : new Error(String(e));
 			actions.onError(err, isRateLimitError(e));
 		}
