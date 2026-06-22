@@ -20,7 +20,12 @@ const WRITE_METHODS = new Set<HttpMethod>(["POST", "PUT"]);
 const createBaseHeaders = (config: WheraboutsClientConfig): Headers => {
 	const headers = new Headers(config.headers);
 	headers.set("accept", "application/json");
-	headers.set("authorization", `Bearer ${config.apiKey}`);
+	// Only attach auth when a key is configured. Omitting it enables the proxy
+	// pattern (the consumer's backend injects the real key), and avoids sending a
+	// literal "Bearer undefined" when no key is provided.
+	if (config.apiKey) {
+		headers.set("authorization", `Bearer ${config.apiKey}`);
+	}
 	headers.set(
 		"x-wherabouts-sdk",
 		`js-ts/${WHERABOUTS_SDK_VERSION} api/${WHERABOUTS_API_VERSION}`
@@ -315,12 +320,20 @@ const runAttempt = async <T>(
 };
 
 export const createRequester = (config: WheraboutsClientConfig): Requester => {
-	const fetchImpl = config.fetch ?? globalThis.fetch;
-	if (!fetchImpl) {
+	const resolvedFetch = config.fetch ?? globalThis.fetch;
+	if (!resolvedFetch) {
 		throw new Error(
 			"A fetch implementation is required to create the SDK client."
 		);
 	}
+	// Bind the fetch implementation to globalThis. Internally it is invoked as a
+	// property of the request context (`ctx.fetchImpl(...)`), which is a method
+	// call and would otherwise set `this` to that context object. The browser's
+	// native `fetch` requires `this` to be the global (window/WorkerGlobalScope)
+	// and throws `TypeError: Illegal invocation` otherwise — so unbound usage
+	// breaks every request in the browser (Node's fetch tolerates it, hiding the
+	// bug in tests/SSR). Binding is harmless for user-supplied fetch functions.
+	const fetchImpl = resolvedFetch.bind(globalThis);
 	const baseUrl = new URL(config.baseUrl ?? DEFAULT_BASE_URL);
 	const baseHeaders = createBaseHeaders(config);
 

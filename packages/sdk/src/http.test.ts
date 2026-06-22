@@ -93,6 +93,40 @@ describe("createRequester", () => {
 		expect(c.body).toBe('{"name":"depot"}');
 	});
 
+	it("invokes the default global fetch with a global `this` (no Illegal invocation)", async () => {
+		// Browsers' native fetch throws `TypeError: Illegal invocation` when called
+		// with a `this` other than window/globalThis. Internally the requester calls
+		// the fetch impl as `ctx.fetchImpl(...)` (a method call), which would set
+		// `this` to the context object. This simulates the browser's strict check on
+		// the *default* fetch path (config.fetch omitted) to lock in the binding fix.
+		const original = globalThis.fetch;
+		let capturedThis: unknown = "unset";
+		const strictFetch = function (this: unknown) {
+			capturedThis = this;
+			if (this !== globalThis && this !== undefined) {
+				throw new TypeError("Failed to execute 'fetch' on 'Window': Illegal invocation");
+			}
+			return Promise.resolve(
+				new Response(JSON.stringify({ ok: true }), {
+					status: 200,
+					headers: { "content-type": "application/json" },
+				})
+			);
+		} as unknown as typeof fetch;
+		globalThis.fetch = strictFetch;
+		try {
+			const request = createRequester({ apiKey: "wh_test" });
+			await expect(
+				request({ method: "GET", path: "/api/v1/ping" })
+			).resolves.toBeDefined();
+			expect(capturedThis === globalThis || capturedThis === undefined).toBe(
+				true
+			);
+		} finally {
+			globalThis.fetch = original;
+		}
+	});
+
 	it("resolves undefined for a 204 empty response", async () => {
 		const fetchImpl = (async () =>
 			new Response(null, { status: 204 })) as typeof fetch;
