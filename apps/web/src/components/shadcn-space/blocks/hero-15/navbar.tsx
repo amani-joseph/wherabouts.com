@@ -178,8 +178,8 @@ const Navbar = ({ navigationData }: NavbarProps) => {
 									</DropdownMenuPortal>
 								)}
 							</AnimatePresence>
-							<DropdownMenuTrigger className="h-auto cursor-pointer gap-2 rounded-full border border-border bg-gray-50 p-2.5 hover:bg-gray-50/80">
-								<Menu className="h-4 w-4 cursor-pointer text-gray-950" />
+							<DropdownMenuTrigger className="h-auto cursor-pointer gap-2 rounded-full border border-border bg-muted p-2.5 hover:bg-muted/80">
+								<Menu className="h-4 w-4 cursor-pointer text-foreground" />
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
 								align="end"

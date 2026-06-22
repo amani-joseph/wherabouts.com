@@ -20,11 +20,54 @@ import {
 import {
 	BellIcon,
 	GlobeIcon,
+	MonitorIcon,
+	MoonIcon,
 	PaletteIcon,
 	ShieldIcon,
+	SunIcon,
 	UserIcon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
+
+const THEME_OPTIONS = [
+	{ value: "light", label: "Light", icon: SunIcon },
+	{ value: "dark", label: "Dark", icon: MoonIcon },
+	{ value: "system", label: "System", icon: MonitorIcon },
+] as const;
+
+function ThemeSelector() {
+	const { theme, setTheme } = useTheme();
+	// Avoid a hydration mismatch: the resolved theme is only known on the
+	// client, so defer reflecting the active selection until after mount.
+	const [mounted, setMounted] = useState(false);
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	return (
+		<div className="flex flex-wrap gap-3">
+			{THEME_OPTIONS.map((option) => {
+				const Icon = option.icon;
+				const isActive = mounted && theme === option.value;
+				return (
+					<Button
+						aria-pressed={isActive}
+						className="min-w-24"
+						key={option.value}
+						onClick={() => setTheme(option.value)}
+						size="sm"
+						variant={isActive ? "default" : "outline"}
+					>
+						<Icon className="mr-1.5 size-4" />
+						{option.label}
+					</Button>
+				);
+			})}
+		</div>
+	);
+}
 
 export const Route = createFileRoute("/_protected/settings")({
 	component: RouteComponent,
@@ -201,17 +244,11 @@ function RouteComponent() {
 						<CardContent className="space-y-6">
 							<div className="space-y-3">
 								<Label>Theme</Label>
-								<div className="flex gap-3">
-									{["Light", "Dark", "System"].map((theme) => (
-										<Button
-											key={theme}
-											size="sm"
-											variant={theme === "System" ? "default" : "outline"}
-										>
-											{theme}
-										</Button>
-									))}
-								</div>
+								<ThemeSelector />
+								<p className="text-muted-foreground text-xs">
+									System follows your device's appearance settings and updates
+									automatically.
+								</p>
 							</div>
 							<Separator />
 							<div className="flex items-center justify-between">
