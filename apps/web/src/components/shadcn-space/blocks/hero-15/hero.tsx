@@ -319,10 +319,14 @@ function DemoSuggestionsPanel({
 		return null;
 	}
 
+	// This floating result chip is a deliberately dark, emerald-accented popover
+	// (mirrors the navbar mobile menu). The `dark` class scopes it as a dark
+	// island so its token-based children and white glass overlays render
+	// correctly in both light and dark themes.
 	return (
 		<motion.div
 			animate={{ opacity: 1, y: 0, scale: 1 }}
-			className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.92),rgba(2,6,23,0.82))] p-2.5 shadow-[0_34px_90px_-48px_rgba(0,0,0,1)] backdrop-blur-xl"
+			className="dark overflow-hidden rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.92),rgba(2,6,23,0.82))] p-2.5 shadow-[0_34px_90px_-48px_rgba(0,0,0,1)] backdrop-blur-xl"
 			exit={{ opacity: 0, y: -8, scale: 0.985 }}
 			initial={{ opacity: 0, y: -10, scale: 0.985 }}
 			transition={{
@@ -541,7 +545,7 @@ function AddressDemoInput({ onResolve }: AddressDemoInputProps) {
 
 	return (
 		<div aria-hidden="true" className="mx-auto w-full max-w-xl text-left">
-			<div className="relative h-[21.25rem] overflow-visible rounded-[2rem] border border-white/10 bg-background/70 p-2.5 shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-white/5 backdrop-blur-xl md:h-[25.25rem] md:p-4">
+			<div className="relative h-[21.25rem] overflow-visible rounded-[2rem] border border-foreground/10 bg-background/70 p-2.5 shadow-[0_28px_90px_-52px_rgba(0,0,0,1)] ring-1 ring-foreground/5 backdrop-blur-xl md:h-[25.25rem] md:p-4">
 				<div className="mb-3 flex items-center justify-between gap-3 px-1">
 					<div className="flex items-center gap-2">
 						<div className="size-1.5 rounded-full bg-emerald-300" />
@@ -563,7 +567,7 @@ function AddressDemoInput({ onResolve }: AddressDemoInputProps) {
 					<Search className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						aria-label="Example address autocomplete"
-						className="h-12 rounded-[1.35rem] border-white/10 bg-background/80 pr-4 pl-11 text-left text-sm shadow-[0_18px_40px_-30px_rgba(0,0,0,0.95)] backdrop-blur-sm md:h-13 md:text-[15px]"
+						className="h-12 rounded-[1.35rem] border-foreground/15 bg-background/80 pr-4 pl-11 text-left text-sm shadow-[0_18px_40px_-30px_rgba(0,0,0,0.95)] backdrop-blur-sm md:h-13 md:text-[15px]"
 						readOnly
 						tabIndex={-1}
 						value={displayValue}
@@ -730,7 +734,7 @@ const HeroSection = () => {
 						<Link
 							className={cn(
 								buttonVariants({ variant: "outline" }),
-								"inline-flex h-auto cursor-pointer items-center gap-2 rounded-full border-white/30 bg-white/10 px-5 py-2.5 font-medium text-foreground transition-colors hover:bg-white/20 md:px-6 md:py-3.5 dark:border-white/30 dark:bg-white/10 dark:hover:bg-white/20"
+								"inline-flex h-auto cursor-pointer items-center gap-2 rounded-full border-foreground/20 bg-foreground/5 px-5 py-2.5 font-medium text-foreground transition-colors hover:bg-foreground/10 md:px-6 md:py-3.5"
 							)}
 							to="/docs"
 						>
@@ -743,7 +747,7 @@ const HeroSection = () => {
 						className="text-muted-foreground text-sm"
 						variants={itemVariants}
 					>
-						Start free — 10,000 requests every month, no credit card required.
+						Start free — 15,000 requests every month, no credit card required.
 					</motion.p>
 
 					<motion.div className="w-full pt-2" variants={itemVariants}>

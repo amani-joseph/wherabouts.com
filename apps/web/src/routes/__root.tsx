@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Toaster } from "@wherabouts.com/ui/components/sonner";
+import { ThemeProvider } from "next-themes";
 import { lazy, Suspense, useEffect } from "react";
 import {
 	LiveAnnouncerProvider,
@@ -148,19 +149,31 @@ function RouteAnnouncer() {
 
 function RootDocument() {
 	return (
-		<html className="dark" lang="en">
+		// suppressHydrationWarning: next-themes sets the `class`/`color-scheme`
+		// on <html> via an inline script before React hydrates, so the server
+		// markup (no theme class) intentionally differs from the client.
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				<LiveAnnouncerProvider>
-					<SkipLink />
-					<div className="grid h-svh grid-rows-[auto_1fr]">
-						<Outlet />
-					</div>
-					<RouteAnnouncer />
-				</LiveAnnouncerProvider>
-				<Toaster richColors />
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="system"
+					disableTransitionOnChange={false}
+					enableColorScheme
+					enableSystem
+					storageKey="wherabouts-theme"
+				>
+					<LiveAnnouncerProvider>
+						<SkipLink />
+						<div className="grid h-svh grid-rows-[auto_1fr]">
+							<Outlet />
+						</div>
+						<RouteAnnouncer />
+					</LiveAnnouncerProvider>
+					<Toaster richColors />
+				</ThemeProvider>
 				<Suspense>
 					<TanStackRouterDevtools position="bottom-left" />
 				</Suspense>

@@ -1,6 +1,27 @@
 @import "@wherabouts.com/ui/globals.css";
 
 /*
+ * Subtle theme transition. Lives in @layer base so Tailwind's own
+ * `transition-*` utilities (used on buttons, links, etc.) keep their tuned
+ * timings and win the cascade. Non-interactive surfaces simply cross-fade
+ * their colors when the theme toggles. The initial theme is applied by the
+ * next-themes inline script before paint, so this never fires on first load —
+ * only on an explicit Light/Dark/System change. Neutralised by the
+ * prefers-reduced-motion guard below.
+ */
+@layer base {
+	*,
+	*::before,
+	*::after {
+		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+		transition-duration: 200ms;
+		transition-property:
+			color, background-color, border-color, text-decoration-color, fill,
+			stroke, box-shadow;
+	}
+}
+
+/*
  * Global reduced-motion safety net (WCAG 2.3.3). Decorative animations are also
  * gated in JS via useReducedMotion(), but this guarantees that ANY missed
  * animation/transition is neutralised when the OS requests reduced motion.
