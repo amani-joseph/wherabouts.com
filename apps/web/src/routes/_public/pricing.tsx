@@ -18,11 +18,11 @@ export const Route = createFileRoute("/_public/pricing")({
 });
 
 // Reflects the live usage-based billing meter. Source of truth: the
-// `free_allotment` default in packages/database/src/schema/billing.ts (10,000)
-// and the Stripe metered price of $0.001/request ($1.00 per 1,000). Keep these
+// `free_allotment` default in packages/database/src/schema/billing.ts (15,000)
+// and the Stripe metered price of $0.0007/request ($0.70 per 1,000). Keep these
 // figures in sync with routes/_protected/billing.tsx if the meter changes.
-const FREE_REQUESTS = "10,000";
-const RATE_PER_1K = "$1.00";
+const FREE_REQUESTS = "15,000";
+const RATE_PER_1K = "$0.70";
 
 const FEATURES: readonly string[] = [
 	`${FREE_REQUESTS} requests every month, free`,

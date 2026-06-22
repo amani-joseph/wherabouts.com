@@ -152,7 +152,7 @@ function RouteComponent() {
 				<div>
 					<h1 className="font-semibold text-2xl tracking-tight">Billing</h1>
 					<p className="text-muted-foreground text-sm">
-						Pay-as-you-go — 10,000 requests/month free, then $1.00 per 1,000
+						Pay-as-you-go — 15,000 requests/month free, then $0.70 per 1,000
 						requests.
 					</p>
 				</div>

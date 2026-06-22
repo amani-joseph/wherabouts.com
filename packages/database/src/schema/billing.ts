@@ -24,7 +24,7 @@ export const billingAccounts = pgTable(
 		/** "free" | "active" | "past_due" | "canceled" */
 		status: text("status").notNull().default("free"),
 		hasPaymentMethod: boolean("has_payment_method").notNull().default(false),
-		freeAllotment: integer("free_allotment").notNull().default(10_000),
+		freeAllotment: integer("free_allotment").notNull().default(15_000),
 		currentPeriodStart: date("current_period_start", { mode: "string" }),
 		currentPeriodRequests: integer("current_period_requests")
 			.notNull()

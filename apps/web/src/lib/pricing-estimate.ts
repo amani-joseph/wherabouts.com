@@ -2,12 +2,12 @@
  * Pure cost model for the usage-based meter shown on the pricing page.
  *
  * Source of truth for the defaults: the `free_allotment` default in
- * packages/database/src/schema/billing.ts (10,000) and the Stripe metered
- * price of $0.001/request ($1.00 per 1,000). Keep in sync with the meter.
+ * packages/database/src/schema/billing.ts (15,000) and the Stripe metered
+ * price of $0.0007/request ($0.70 per 1,000). Keep in sync with the meter.
  */
 
-const DEFAULT_FREE_ALLOTMENT = 10_000;
-const DEFAULT_RATE_PER_1K_USD = 1;
+const DEFAULT_FREE_ALLOTMENT = 15_000;
+const DEFAULT_RATE_PER_1K_USD = 0.7;
 const REQUESTS_PER_PRICING_UNIT = 1000;
 const CENTS_PER_DOLLAR = 100;
 

@@ -7,25 +7,25 @@ describe("estimateMonthlyCost", () => {
 			billableRequests: 0,
 			monthlyCostUsd: 0,
 		});
-		expect(estimateMonthlyCost(10_000)).toEqual({
+		expect(estimateMonthlyCost(15_000)).toEqual({
 			billableRequests: 0,
 			monthlyCostUsd: 0,
 		});
 	});
 
-	it("charges $1.00 per 1,000 requests beyond the free allotment", () => {
-		// 50,000 requests => 40,000 billable => $40.00
+	it("charges $0.70 per 1,000 requests beyond the free allotment", () => {
+		// 50,000 requests => 35,000 billable => $24.50
 		expect(estimateMonthlyCost(50_000)).toEqual({
-			billableRequests: 40_000,
-			monthlyCostUsd: 40,
+			billableRequests: 35_000,
+			monthlyCostUsd: 24.5,
 		});
 	});
 
 	it("rounds the cost to cents", () => {
-		// 10,500 requests => 500 billable => $0.50
-		expect(estimateMonthlyCost(10_500).monthlyCostUsd).toBe(0.5);
-		// 10,001 => 1 billable => $0.001 => rounds to $0.00
-		expect(estimateMonthlyCost(10_001).monthlyCostUsd).toBe(0);
+		// 15,500 requests => 500 billable => $0.35
+		expect(estimateMonthlyCost(15_500).monthlyCostUsd).toBe(0.35);
+		// 15,001 => 1 billable => $0.0007 => rounds to $0.00
+		expect(estimateMonthlyCost(15_001).monthlyCostUsd).toBe(0);
 	});
 
 	it("honours custom allotment and rate overrides", () => {
