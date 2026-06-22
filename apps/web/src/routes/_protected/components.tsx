@@ -99,7 +99,7 @@ function ResultCard<T>({
 	renderData: (data: T) => React.ReactNode;
 }) {
 	// Announce async outcomes to screen readers. One effect here covers every
-	// live demo since they all surface results through ResultCard.
+	// live demo (React + Vue) since they all surface results through ResultCard.
 	const announce = useAnnounce();
 	const errorMessage = error || result.error;
 	const hasResult = Boolean(result.data) && !isLoading && !errorMessage;

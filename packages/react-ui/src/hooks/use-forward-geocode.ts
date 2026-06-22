@@ -1,5 +1,6 @@
 import type { WheraboutsClient } from "@wherabouts/sdk";
 import { useEffect, useState } from "react";
+import { logDevError } from "../utils/dev-log";
 
 export interface GeocodeAddress {
 	formattedAddress: string;
@@ -65,6 +66,7 @@ export function useForwardGeocode(
 				if (controller.signal.aborted) {
 					return;
 				}
+				logDevError("forward geocode failed", err);
 				setError(err instanceof Error ? err : new Error(String(err)));
 				setData(null);
 			} finally {

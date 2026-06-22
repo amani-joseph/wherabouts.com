@@ -1,5 +1,6 @@
 import type { ReverseGeocodeAddress, WheraboutsClient } from "@wherabouts/sdk";
 import { useEffect, useRef, useState } from "react";
+import { logDevError } from "./dev-log.ts";
 
 export interface LatLng {
 	lat: number;
@@ -58,6 +59,7 @@ export function useReverseGeocode(
 			})
 			.catch((e: unknown) => {
 				if (!controller.signal.aborted) {
+					logDevError("reverse geocode failed", e);
 					setError(e instanceof Error ? e : new Error(String(e)));
 				}
 			})

@@ -5,6 +5,7 @@ import type {
 } from "@wherabouts/sdk";
 import { isRateLimitError } from "@wherabouts/sdk";
 import { computed, onScopeDispose, ref } from "vue";
+import { logDevError } from "../utils/dev-log";
 
 const DEFAULT_DEBOUNCE_MS = 300;
 /** API rejects `q` shorter than 2 chars; gate locally to avoid wasted 400s. */
@@ -108,6 +109,7 @@ export function useAutocomplete(
 			}
 		} catch (e) {
 			if (!ctrl.signal.aborted) {
+				logDevError("address autocomplete failed", e);
 				error.value = e instanceof Error ? e : new Error(String(e));
 				rateLimited.value = isRateLimitError(e);
 				if (!keepPreviousData) {
