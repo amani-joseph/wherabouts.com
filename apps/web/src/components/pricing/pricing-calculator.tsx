@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { estimateMonthlyCost } from "@/lib/pricing-estimate";
 
-const FREE_ALLOTMENT = 10_000;
+const FREE_ALLOTMENT = 15_000;
 const SLIDER_MIN = 0;
 const SLIDER_MAX = 2_000_000;
 const SLIDER_STEP = 5000;

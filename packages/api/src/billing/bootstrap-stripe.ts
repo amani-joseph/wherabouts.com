@@ -15,8 +15,8 @@ async function main(): Promise<void> {
 
 	const price = await stripe.prices.create({
 		currency: "usd",
-		// $1.00 per 1,000 requests = 0.1 cents per request.
-		unit_amount_decimal: stripe.Decimal.from("0.1"),
+		// $0.70 per 1,000 requests = 0.07 cents per request.
+		unit_amount_decimal: stripe.Decimal.from("0.07"),
 		recurring: { interval: "month", usage_type: "metered", meter: meter.id },
 		product_data: { name: "Wherabouts API usage" },
 	});

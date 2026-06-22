@@ -28,7 +28,7 @@ export const serverEnv = createEnv({
 		STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
 		STRIPE_PRICE_ID: z.string().min(1).optional(),
 		STRIPE_METER_EVENT_NAME: z.string().min(1).default("api_request"),
-		BILLING_FREE_ALLOTMENT: z.coerce.number().int().positive().default(10_000),
+		BILLING_FREE_ALLOTMENT: z.coerce.number().int().positive().default(15_000),
 	},
 	runtimeEnv: {
 		...process.env,
