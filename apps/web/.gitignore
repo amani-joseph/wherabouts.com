@@ -31,6 +31,9 @@
 # Environment & local files
 .env*
 !.env.example
+# Tracked: PUBLIC build-time vars only (inlined into the client bundle). Secrets
+# stay in the still-ignored .env. See the header in .env.production.
+!.env.production
 .DS_Store
 *.pem
 *.local

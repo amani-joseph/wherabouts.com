@@ -32,9 +32,9 @@ function HomeComponent() {
 	return (
 		<div>
 			<HeroPage />
-			<Integration />
 			<Capabilities />
 			<ApiInAction />
+			<Integration />
 			<Feature />
 			<Footer />
 		</div>
