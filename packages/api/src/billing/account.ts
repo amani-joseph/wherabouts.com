@@ -1,7 +1,6 @@
-import type { Database } from "@wherabouts.com/database";
+import type { BillingAccount, Database } from "@wherabouts.com/database";
 import { billingAccounts } from "@wherabouts.com/database";
-import type { BillingAccount } from "@wherabouts.com/database";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export interface BillingOwner {
 	ownerType: "team" | "user";
@@ -28,7 +27,10 @@ export function utcMonthStart(now: Date): string {
 }
 
 /** True if `now` is in a later UTC month than `periodStart` (or no period yet). */
-export function isInNewUtcMonth(periodStart: string | null, now: Date): boolean {
+export function isInNewUtcMonth(
+	periodStart: string | null,
+	now: Date
+): boolean {
 	if (!periodStart) {
 		return true;
 	}
@@ -96,7 +98,11 @@ export async function getOrCreateBillingAccount(
 export function periodResetPatch(
 	account: { currentPeriodStart: string | null },
 	now: Date
-): { currentPeriodStart: string; currentPeriodRequests: number; blocked: boolean } | null {
+): {
+	currentPeriodStart: string;
+	currentPeriodRequests: number;
+	blocked: boolean;
+} | null {
 	if (!isInNewUtcMonth(account.currentPeriodStart, now)) {
 		return null;
 	}
@@ -108,9 +114,9 @@ export function periodResetPatch(
 }
 
 export interface CounterState {
-	currentPeriodStart: string;
-	currentPeriodRequests: number;
 	blocked: boolean;
+	currentPeriodRequests: number;
+	currentPeriodStart: string;
 }
 
 /** Compute the new counter row after one production request. */
@@ -139,20 +145,40 @@ export function nextCounterState(
 	};
 }
 
-/** Increment a billing account's monthly counter, resetting on month rollover. */
+/**
+ * Atomically increment a billing account's monthly counter, resetting on month
+ * rollover and recomputing the free-tier `blocked` gate — all in a single SQL
+ * UPDATE.
+ *
+ * This replaces a read-modify-write (read counter in JS, write value+1) that
+ * lost updates under concurrency: N simultaneous requests all read the same
+ * value V and each wrote V+1, so the counter advanced by 1 instead of N and the
+ * 10k free cap was never reliably enforced. neon-http has no transactions, but a
+ * single UPDATE evaluates against the row's own up-to-date columns and is atomic
+ * on its own, so the count is correct no matter how many requests race.
+ *
+ * `nextCounterState` retains the equivalent pure logic for unit testing.
+ */
 export async function incrementBillingUsage(
 	db: Database,
-	account: BillingAccount,
+	accountId: string,
 	now = new Date()
 ): Promise<void> {
-	const next = nextCounterState(account, now);
-	await db
-		.update(billingAccounts)
-		.set({
-			currentPeriodStart: next.currentPeriodStart,
-			currentPeriodRequests: next.currentPeriodRequests,
-			blocked: next.blocked,
-			updatedAt: now,
-		})
-		.where(eq(billingAccounts.id, account.id));
+	const monthStart = utcMonthStart(now);
+	// CASE references to current_period_start read the OLD (pre-update) value, so
+	// the rollover check and the increment stay consistent within the statement.
+	const nextRequests = sql`CASE
+		WHEN current_period_start IS NULL OR current_period_start < ${monthStart}
+		THEN 1
+		ELSE current_period_requests + 1
+	END`;
+	await db.execute(sql`
+		UPDATE billing_accounts
+		SET
+			current_period_requests = ${nextRequests},
+			current_period_start = ${monthStart},
+			blocked = (NOT has_payment_method) AND (${nextRequests}) >= free_allotment,
+			updated_at = now()
+		WHERE id = ${accountId}
+	`);
 }

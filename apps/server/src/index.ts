@@ -10,10 +10,11 @@ import {
 	publicHttpRouter,
 	reportUsageToStripe,
 	stripeCryptoProvider,
+	type WaitUntil,
 } from "@wherabouts.com/api";
 import { auth } from "@wherabouts.com/auth";
 import { serverEnv } from "@wherabouts.com/env/server";
-import { Hono } from "hono";
+import { Hono, type Context as HonoContext } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import type Stripe from "stripe";
@@ -26,6 +27,11 @@ import {
 	type WebhookDeliveryMessage,
 } from "./queues/webhook-delivery.ts";
 import { handleTileRequest } from "./tiles.ts";
+
+// Durable Object class must be re-exported from the Worker entry so the runtime
+// can construct it for the USAGE_METER binding declared in wrangler.jsonc.
+// biome-ignore lint/performance/noBarrelFile: required re-export — the Workers runtime resolves the DO class as a named export of the entry module.
+export { UsageMeter } from "./usage-meter.ts";
 
 const app = new Hono();
 
@@ -274,6 +280,23 @@ function endpointKeyFromPath(pathname: string): string {
 	return "unknown";
 }
 
+/**
+ * Resolve the Worker's `waitUntil` so background usage writes survive past the
+ * response. `executionCtx` getter throws when absent (local dev / tests); bind
+ * the method so a later bare call does not throw "Illegal invocation".
+ */
+function getWaitUntil(context: HonoContext): WaitUntil | undefined {
+	try {
+		const exec = context.executionCtx;
+		if (exec && typeof exec.waitUntil === "function") {
+			return exec.waitUntil.bind(exec);
+		}
+	} catch {
+		// No execution context — caller falls back to awaiting inline.
+	}
+	return undefined;
+}
+
 app.use("/api/v1/*", async (context) => {
 	const startedAt = performance.now();
 	// Thread CF bindings (queues, R2) into the public context — without this the
@@ -286,7 +309,16 @@ app.use("/api/v1/*", async (context) => {
 				GEOCODE_RESULTS?: unknown;
 		  }
 		| undefined;
-	const rpcContext = await createContext({ env: cfEnv, req: context.req });
+	const rpcContext = await createContext({
+		env: cfEnv,
+		req: context.req,
+		// Hold usage-accounting writes open past the response. Without this,
+		// workerd cancels the fire-and-forget recordUsage() I/O the moment the
+		// fetch handler returns, so requests go untracked under load. The getter
+		// throws when no execution context exists (e.g. local dev) — bind it so
+		// calling it later as a bare function does not throw "Illegal invocation".
+		waitUntil: getWaitUntil(context),
+	});
 	const result = await openApiHandler.handle(context.req.raw, {
 		prefix: "/" as `/${string}`,
 		context: rpcContext,

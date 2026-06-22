@@ -43,5 +43,9 @@
 	"r2_buckets": [
 		{ "binding": "GEOCODE_RESULTS", "bucket_name": "wherabouts-geocode-results" },
 		{ "binding": "MAP_TILES", "bucket_name": "wherabouts-tiles", "remote": true }
-	]
+	],
+	"durable_objects": {
+		"bindings": [{ "name": "USAGE_METER", "class_name": "UsageMeter" }]
+	},
+	"migrations": [{ "tag": "v1", "new_sqlite_classes": ["UsageMeter"] }]
 }
