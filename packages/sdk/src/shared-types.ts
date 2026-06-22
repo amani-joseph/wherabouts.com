@@ -44,7 +44,15 @@ export interface WheraboutsApiErrorPayload {
 }
 
 export interface WheraboutsClientConfig {
-	apiKey: string;
+	/**
+	 * Publishable/secret API key sent as `Authorization: Bearer <apiKey>`.
+	 *
+	 * Optional: when omitted, no `Authorization` header is sent. This supports
+	 * the recommended browser pattern of proxying requests through your own
+	 * backend (via a custom `baseUrl`/`fetch`) so the real key never reaches the
+	 * client — the proxy attaches the key server-side.
+	 */
+	apiKey?: string;
 	baseUrl?: string;
 	fetch?: typeof fetch;
 	headers?: Record<string, string>;

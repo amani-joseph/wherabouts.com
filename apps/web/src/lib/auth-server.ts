@@ -9,6 +9,40 @@ const getServerUrl = (): string | null =>
 	import.meta.env.VITE_SERVER_URL?.trim() ||
 	null;
 
+/**
+ * Resolve the fetch implementation used to reach the API server.
+ *
+ * In production the web Worker and the API Worker share the same Cloudflare
+ * zone, and a public worker→worker subrequest over the edge is blocked with a
+ * 403 (the request never reaches the API). That silently breaks SSR
+ * `getSession` and the `/api/v1/*` + `/api/auth/*` proxy routes. A same-zone
+ * Service Binding bypasses the edge, so prefer it when present.
+ *
+ * The binding only exists in the deployed Worker (workerd). Local dev runs the
+ * two Workers in separate Miniflare instances with no usable binding, so guard
+ * on `import.meta.env.PROD` and fall back to public `fetch` (which targets the
+ * backend via BETTER_AUTH_URL / VITE_SERVER_URL) in dev.
+ */
+const getServerFetch = async (): Promise<typeof fetch> => {
+	if (import.meta.env.PROD) {
+		try {
+			const { env } = await import("cloudflare:workers");
+			const binding = (
+				env as Record<string, { fetch?: typeof fetch } | undefined>
+			).SERVER;
+			// Bind to the binding: its `fetch` is a method and would throw
+			// "Illegal invocation" if called detached.
+			if (binding?.fetch) {
+				return binding.fetch.bind(binding);
+			}
+		} catch {
+			// `cloudflare:workers` is unavailable outside the Workers runtime.
+			// Fall through to the public fetch below.
+		}
+	}
+	return fetch;
+};
+
 export const getServerTargetUrl = (
 	path: string,
 	requestUrl?: string
@@ -47,7 +81,8 @@ export const proxyRequestToServer = async (
 			? undefined
 			: await request.arrayBuffer();
 
-	return fetch(targetUrl, {
+	const serverFetch = await getServerFetch();
+	return serverFetch(targetUrl, {
 		method: request.method,
 		headers,
 		body,
@@ -82,7 +117,11 @@ export const getSession = async (): Promise<BetterAuthSession | null> => {
 	headers.delete("transfer-encoding");
 	headers.set("accept-encoding", "identity");
 
-	const response = await fetch(targetUrl, { cache: "no-store", headers });
+	const serverFetch = await getServerFetch();
+	const response = await serverFetch(targetUrl, {
+		cache: "no-store",
+		headers,
+	});
 
 	if (!response.ok) {
 		return null;

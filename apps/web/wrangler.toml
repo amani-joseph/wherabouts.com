@@ -9,6 +9,14 @@ routes = [
 [vars]
 VITE_SERVER_URL = "https://api.wherabouts.com"
 
+# Same-zone Service Binding to the API Worker. A public worker→worker subrequest
+# over the Cloudflare edge is blocked with 403, which breaks SSR getSession and
+# the proxy routes; this binding lets the web Worker reach the API directly.
+# Consumed in src/lib/auth-server.ts via `env.SERVER` (prod only).
+[[services]]
+binding = "SERVER"
+service = "wherabouts-server"
+
 [observability]
 enabled = true
 
