@@ -115,6 +115,7 @@ export function TwoFactorCard() {
 		}
 		setBackupCodes(result.data.backupCodes);
 		setStep("backup");
+		setDisableOpen(false);
 		setOpen(true);
 		toast.success("New backup codes generated. Old codes no longer work.");
 	};
@@ -275,6 +276,7 @@ export function TwoFactorCard() {
 
 			{/* Manage (disable / regenerate) dialog */}
 			<ManageDialog
+				key={disableOpen ? "open" : "closed"}
 				loading={loading}
 				onDisable={disable}
 				onOpenChange={(o) => setDisableOpen(o)}
