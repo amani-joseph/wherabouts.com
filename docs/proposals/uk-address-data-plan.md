@@ -145,20 +145,32 @@ is likely unnecessary for launch given OSM's strength.
 - Coverage rows carry no house number (`number_first` NULL). Confirm rerank/
   autocomplete read paths handle number-less rows (they do for European street rows).
 
-#### ⚠️ Loading is UNRESOLVED — needs a decision (and DB approval)
-The original "coexist, distinguished by `source`" assumed a `source` column that
-**`addresses` does not have** — `source` lives only in `addresses_staging` and is
-dropped on promote. Plus `ingest.ts` is one-adapter-per-country and its `--replace`
-deletes the whole country, so OS coverage rows can't be appended/refreshed without
-wiping the Phase-1 OSM rows. Options:
-  - **(A) Add a `source` column to `addresses`** (migration + DDL). Cleanest:
-    enables source-scoped append/refresh and per-source ranking. Touches the shared
-    DB → approval required.
-  - **(B) No DDL — distinguish via `admin_level`** (e.g. postcode=8, street=7,
-    place=6; OSM stays 5). Re-runs delete `country='GB' AND admin_level<>5`. Works
-    today, but overloads `admin_level` semantics.
-  - **(C) Defer load** — keep the adapter producing the CSV; decide persistence later.
-The adapter is loader-agnostic, so this decision only affects the (small) loader.
+#### Loading — DECIDED 2026-06-23: add a `source` column (option A); loader BUILT
+`addresses` had no `source` column (it lived only in `addresses_staging` and was
+dropped on promote), and `ingest.ts`'s `--replace` is country-wide — so OS coverage
+rows couldn't be appended/refreshed without wiping the Phase-1 OSM rows. Resolved:
+- [x] **Schema:** added nullable `source` to `addresses`
+  (`packages/database/src/schema/addresses.ts`). NULL for legacy/Overture/OSM rows;
+  set only by coverage loaders.
+- [x] **Migration:** `drizzle/0015_thankful_toad_men.sql` —
+  `ALTER TABLE "addresses" ADD COLUMN "source" text;` (generated via `db:generate`,
+  offline). **Not applied** — applying is the gated DB step.
+- [x] **Loader:** `scripts/intl/gb-coverage.ts` — runs the os-open adapter, stages,
+  and promotes **source-scoped**: pre-flight and `--replace` key on
+  `country='GB' AND source IN ('OS_CODEPOINT','OS_OPENNAMES')`, so a reload never
+  touches the OSM rows (they carry `source` NULL). Mirrors ingest.ts staging/promote
+  (kept in sync; promote additionally carries `source`). Guards on the `source`
+  column existing. `--dry-run` verified.
+- Shared `ingest.ts` PROMOTE_SQL is deliberately **unchanged** — OSM/Overture/ODA
+  rows keep `source` NULL, which is exactly what the source-scoped delete relies on.
+- Follow-up (not blocking): coverage rows promote with the default
+  `population_score=0, admin_level=5` like everything else; revisit ranking so
+  postcode/street/place points don't outrank real OSM addresses.
+
+**To load (gated — needs DB approval + the migration applied):**
+1. `pnpm --filter @wherabouts.com/database db:migrate` (applies 0015)
+2. `bun scripts/intl/gb-coverage.ts --db @<file> --dry-run`, then without `--dry-run`.
+   Re-runs use `--replace` (OSM rows untouched).
 
 ### Phase 3 — OS Open UPRN spatial enrichment (optional, heavy)
 - Spatially join the ~40M UPRN points to nearest OS Open Names street + Code-Point

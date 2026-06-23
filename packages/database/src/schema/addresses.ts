@@ -41,6 +41,11 @@ export const addresses = pgTable(
 		geom: geometry("geom"),
 		populationScore: integer("population_score").notNull().default(0),
 		adminLevel: integer("admin_level").notNull().default(5),
+		// Provenance, set by coverage loaders (e.g. 'OS_CODEPOINT' / 'OS_OPENNAMES'
+		// from scripts/intl/gb-coverage.ts). NULL for legacy / Overture / OSM rows.
+		// Lets a source-scoped reload refresh OS coverage without touching the
+		// OSM-derived GB rows. See docs/proposals/uk-address-data-plan.md.
+		source: text("source"),
 	},
 	(table) => [
 		index("idx_addresses_country").on(table.country),
