@@ -131,15 +131,34 @@ is likely unnecessary for launch given OSM's strength.
     Re-runs use `--replace`.
   - Disk: the intermediate NDJSON for full GB is ~3–4 GB; ensure ~10 GB free.
 
-### Phase 2 — `os-open` adapter → nationwide street + postcode coverage
-- New `scripts/intl/adapters/os-open.ts`. Loads **Code-Point Open** as
-  postcode-level rows (no street/number) and **OS Open Names** roads as
-  street-level rows (no number), reprojecting 27700→4326. Guarantees 100% postcode
-  and street geocoding even where OSM has no premises.
-- These coexist with Tier-1 rows in `addresses` (same `country='GB'`), distinguished
-  by `source` (`OSM` vs `OS_CODEPOINT` / `OS_OPENNAMES`) and by empty
-  `number_first`. Confirm the rerank/autocomplete read paths handle number-less rows
-  (they already do for street-level European rows).
+### Phase 2 — `os-open` adapter → nationwide street + postcode coverage — ADAPTER BUILT & VALIDATED 2026-06-23
+- [x] `scripts/intl/adapters/os-open.ts` added. Pulls **Code-Point Open**
+  (`codepo_gb.zip`) + **OS Open Names** (`opname_csv_gb.zip`) key-free from the OS
+  Downloads API, reprojects EPSG:27700→4326 in DuckDB (`ST_Transform … always_xy`),
+  emits the 18-column staging CSV. Pure `buildShapeSql()` + product registry.
+- **Validation** (real full GB data through the adapter, no DB): **2,774,803 rows** —
+  1,747,841 Code-Point postcode centroids (`OS_CODEPOINT`) + 1,026,962 Open Names
+  (`OS_OPENNAMES`: 983,694 streets + ~43k populated places). 0 null coords, 0 outside
+  GB bounds. Samples correct: `Fairway Crescent, Brighton and Hove, BN41`; `NN9 5AG`.
+  Lint clean. Filter keeps `transportNetwork` + `populatedPlace`, drops
+  `other/Postcode` (Code-Point covers postcodes better), landcover/landform/hydro.
+- Coverage rows carry no house number (`number_first` NULL). Confirm rerank/
+  autocomplete read paths handle number-less rows (they do for European street rows).
+
+#### ⚠️ Loading is UNRESOLVED — needs a decision (and DB approval)
+The original "coexist, distinguished by `source`" assumed a `source` column that
+**`addresses` does not have** — `source` lives only in `addresses_staging` and is
+dropped on promote. Plus `ingest.ts` is one-adapter-per-country and its `--replace`
+deletes the whole country, so OS coverage rows can't be appended/refreshed without
+wiping the Phase-1 OSM rows. Options:
+  - **(A) Add a `source` column to `addresses`** (migration + DDL). Cleanest:
+    enables source-scoped append/refresh and per-source ranking. Touches the shared
+    DB → approval required.
+  - **(B) No DDL — distinguish via `admin_level`** (e.g. postcode=8, street=7,
+    place=6; OSM stays 5). Re-runs delete `country='GB' AND admin_level<>5`. Works
+    today, but overloads `admin_level` semantics.
+  - **(C) Defer load** — keep the adapter producing the CSV; decide persistence later.
+The adapter is loader-agnostic, so this decision only affects the (small) loader.
 
 ### Phase 3 — OS Open UPRN spatial enrichment (optional, heavy)
 - Spatially join the ~40M UPRN points to nearest OS Open Names street + Code-Point
