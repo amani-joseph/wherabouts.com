@@ -45,12 +45,16 @@ export function ActiveSessionsCard() {
 	const [busy, setBusy] = useState(false);
 
 	const load = useCallback(async () => {
-		const result = await listSessions();
-		if (result.error || !result.data) {
+		try {
+			const result = await listSessions();
+			if (result.error || !result.data) {
+				setSessions([]);
+				return;
+			}
+			setSessions(result.data as unknown as SessionRow[]);
+		} catch {
 			setSessions([]);
-			return;
 		}
-		setSessions(result.data as unknown as SessionRow[]);
 	}, []);
 
 	useEffect(() => {
