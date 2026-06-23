@@ -49,6 +49,7 @@
     "motion": "^12.38.0",
     "next-themes": "catalog:",
     "protomaps-themes-base": "^4.5.0",
+    "qrcode": "^1.5.4",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-hook-form": "^7.51.5",
@@ -60,6 +61,7 @@
     "terra-draw-maplibre-gl-adapter": "^1.4.1",
     "three": "^0.183.2",
     "three-globe": "^2.45.2",
+    "ua-parser-js": "^2.0.10",
     "vite-tsconfig-paths": "^5.1.4",
     "vue": "^3.5.38",
     "zod": "catalog:"
@@ -70,6 +72,7 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@types/three": "^0.183.1",
