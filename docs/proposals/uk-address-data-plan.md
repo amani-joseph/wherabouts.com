@@ -1,6 +1,31 @@
 # UK (GB) Address Data — Free-Source Ingestion Plan
 
-**Status:** Proposal · **Date:** 2026-06-21 · **Author:** Joseph Amani (+ Claude)
+**Status:** LOADED TO PROD 2026-06-23 · **Date:** 2026-06-21 · **Author:** Joseph Amani (+ Claude)
+
+## Load status — DONE 2026-06-23 (prod `neondb` @ ep-muddy-cake-a72eh7us-pooler.ap-southeast-2)
+
+GB went from 0 → **8,557,377 rows**, 0 null geoms:
+
+| source | rows | what |
+|---|---:|---|
+| `OSM` (NULL) | 5,782,574 | house-number addresses (Phase 1) |
+| `OS_CODEPOINT` | 1,747,841 | postcode-unit centroids (Phase 2) |
+| `OS_OPENNAMES` | 1,026,962 | streets + populated places (Phase 2) |
+
+Notes:
+- **Phase-0 sizing was an overcount.** `osmium fileinfo` on the tags-filtered PBF
+  counts geometry-support nodes too — actual distinct GB OSM addresses = ~5.78M, not
+  the ~24.7M reported below. (The Phase-0 table is left as-is for the record.)
+- The `source` column was added to prod via a direct
+  `ALTER TABLE addresses ADD COLUMN IF NOT EXISTS source text` (migration 0015 lived
+  only in this then-unpushed branch). **Drizzle `__drizzle_migrations` does not record
+  0015** — reconcile the journal before any future `db:migrate` against prod.
+- Re-loads: `ingest.ts GB --replace` (OSM); `gb-coverage.ts --replace` (OS,
+  source-scoped — never touches OSM rows).
+
+**Remaining follow-ups:** coverage-row ranking (OS rows promote at `admin_level=5` /
+`population_score=0`, so a postcode/street/place centroid can outrank a real OSM
+address — tune before user-facing); NI has OSM-only coverage; Phase 3 (UPRN) deferred.
 
 ## TL;DR
 
