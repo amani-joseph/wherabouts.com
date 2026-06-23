@@ -100,8 +100,12 @@ const STAGING_COLUMNS =
 	"building_name,flat_type,flat_number,level_type,level_number,number_first," +
 	"number_last,longitude,latitude,confidence";
 
-// Mirrors ingest.ts PROMOTE_SQL, but carries `source` into addresses (so the rows
-// can be source-scoped later). search_text/geom/scores identical to ingest.ts.
+// Mirrors ingest.ts PROMOTE_SQL, but (a) carries `source` into addresses (so the
+// rows can be source-scoped later) and (b) tiers admin_level by source so these
+// number-less coverage rows rank BELOW real addresses. autocomplete orders
+// `population_score DESC, admin_level ASC`; with all GB population_score=0,
+// admin_level is the live tiebreaker, so real addresses (5) beat place (6),
+// street (7), postcode (8). search_text/geom otherwise identical to ingest.ts.
 const PROMOTE_SQL = `
 INSERT INTO addresses
  (country, state, locality, postcode, street_name, street_type, street_suffix,
@@ -116,7 +120,14 @@ SELECT country, NULLIF(state, ''), locality, postcode, street_name, street_type,
     street_type, street_suffix, building_name,
     NULLIF(locality, ''), NULLIF(state, ''), NULLIF(postcode, ''), country)),
   ST_SetSRID(ST_MakePoint(longitude, latitude), 4326),
-  0, 5, source
+  0,
+  CASE
+    WHEN source = 'OS_CODEPOINT' THEN 8
+    WHEN source = 'OS_OPENNAMES' AND street_name <> '' THEN 7
+    WHEN source = 'OS_OPENNAMES' THEN 6
+    ELSE 5
+  END,
+  source
 FROM addresses_staging;`;
 
 function assertSourceColumn(db: string): void {

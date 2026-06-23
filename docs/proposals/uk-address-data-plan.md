@@ -18,14 +18,21 @@ Notes:
   the ~24.7M reported below. (The Phase-0 table is left as-is for the record.)
 - The `source` column was added to prod via a direct
   `ALTER TABLE addresses ADD COLUMN IF NOT EXISTS source text` (migration 0015 lived
-  only in this then-unpushed branch). **Drizzle `__drizzle_migrations` does not record
-  0015** — reconcile the journal before any future `db:migrate` against prod.
+  only in this then-unpushed branch). **Reconciled 2026-06-24:** inserted the 0015
+  bookkeeping row into `drizzle.__drizzle_migrations` (created_at=1782204256148), so a
+  future `db:migrate` against prod skips 0015 instead of erroring on the existing column.
 - Re-loads: `ingest.ts GB --replace` (OSM); `gb-coverage.ts --replace` (OS,
   source-scoped — never touches OSM rows).
 
-**Remaining follow-ups:** coverage-row ranking (OS rows promote at `admin_level=5` /
-`population_score=0`, so a postcode/street/place centroid can outrank a real OSM
-address — tune before user-facing); NI has OSM-only coverage; Phase 3 (UPRN) deferred.
+**Ranking — FIXED 2026-06-24.** OS coverage rows promoted at `admin_level=5` tied with
+real addresses; autocomplete orders `population_score DESC, admin_level ASC` and all GB
+`population_score=0`, so `admin_level` is the live tiebreaker. Coverage rows are now
+tiered so real addresses (5) win: populated place=6, street=7, postcode=8 — applied to
+the 2.77M loaded rows (UPDATE) and baked into `gb-coverage.ts` promote for future loads.
+(structured-search needs a house number to match, so coverage rows never surface there.)
+
+**Remaining (optional, deferred):** NI has OSM-only coverage (OGL sources are GB-only);
+Phase 3 (UPRN spatial enrichment) — not needed given OSM strength.
 
 ## TL;DR
 
