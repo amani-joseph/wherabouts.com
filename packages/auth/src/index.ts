@@ -1,9 +1,17 @@
-import { authSchema, teamMembers, teams } from "@wherabouts.com/database";
+import {
+	authSchema,
+	securityAuditLog,
+	teamMembers,
+	teams,
+} from "@wherabouts.com/database";
 import { serverEnv } from "@wherabouts.com/env/server";
 import { betterAuth } from "better-auth";
+import { createAuthMiddleware } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { twoFactor } from "better-auth/plugins";
 import { Resend } from "resend";
 import { db } from "./db.ts";
+import { mapAuditAction } from "./audit.ts";
 
 const TRAILING_SLASH_REGEX = /\/$/;
 const SLUG_SANITIZE_REGEX = /[^a-z0-9]+/g;
@@ -99,6 +107,7 @@ function buildResetPasswordText(resetUrl: string): string {
 }
 
 export const auth = betterAuth({
+	appName: "Wherabouts",
 	baseURL: serverEnv.BETTER_AUTH_URL,
 	secret: serverEnv.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, {
@@ -127,11 +136,42 @@ export const auth = betterAuth({
 			});
 		},
 	},
+	plugins: [twoFactor()],
+	user: {
+		deleteUser: { enabled: true },
+	},
 	socialProviders: {
 		github: {
 			clientId: serverEnv.GITHUB_CLIENT_ID,
 			clientSecret: serverEnv.GITHUB_CLIENT_SECRET,
 		},
+	},
+	hooks: {
+		after: createAuthMiddleware(async (ctx) => {
+			const action = mapAuditAction(ctx.path);
+			if (!action) {
+				return;
+			}
+			try {
+				const headers = ctx.request?.headers;
+				const ipAddress =
+					headers?.get("cf-connecting-ip") ??
+					headers?.get("x-forwarded-for") ??
+					null;
+				const userAgent = headers?.get("user-agent") ?? null;
+				const userId = ctx.context.session?.user?.id ?? null;
+				await db.insert(securityAuditLog).values({
+					id: crypto.randomUUID(),
+					userId,
+					action,
+					ipAddress,
+					userAgent,
+					metadata: null,
+				});
+			} catch {
+				// Audit logging must never fail the auth response.
+			}
+		}),
 	},
 	advanced: {
 		// In production the web app and auth API live on different subdomains of
@@ -157,8 +197,42 @@ export const auth = betterAuth({
 		enabled: true,
 		window: 10,
 		max: 100,
+		customRules: {
+			"/two-factor/verify-totp": { window: 60, max: 10 },
+			"/two-factor/verify-backup-code": { window: 60, max: 10 },
+			"/two-factor/enable": { window: 60, max: 5 },
+			"/two-factor/disable": { window: 60, max: 5 },
+			"/delete-user": { window: 300, max: 5 },
+		},
 	},
 	databaseHooks: {
+		session: {
+			create: {
+				before: async (session, ctx) => {
+					try {
+						const cf = (
+							ctx?.request as { cf?: Record<string, unknown> } | undefined
+						)?.cf;
+						if (!cf) {
+							return { data: session };
+						}
+						return {
+							data: {
+								...session,
+								geoCountry: (cf.country as string | undefined) ?? null,
+								geoRegion:
+									(cf.region as string | undefined) ??
+									(cf.regionCode as string | undefined) ??
+									null,
+								geoCity: (cf.city as string | undefined) ?? null,
+							},
+						};
+					} catch {
+						return { data: session };
+					}
+				},
+			},
+		},
 		user: {
 			create: {
 				after: async (user) => {
