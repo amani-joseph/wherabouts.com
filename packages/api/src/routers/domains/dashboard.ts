@@ -1,11 +1,60 @@
 import { apiKeys, apiUsageDaily } from "@wherabouts.com/database";
 import { and, eq, gte, isNull, sql, sum } from "drizzle-orm";
+import { z } from "zod";
 import { protectedProcedure } from "../../procedures.ts";
+import {
+	buildDateAxis,
+	buildTimeSeries,
+	USAGE_RANGES,
+	type UsageRow,
+} from "./usage-series.ts";
 
 const REQUEST_SOURCE_PRODUCTION = "production";
 const REQUEST_SOURCE_EXPLORER_TEST = "explorer_test";
 
+const usageTimeSeriesInput = z.object({
+	range: z.enum(["7d", "30d", "90d"]).default("7d"),
+});
+
 export const dashboardRouter = {
+	/**
+	 * Per-endpoint daily request volume for the selected range, zero-filled and
+	 * bucketed (five named address endpoints + "Other"), plus range-scoped
+	 * summary metrics. Production traffic only. Drives the analytics chart.
+	 */
+	getUsageTimeSeries: protectedProcedure
+		.input(usageTimeSeriesInput)
+		.handler(async ({ context, input }) => {
+			const authUserId = context.session.user.id;
+			const now = new Date();
+			const days = USAGE_RANGES[input.range];
+			const lowerBound = buildDateAxis(days, now)[0] ?? "1970-01-01";
+
+			const rows = await context.db
+				.select({
+					usageDate: apiUsageDaily.usageDate,
+					endpoint: apiUsageDaily.endpoint,
+					count: sum(apiUsageDaily.requestCount),
+				})
+				.from(apiUsageDaily)
+				.where(
+					and(
+						eq(apiUsageDaily.userId, authUserId),
+						eq(apiUsageDaily.requestSource, REQUEST_SOURCE_PRODUCTION),
+						gte(apiUsageDaily.usageDate, lowerBound)
+					)
+				)
+				.groupBy(apiUsageDaily.usageDate, apiUsageDaily.endpoint);
+
+			const mapped: UsageRow[] = rows.map((r) => ({
+				usageDate: r.usageDate,
+				endpoint: r.endpoint,
+				count: Number(r.count ?? 0),
+			}));
+
+			return buildTimeSeries(mapped, input.range, now);
+		}),
+
 	getStats: protectedProcedure.handler(async ({ context }) => {
 		const authUserId = context.session.user.id;
 		const thirtyDaysAgo = new Date();
