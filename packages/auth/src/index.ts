@@ -13,6 +13,9 @@ import { Resend } from "resend";
 import { db } from "./db.ts";
 import { mapAuditAction } from "./audit.ts";
 
+const asString = (v: unknown): string | null =>
+	typeof v === "string" ? v : null;
+
 const TRAILING_SLASH_REGEX = /\/$/;
 const SLUG_SANITIZE_REGEX = /[^a-z0-9]+/g;
 const SLUG_TRIM_REGEX = /^-+|-+$/g;
@@ -219,12 +222,9 @@ export const auth = betterAuth({
 						return {
 							data: {
 								...session,
-								geoCountry: (cf.country as string | undefined) ?? null,
-								geoRegion:
-									(cf.region as string | undefined) ??
-									(cf.regionCode as string | undefined) ??
-									null,
-								geoCity: (cf.city as string | undefined) ?? null,
+								geoCountry: asString(cf.country),
+								geoRegion: asString(cf.region) ?? asString(cf.regionCode),
+								geoCity: asString(cf.city),
 							},
 						};
 					} catch {
