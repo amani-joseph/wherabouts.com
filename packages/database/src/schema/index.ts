@@ -18,9 +18,11 @@ export type {
 	Account,
 	NewAccount,
 	NewSession,
+	NewTwoFactor,
 	NewUser,
 	NewVerification,
 	Session,
+	TwoFactor,
 	User,
 	Verification,
 } from "./auth.ts";
@@ -28,6 +30,7 @@ export {
 	accounts,
 	authSchema,
 	sessions,
+	twoFactors,
 	users,
 	verifications,
 } from "./auth.ts";
@@ -37,6 +40,11 @@ export type { NewProject, Project } from "./projects.ts";
 export { projects } from "./projects.ts";
 export type { NewRegion, Region } from "./regions.ts";
 export { regions } from "./regions.ts";
+export type {
+	NewSecurityAuditLog,
+	SecurityAuditLog,
+} from "./security.ts";
+export { securityAuditLog } from "./security.ts";
 export type {
 	NewTeam,
 	NewTeamInvitation,

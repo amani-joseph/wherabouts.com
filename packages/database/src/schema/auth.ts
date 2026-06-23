@@ -17,6 +17,7 @@ export const users = pgTable(
 		image: text("image"),
 		createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+		twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
 	},
 	(table) => [uniqueIndex("user_email_unique").on(table.email)]
 );
@@ -31,6 +32,9 @@ export const sessions = pgTable(
 		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
 		ipAddress: text("ip_address"),
 		userAgent: text("user_agent"),
+		geoCountry: text("geo_country"),
+		geoRegion: text("geo_region"),
+		geoCity: text("geo_city"),
 		userId: text("user_id")
 			.notNull()
 			.references(() => users.id, { onDelete: "cascade" }),
@@ -91,9 +95,23 @@ export const verifications = pgTable(
 	]
 );
 
+export const twoFactors = pgTable(
+	"two_factor",
+	{
+		id: text("id").primaryKey(),
+		secret: text("secret").notNull(),
+		backupCodes: text("backup_codes").notNull(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+	},
+	(table) => [index("two_factor_user_id_idx").on(table.userId)]
+);
+
 export const authSchema = {
 	account: accounts,
 	session: sessions,
+	twoFactor: twoFactors,
 	user: users,
 	verification: verifications,
 };
@@ -106,3 +124,5 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Verification = typeof verifications.$inferSelect;
 export type NewVerification = typeof verifications.$inferInsert;
+export type TwoFactor = typeof twoFactors.$inferSelect;
+export type NewTwoFactor = typeof twoFactors.$inferInsert;
