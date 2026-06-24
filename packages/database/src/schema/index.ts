@@ -1,10 +1,3 @@
-export type {
-	BillingAccount,
-	BillingMeterReport,
-	NewBillingAccount,
-	NewBillingMeterReport,
-} from "./billing.ts";
-export { billingAccounts, billingMeterReports } from "./billing.ts";
 export type { Address, NewAddress } from "./addresses.ts";
 export { addresses } from "./addresses.ts";
 export type {
@@ -34,6 +27,13 @@ export {
 	users,
 	verifications,
 } from "./auth.ts";
+export type {
+	BillingAccount,
+	BillingMeterReport,
+	NewBillingAccount,
+	NewBillingMeterReport,
+} from "./billing.ts";
+export { billingAccounts, billingMeterReports } from "./billing.ts";
 export type { BatchGeocodeJob, NewBatchGeocodeJob } from "./jobs.ts";
 export { batchGeocodeJobs } from "./jobs.ts";
 export type { NewProject, Project } from "./projects.ts";
