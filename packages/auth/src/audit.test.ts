@@ -5,9 +5,7 @@ describe("mapAuditAction", () => {
 	it("maps two-factor endpoints", () => {
 		expect(mapAuditAction("/two-factor/enable")).toBe("two_factor.enable");
 		expect(mapAuditAction("/two-factor/disable")).toBe("two_factor.disable");
-		expect(mapAuditAction("/two-factor/verify-totp")).toBe(
-			"two_factor.verify"
-		);
+		expect(mapAuditAction("/two-factor/verify-totp")).toBe("two_factor.verify");
 		expect(mapAuditAction("/two-factor/generate-backup-codes")).toBe(
 			"two_factor.regenerate_backup_codes"
 		);
