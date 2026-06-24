@@ -43,8 +43,8 @@ describe("filterCountries", () => {
 });
 
 describe("COVERAGE_COUNTRIES", () => {
-	it("contains exactly the 17 supported countries", () => {
-		expect(COVERAGE_COUNTRIES).toHaveLength(17);
+	it("contains exactly the 29 supported countries", () => {
+		expect(COVERAGE_COUNTRIES).toHaveLength(29);
 	});
 
 	it("is sorted alphabetically by name", () => {
