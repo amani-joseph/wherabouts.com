@@ -228,24 +228,24 @@ export const auth = betterAuth({
 	databaseHooks: {
 		session: {
 			create: {
-				before: async (session, ctx) => {
+				before: (session, ctx) => {
 					try {
 						const cf = (
 							ctx?.request as { cf?: Record<string, unknown> } | undefined
 						)?.cf;
 						if (!cf) {
-							return { data: session };
+							return Promise.resolve({ data: session });
 						}
-						return {
+						return Promise.resolve({
 							data: {
 								...session,
 								geoCountry: asString(cf.country),
 								geoRegion: asString(cf.region) ?? asString(cf.regionCode),
 								geoCity: asString(cf.city),
 							},
-						};
+						});
 					} catch {
-						return { data: session };
+						return Promise.resolve({ data: session });
 					}
 				},
 			},
