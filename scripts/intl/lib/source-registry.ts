@@ -124,6 +124,31 @@ export const COUNTRIES: Record<string, CountryConfig> = {
 		state: "none",
 		notes: "3 lvls, last=municipality. nullst 55.5%.",
 	},
+	NZ: {
+		adapter: "overture",
+		// Probed 2026-06-24 (release 2026-05-20.0): 2 lvls but lvl1 = territorial
+		// authority/city up to 48 chars (exceeds the varchar(10)/<=10 guard) -> none,
+		// matching the DK/HR/FO long-lvl1 precedent. The city is dropped; locality = suburb.
+		state: "none",
+		notes:
+			"Overture 2.41M. 2 lvls: lvl1=city/territorial-authority (long, dropped) -> " +
+			"none; last=suburb -> locality. nullpc 100% (NO postcodes in Overture — " +
+			"postcode search won't work), nullst 0%. LINZ NZ Street Address (CC-BY) adds " +
+			"postcodes + city — authoritative upgrade later via --replace.",
+	},
+	JP: {
+		adapter: "overture",
+		// Probed 2026-06-24 (release 2026-05-20.0): uniform 2 levels, lvl1 = prefecture
+		// in kanji (max 4 chars, passes the <=10 guard) -> state; last = municipality.
+		state: "address-level-1",
+		notes:
+			"Overture 19.57M (DE-sized, single extract — no state chunking needed). 2 lvls: " +
+			"lvl1=prefecture (kanji, <=4 chars) -> state; last=municipality (市/区/町) -> " +
+			"locality. nullpc 100% (NO postcodes in Overture — postcode search won't work), " +
+			"nullst 0%. Non-Latin (kanji) in state/locality/street — autocomplete weak until " +
+			"input normalizer. Digital Agency Address Base Registry adds postcodes — " +
+			"authoritative upgrade later.",
+	},
 	CA: {
 		adapter: "oda",
 		state: "none", // state derived from PRUID inside the ODA adapter, not address_levels
