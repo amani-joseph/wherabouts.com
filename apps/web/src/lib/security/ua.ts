@@ -1,10 +1,10 @@
 import { UAParser } from "ua-parser-js";
 
-export type ParsedUserAgent = {
-	device: string;
+export interface ParsedUserAgent {
 	browser: string;
+	device: string;
 	os: string;
-};
+}
 
 const UNKNOWN: ParsedUserAgent = {
 	device: "Unknown",
@@ -13,9 +13,7 @@ const UNKNOWN: ParsedUserAgent = {
 };
 
 /** Parse a session user-agent string into human-readable device/browser/os. */
-export function parseUserAgent(
-	ua: string | null | undefined
-): ParsedUserAgent {
+export function parseUserAgent(ua: string | null | undefined): ParsedUserAgent {
 	if (!ua) {
 		return UNKNOWN;
 	}

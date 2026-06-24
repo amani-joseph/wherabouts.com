@@ -11,6 +11,7 @@ const ACTION_BY_SUFFIX: Record<string, string> = {
 };
 
 const SIGN_IN_PREFIX = "/sign-in/";
+const API_AUTH_PREFIX_REGEX = /^\/api\/auth/;
 
 /**
  * Map a BetterAuth endpoint path to a stable audit action name. Returns null
@@ -18,7 +19,7 @@ const SIGN_IN_PREFIX = "/sign-in/";
  * base prefix so it works whether or not the handler strips it.
  */
 export function mapAuditAction(path: string): string | null {
-	const normalized = path.replace(/^\/api\/auth/, "");
+	const normalized = path.replace(API_AUTH_PREFIX_REGEX, "");
 	for (const [suffix, action] of Object.entries(ACTION_BY_SUFFIX)) {
 		if (normalized === suffix) {
 			return action;

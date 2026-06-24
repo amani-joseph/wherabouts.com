@@ -1,17 +1,18 @@
-export type DeleteConfirmationInput = {
-	typedEmail: string;
+export interface DeleteConfirmationInput {
 	accountEmail: string | null | undefined;
 	password: string;
-	twoFactorEnabled: boolean;
 	totpCode: string;
-};
+	twoFactorEnabled: boolean;
+	typedEmail: string;
+}
 
 const SIX_DIGITS = /^\d{6}$/;
 
 /** Validate the multi-step delete-account form before allowing submission. */
-export function validateDeleteConfirmation(
-	input: DeleteConfirmationInput
-): { valid: boolean; errors: Record<string, string> } {
+export function validateDeleteConfirmation(input: DeleteConfirmationInput): {
+	valid: boolean;
+	errors: Record<string, string>;
+} {
 	const errors: Record<string, string> = {};
 	const account = (input.accountEmail ?? "").trim().toLowerCase();
 	if (!account || input.typedEmail.trim().toLowerCase() !== account) {

@@ -1,5 +1,5 @@
-import { createAuthClient } from "better-auth/react";
 import { twoFactorClient } from "better-auth/client/plugins";
+import { createAuthClient } from "better-auth/react";
 
 const getAuthBaseUrl = (): string => {
 	// Local dev: point at the local server.
