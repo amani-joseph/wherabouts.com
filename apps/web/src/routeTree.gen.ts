@@ -36,6 +36,7 @@ import { Route as ProtectedBatchRouteImport } from './routes/_protected/batch'
 import { Route as ProtectedApiKeysRouteImport } from './routes/_protected/api-keys'
 import { Route as ProtectedApiDocsRouteImport } from './routes/_protected/api-docs'
 import { Route as ProtectedAnalyticsRouteImport } from './routes/_protected/analytics'
+import { Route as AuthTwoFactorRouteImport } from './routes/_auth/two-factor'
 import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
 import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
@@ -187,6 +188,11 @@ const ProtectedAnalyticsRoute = ProtectedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const AuthTwoFactorRoute = AuthTwoFactorRouteImport.update({
+  id: '/_auth/two-factor',
+  path: '/two-factor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthSignUpRoute = AuthSignUpRouteImport.update({
   id: '/_auth/sign-up',
   path: '/sign-up',
@@ -283,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/two-factor': typeof AuthTwoFactorRoute
   '/analytics': typeof ProtectedAnalyticsRoute
   '/api-docs': typeof ProtectedApiDocsRoute
   '/api-keys': typeof ProtectedApiKeysRoute
@@ -327,6 +334,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/two-factor': typeof AuthTwoFactorRoute
   '/analytics': typeof ProtectedAnalyticsRoute
   '/api-docs': typeof ProtectedApiDocsRoute
   '/api-keys': typeof ProtectedApiKeysRoute
@@ -374,6 +382,7 @@ export interface FileRoutesById {
   '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/sign-up': typeof AuthSignUpRoute
+  '/_auth/two-factor': typeof AuthTwoFactorRoute
   '/_protected/analytics': typeof ProtectedAnalyticsRoute
   '/_protected/api-docs': typeof ProtectedApiDocsRoute
   '/_protected/api-keys': typeof ProtectedApiKeysRoute
@@ -420,6 +429,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
+    | '/two-factor'
     | '/analytics'
     | '/api-docs'
     | '/api-keys'
@@ -464,6 +474,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
+    | '/two-factor'
     | '/analytics'
     | '/api-docs'
     | '/api-keys'
@@ -510,6 +521,7 @@ export interface FileRouteTypes {
     | '/_auth/reset-password'
     | '/_auth/sign-in'
     | '/_auth/sign-up'
+    | '/_auth/two-factor'
     | '/_protected/analytics'
     | '/_protected/api-docs'
     | '/_protected/api-keys'
@@ -557,6 +569,7 @@ export interface RootRouteChildren {
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
+  AuthTwoFactorRoute: typeof AuthTwoFactorRoute
   ApiHealthRoute: typeof ApiHealthRoute
   InviteIdRoute: typeof InviteIdRoute
   RpcSplatRoute: typeof RpcSplatRoute
@@ -762,6 +775,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedAnalyticsRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_auth/two-factor': {
+      id: '/_auth/two-factor'
+      path: '/two-factor'
+      fullPath: '/two-factor'
+      preLoaderRoute: typeof AuthTwoFactorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth/sign-up': {
       id: '/_auth/sign-up'
       path: '/sign-up'
@@ -958,6 +978,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
+  AuthTwoFactorRoute: AuthTwoFactorRoute,
   ApiHealthRoute: ApiHealthRoute,
   InviteIdRoute: InviteIdRoute,
   RpcSplatRoute: RpcSplatRoute,

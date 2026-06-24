@@ -1,3 +1,4 @@
+import { twoFactorClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
 const getAuthBaseUrl = (): string => {
@@ -23,6 +24,15 @@ export const authClient = createAuthClient({
 	fetchOptions: {
 		credentials: "include",
 	},
+	plugins: [
+		twoFactorClient({
+			onTwoFactorRedirect() {
+				if (typeof window !== "undefined") {
+					window.location.href = "/two-factor";
+				}
+			},
+		}),
+	],
 });
 
 export const {
@@ -32,4 +42,10 @@ export const {
 	signOut,
 	requestPasswordReset,
 	resetPassword,
+	twoFactor,
+	listSessions,
+	revokeSession,
+	revokeSessions,
+	revokeOtherSessions,
+	deleteUser,
 } = authClient;

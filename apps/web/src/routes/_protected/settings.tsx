@@ -29,6 +29,9 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { ActiveSessionsCard } from "@/components/settings/security/active-sessions-card.tsx";
+import { DeleteAccountCard } from "@/components/settings/security/delete-account-card.tsx";
+import { TwoFactorCard } from "@/components/settings/security/two-factor-card.tsx";
 import { useSession } from "@/lib/auth-client";
 
 const THEME_OPTIONS = [
@@ -273,45 +276,11 @@ function RouteComponent() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-6">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="font-medium text-sm">
-										Two-Factor Authentication
-									</p>
-									<p className="text-muted-foreground text-xs">
-										Add an extra layer of security to your account
-									</p>
-								</div>
-								<Button size="sm" variant="outline">
-									Enable
-								</Button>
-							</div>
+							<TwoFactorCard />
 							<Separator />
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="font-medium text-sm">Active Sessions</p>
-									<p className="text-muted-foreground text-xs">
-										Manage devices where you're signed in
-									</p>
-								</div>
-								<Button size="sm" variant="outline">
-									View Sessions
-								</Button>
-							</div>
+							<ActiveSessionsCard />
 							<Separator />
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="font-medium text-destructive text-sm">
-										Delete Account
-									</p>
-									<p className="text-muted-foreground text-xs">
-										Permanently delete your account and all data
-									</p>
-								</div>
-								<Button size="sm" variant="destructive">
-									Delete
-								</Button>
-							</div>
+							<DeleteAccountCard />
 						</CardContent>
 					</Card>
 				</TabsContent>

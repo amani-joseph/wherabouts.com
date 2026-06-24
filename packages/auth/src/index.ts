@@ -1,9 +1,20 @@
-import { authSchema, teamMembers, teams } from "@wherabouts.com/database";
+import {
+	authSchema,
+	securityAuditLog,
+	teamMembers,
+	teams,
+} from "@wherabouts.com/database";
 import { serverEnv } from "@wherabouts.com/env/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { createAuthMiddleware } from "better-auth/api";
+import { twoFactor } from "better-auth/plugins";
 import { Resend } from "resend";
+import { mapAuditAction } from "./audit.ts";
 import { db } from "./db.ts";
+
+const asString = (v: unknown): string | null =>
+	typeof v === "string" ? v : null;
 
 const TRAILING_SLASH_REGEX = /\/$/;
 const SLUG_SANITIZE_REGEX = /[^a-z0-9]+/g;
@@ -99,6 +110,7 @@ function buildResetPasswordText(resetUrl: string): string {
 }
 
 export const auth = betterAuth({
+	appName: "Wherabouts",
 	baseURL: serverEnv.BETTER_AUTH_URL,
 	secret: serverEnv.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, {
@@ -127,11 +139,59 @@ export const auth = betterAuth({
 			});
 		},
 	},
+	plugins: [twoFactor({ issuer: "Wherabouts" })],
+	user: {
+		deleteUser: { enabled: true },
+	},
 	socialProviders: {
 		github: {
 			clientId: serverEnv.GITHUB_CLIENT_ID,
 			clientSecret: serverEnv.GITHUB_CLIENT_SECRET,
 		},
+	},
+	hooks: {
+		after: createAuthMiddleware(async (ctx) => {
+			const action = mapAuditAction(ctx.path);
+			if (!action) {
+				return;
+			}
+			try {
+				const headers = ctx.request?.headers;
+				const ipAddress =
+					headers?.get("cf-connecting-ip") ??
+					headers?.get("x-forwarded-for") ??
+					null;
+				const userAgent = headers?.get("user-agent") ?? null;
+				// Prefer the resolved session user id; fall back to the freshly
+				// created session (covers sign-in / verify flows where the new
+				// session is returned instead of the existing one).
+				const userId =
+					ctx.context.session?.user?.id ??
+					ctx.context.newSession?.user?.id ??
+					null;
+				// Record the attempted email when there is no resolved user id
+				// (e.g. a failed login). This is NOT stored as userId — it goes
+				// into metadata only, so it is never confused with a real user id.
+				// NOTE: ctx.context.returned does not expose the HTTP response
+				// status in BetterAuth's after-hook context; success cannot be
+				// derived reliably from the typed context, so ok is omitted here.
+				const attemptedEmail =
+					userId === null
+						? ((ctx.body as { email?: string } | undefined)?.email ?? null)
+						: null;
+				const metadata = attemptedEmail === null ? null : { attemptedEmail };
+				await db.insert(securityAuditLog).values({
+					id: crypto.randomUUID(),
+					userId,
+					action,
+					ipAddress,
+					userAgent,
+					metadata,
+				});
+			} catch {
+				// Audit logging must never fail the auth response.
+			}
+		}),
 	},
 	advanced: {
 		// In production the web app and auth API live on different subdomains of
@@ -157,8 +217,39 @@ export const auth = betterAuth({
 		enabled: true,
 		window: 10,
 		max: 100,
+		customRules: {
+			"/two-factor/verify-totp": { window: 60, max: 10 },
+			"/two-factor/verify-backup-code": { window: 60, max: 10 },
+			"/two-factor/enable": { window: 60, max: 5 },
+			"/two-factor/disable": { window: 60, max: 5 },
+			"/delete-user": { window: 300, max: 5 },
+		},
 	},
 	databaseHooks: {
+		session: {
+			create: {
+				before: (session, ctx) => {
+					try {
+						const cf = (
+							ctx?.request as { cf?: Record<string, unknown> } | undefined
+						)?.cf;
+						if (!cf) {
+							return Promise.resolve({ data: session });
+						}
+						return Promise.resolve({
+							data: {
+								...session,
+								geoCountry: asString(cf.country),
+								geoRegion: asString(cf.region) ?? asString(cf.regionCode),
+								geoCity: asString(cf.city),
+							},
+						});
+					} catch {
+						return Promise.resolve({ data: session });
+					}
+				},
+			},
+		},
 		user: {
 			create: {
 				after: async (user) => {
