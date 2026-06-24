@@ -5,7 +5,7 @@
  * eyeball, GeoNames hit-rate, Neon cost check).
  */
 
-export type AdapterName = "overture" | "nad" | "oda";
+export type AdapterName = "overture" | "nad" | "oda" | "osm";
 
 export interface CountryConfig {
 	adapter: AdapterName;
@@ -156,6 +156,16 @@ export const COUNTRIES: Record<string, CountryConfig> = {
 			"Tier-1 StatCan ODA (~10M rows, OGL-Canada). _pcs standardized fields used. " +
 			"GAP: ODA v1 has no NL/YT/NU — consider Overture backfill for those provinces later. " +
 			"Postcode coverage varies by provider (PE 100% null).",
+	},
+	GB: {
+		adapter: "osm",
+		state: "none", // OSM addr objects have no clean region; GB single-level -> NULL
+		notes:
+			"Overture has 0 GB rows; PAF/AddressBase are commercial. Sourced from the " +
+			"Geofabrik UK extract (GB + Northern Ireland) via the osm adapter. " +
+			"License: ODbL — keep '© OpenStreetMap contributors' attribution. " +
+			"Sizing 2026-06-22: ~24.7M addr:housenumber objects. " +
+			"See docs/proposals/uk-address-data-plan.md.",
 	},
 	US: {
 		adapter: "overture",

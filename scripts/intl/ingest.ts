@@ -26,6 +26,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { runExtract as odaExtract } from "./adapters/oda";
+import { runExtract as osmExtract } from "./adapters/osm";
 import {
 	type ExtractResult,
 	runExtract as overtureExtract,
@@ -177,6 +178,9 @@ async function extract(
 	}
 	if (config.adapter === "oda") {
 		return await odaExtract(csvPath);
+	}
+	if (config.adapter === "osm") {
+		return osmExtract(country, config, csvPath);
 	}
 	throw new Error(`adapter "${config.adapter}" not implemented yet`);
 }

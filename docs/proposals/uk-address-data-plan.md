@@ -1,6 +1,38 @@
 # UK (GB) Address Data — Free-Source Ingestion Plan
 
-**Status:** Proposal · **Date:** 2026-06-21 · **Author:** Joseph Amani (+ Claude)
+**Status:** LOADED TO PROD 2026-06-23 · **Date:** 2026-06-21 · **Author:** Joseph Amani (+ Claude)
+
+## Load status — DONE 2026-06-23 (prod `neondb` @ ep-muddy-cake-a72eh7us-pooler.ap-southeast-2)
+
+GB went from 0 → **8,557,377 rows**, 0 null geoms:
+
+| source | rows | what |
+|---|---:|---|
+| `OSM` (NULL) | 5,782,574 | house-number addresses (Phase 1) |
+| `OS_CODEPOINT` | 1,747,841 | postcode-unit centroids (Phase 2) |
+| `OS_OPENNAMES` | 1,026,962 | streets + populated places (Phase 2) |
+
+Notes:
+- **Phase-0 sizing was an overcount.** `osmium fileinfo` on the tags-filtered PBF
+  counts geometry-support nodes too — actual distinct GB OSM addresses = ~5.78M, not
+  the ~24.7M reported below. (The Phase-0 table is left as-is for the record.)
+- The `source` column was added to prod via a direct
+  `ALTER TABLE addresses ADD COLUMN IF NOT EXISTS source text` (migration 0015 lived
+  only in this then-unpushed branch). **Reconciled 2026-06-24:** inserted the 0015
+  bookkeeping row into `drizzle.__drizzle_migrations` (created_at=1782204256148), so a
+  future `db:migrate` against prod skips 0015 instead of erroring on the existing column.
+- Re-loads: `ingest.ts GB --replace` (OSM); `gb-coverage.ts --replace` (OS,
+  source-scoped — never touches OSM rows).
+
+**Ranking — FIXED 2026-06-24.** OS coverage rows promoted at `admin_level=5` tied with
+real addresses; autocomplete orders `population_score DESC, admin_level ASC` and all GB
+`population_score=0`, so `admin_level` is the live tiebreaker. Coverage rows are now
+tiered so real addresses (5) win: populated place=6, street=7, postcode=8 — applied to
+the 2.77M loaded rows (UPDATE) and baked into `gb-coverage.ts` promote for future loads.
+(structured-search needs a house number to match, so coverage rows never surface there.)
+
+**Remaining (optional, deferred):** NI has OSM-only coverage (OGL sources are GB-only);
+Phase 3 (UPRN spatial enrichment) — not needed given OSM strength.
 
 ## TL;DR
 
@@ -66,43 +98,111 @@ Isle of Man or Channel Islands (use the `britain-and-ireland` extract if those a
 needed). OS OpenData (UPRN / Open Names / Code-Point) is **GB only** (no NI) — NI
 premise coords would come from OSM + OSNI open data separately if required.
 
-### ⚠️ Licensing decision needed before we ship
+### Licensing — DECIDED 2026-06-21: include OSM (ODbL)
 
-OSM is **ODbL** (share-alike). Serving OSM-derived addresses through the API is
-fine with attribution, but ODbL's share-alike can attach to a "derived database."
-Our other data (G-NAF, Overture) is permissive/OGL. **Action: product/legal sign-off
-on mixing ODbL into the served corpus**, plus an attribution line for OSM + "Contains
-OS data © Crown copyright and database right 2026" for the OGL sources. If ODbL is
-unacceptable, v1 ships OGL-only (Tiers 2–3): postcode + street geocoding, no house
-numbers.
+**Decision:** v1 **includes OSM** to get real house-number-level addresses, accepting
+ODbL obligations. Required follow-through:
+- Add attribution: "© OpenStreetMap contributors" (ODbL) **and** "Contains OS data ©
+  Crown copyright and database right 2026" (OGL) wherever the corpus is exposed
+  (API docs, attribution endpoint, data downloads).
+- Treat the served address DB as an ODbL-affected derived database; keep an
+  attribution/licence notice with any bulk export.
+- (Permissive G-NAF/Overture data is unaffected; ODbL attaches only to the
+  OSM-derived GB rows.)
 
 ## Phased plan
 
-### Phase 0 — Decide & size (no DB writes)
-- [x] Confirm Overture GB = 0 (done).
-- [ ] Size OSM: download UK PBF, count objects with `addr:housenumber` (via
-  `osmium tags-filter` / GDAL OSM driver). Establishes Tier-1 row count.
-- [ ] Licensing sign-off (ODbL mix vs OGL-only). **Gating decision.**
+### Phase 0 — Decide & size (no DB writes) — COMPLETE 2026-06-21
+- [x] Confirm Overture GB = 0 (done — release `2026-05-20.0`, 0 rows).
+- [x] Size OSM (Geofabrik `united-kingdom-latest.osm.pbf`, data to 2026-06-19, via
+  `osmium tags-filter`).
+- [x] Licensing sign-off — **DECIDED: include OSM (ODbL)**, territory **GB + NI**.
 
-### Phase 1 — `osm` adapter → individual GB addresses (headline value)
-- New `scripts/intl/adapters/osm.ts`. Toolchain: `osmium tags-filter` to pull
-  objects carrying `addr:housenumber`, then GDAL/DuckDB spatial to read the OSM
-  `points` + `multipolygons` layers, centroid the polygons (`ST_Centroid`), and
-  shape into the staging CSV with the same dedup window-function pattern as
-  `overture.ts`.
-- Register `GB: { adapter: "osm", state: "none", notes: … }`.
-- Run `bun scripts/intl/ingest.ts GB --db @<file> --dry-run`, eyeball sample, then
-  load. Re-runs use `--replace`.
+**OSM GB+NI sizing results:**
 
-### Phase 2 — `os-open` adapter → nationwide street + postcode coverage
-- New `scripts/intl/adapters/os-open.ts`. Loads **Code-Point Open** as
-  postcode-level rows (no street/number) and **OS Open Names** roads as
-  street-level rows (no number), reprojecting 27700→4326. Guarantees 100% postcode
-  and street geocoding even where OSM has no premises.
-- These coexist with Tier-1 rows in `addresses` (same `country='GB'`), distinguished
-  by `source` (`OSM` vs `OS_CODEPOINT` / `OS_OPENNAMES`) and by empty
-  `number_first`. Confirm the rerank/autocomplete read paths handle number-less rows
-  (they already do for street-level European rows).
+| Tag | nodes | ways | relations | **total** |
+|---|---|---|---|---|
+| `addr:housenumber` (full individual addresses) | 20,354,289 | 4,344,685 | 3,735 | **~24.7M** |
+| `addr:postcode` (anything with a postcode) | 33,203,443 | 6,609,663 | 7,021 | **~39.8M** |
+
+**Takeaway:** OSM coverage is far better than feared — **~24.7M objects carry a house
+number**, in the same ballpark as commercial PAF (~31M) and AddressBase (~40M). The
+free path delivers near-commercial premise coverage.
+
+Caveats that lower the *distinct* count: (a) some `addr:housenumber` nodes are POIs /
+sub-features inside a building that also carries addr tags → same-property
+double-count; (b) `way`/`relation` objects need `ST_Centroid` for a point; (c) the
+pipeline's existing dedup (window function on locality/street/number/coords) will
+collapse further. Realistic promoted distinct addresses: on the order of **~15–20M** —
+still excellent, and Phase 2 (OGL Code-Point/Open Names) covers the postcode/street
+gaps where OSM has no premise.
+
+**Consequence for the plan:** Phase 1 (OSM) is clearly worth building as the primary
+source. Phase 2 becomes a *coverage backstop* rather than a necessity. Phase 3 (UPRN)
+is likely unnecessary for launch given OSM's strength.
+
+### Phase 1 — `osm` adapter → individual GB addresses — BUILT & VALIDATED 2026-06-22
+- [x] `scripts/intl/adapters/osm.ts` added; registered `GB` (adapter `osm`,
+  state `none`) in `source-registry.ts`; dispatch wired in `ingest.ts`.
+- **Final toolchain** (the GDAL points/multipolygons-layer idea was dropped — colon
+  tag names and a temp SQLite build made it fragile):
+  `osmium tags-filter nwr/addr:housenumber` → `osmium export -f geojsonseq`
+  (trimmed to addr tags) → strip the RFC 8142 `0x1E` record-separator byte (DuckDB's
+  JSON reader rejects it) → one DuckDB pass: `ST_Centroid(ST_GeomFromGeoJSON(...))`
+  for the point, pull `addr:*` via `->>'…'`, dedup with the shared window function,
+  write the 18-column staging CSV.
+- **Validation** (central-London bbox, run through the real adapter, no DB): 4269
+  rows, exactly 18 columns, 91% locality / 60% postcode; sample rows correct, e.g.
+  `44–46 Aldwych, London, WC2B 4LL`.
+- Lint: `ultracite check` clean on all three changed files.
+- **Pure surfaces for review:** `buildShapeSql()` and `geofabrikUrl()` are I/O-free.
+- **Operational notes for the real load (not yet run — needs DB approval + disk):**
+  - `ensurePbf` does **not** auto-download (2 GB). Place the full extract at
+    `/tmp/osm/united-kingdom-latest.osm.pbf` first (pre-staged on this machine).
+  - Then `bun scripts/intl/ingest.ts GB --db @<file>` (add `--dry-run` first).
+    Re-runs use `--replace`.
+  - Disk: the intermediate NDJSON for full GB is ~3–4 GB; ensure ~10 GB free.
+
+### Phase 2 — `os-open` adapter → nationwide street + postcode coverage — ADAPTER BUILT & VALIDATED 2026-06-23
+- [x] `scripts/intl/adapters/os-open.ts` added. Pulls **Code-Point Open**
+  (`codepo_gb.zip`) + **OS Open Names** (`opname_csv_gb.zip`) key-free from the OS
+  Downloads API, reprojects EPSG:27700→4326 in DuckDB (`ST_Transform … always_xy`),
+  emits the 18-column staging CSV. Pure `buildShapeSql()` + product registry.
+- **Validation** (real full GB data through the adapter, no DB): **2,774,803 rows** —
+  1,747,841 Code-Point postcode centroids (`OS_CODEPOINT`) + 1,026,962 Open Names
+  (`OS_OPENNAMES`: 983,694 streets + ~43k populated places). 0 null coords, 0 outside
+  GB bounds. Samples correct: `Fairway Crescent, Brighton and Hove, BN41`; `NN9 5AG`.
+  Lint clean. Filter keeps `transportNetwork` + `populatedPlace`, drops
+  `other/Postcode` (Code-Point covers postcodes better), landcover/landform/hydro.
+- Coverage rows carry no house number (`number_first` NULL). Confirm rerank/
+  autocomplete read paths handle number-less rows (they do for European street rows).
+
+#### Loading — DECIDED 2026-06-23: add a `source` column (option A); loader BUILT
+`addresses` had no `source` column (it lived only in `addresses_staging` and was
+dropped on promote), and `ingest.ts`'s `--replace` is country-wide — so OS coverage
+rows couldn't be appended/refreshed without wiping the Phase-1 OSM rows. Resolved:
+- [x] **Schema:** added nullable `source` to `addresses`
+  (`packages/database/src/schema/addresses.ts`). NULL for legacy/Overture/OSM rows;
+  set only by coverage loaders.
+- [x] **Migration:** `drizzle/0015_thankful_toad_men.sql` —
+  `ALTER TABLE "addresses" ADD COLUMN "source" text;` (generated via `db:generate`,
+  offline). **Not applied** — applying is the gated DB step.
+- [x] **Loader:** `scripts/intl/gb-coverage.ts` — runs the os-open adapter, stages,
+  and promotes **source-scoped**: pre-flight and `--replace` key on
+  `country='GB' AND source IN ('OS_CODEPOINT','OS_OPENNAMES')`, so a reload never
+  touches the OSM rows (they carry `source` NULL). Mirrors ingest.ts staging/promote
+  (kept in sync; promote additionally carries `source`). Guards on the `source`
+  column existing. `--dry-run` verified.
+- Shared `ingest.ts` PROMOTE_SQL is deliberately **unchanged** — OSM/Overture/ODA
+  rows keep `source` NULL, which is exactly what the source-scoped delete relies on.
+- Follow-up (not blocking): coverage rows promote with the default
+  `population_score=0, admin_level=5` like everything else; revisit ranking so
+  postcode/street/place points don't outrank real OSM addresses.
+
+**To load (gated — needs DB approval + the migration applied):**
+1. `pnpm --filter @wherabouts.com/database db:migrate` (applies 0015)
+2. `bun scripts/intl/gb-coverage.ts --db @<file> --dry-run`, then without `--dry-run`.
+   Re-runs use `--replace` (OSM rows untouched).
 
 ### Phase 3 — OS Open UPRN spatial enrichment (optional, heavy)
 - Spatially join the ~40M UPRN points to nearest OS Open Names street + Code-Point
@@ -116,7 +216,10 @@ numbers.
 - **Dedup across tiers:** an OSM premise and a UPRN-derived point for the same
   property could double-count — Phase 3 needs a proximity+street dedup rule.
 - **Neon cost / sizing** — confirm after Phase 0 sizing.
-- **NI / Crown Dependencies** — OGL sources are GB-only; decide if NI/IoM/CI matter.
+- **Territory — DECIDED 2026-06-21: GB + NI.** OSM UK extract covers both. OGL
+  sources (UPRN / Open Names / Code-Point) are GB-only, so **NI premise coords come
+  from OSM only** (no OGL postcode/street fill for NI). Isle of Man / Channel Islands
+  excluded.
 - **Update cadence:** OSM weekly, OS OpenData every 6 weeks — wire into the queue
   later; v1 is a one-shot load.
 
