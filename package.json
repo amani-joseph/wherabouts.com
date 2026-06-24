@@ -33,5 +33,12 @@
     "ultracite": "7.4.4",
     "ws": "^8.21.0"
   },
+  "pnpm": {
+    "overrides": {
+      "stripe": "22.2.2",
+      "hono": "4.12.26",
+      "@types/node@^20": "20.19.43"
+    }
+  },
   "packageManager": "pnpm@10.12.4"
 }
