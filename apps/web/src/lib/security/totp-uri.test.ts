@@ -11,4 +11,9 @@ describe("extractTotpSecret", () => {
 		expect(extractTotpSecret("not-a-uri")).toBeNull();
 		expect(extractTotpSecret("otpauth://totp/x?issuer=y")).toBeNull();
 	});
+	it("returns null for a malformed percent-encoded secret (RED→GREEN)", () => {
+		// decodeURIComponent throws on invalid sequences like %ZZ or truncated %E0%A4%A
+		expect(extractTotpSecret("otpauth://totp/x?secret=%ZZ")).toBeNull();
+		expect(extractTotpSecret("otpauth://totp/x?secret=%E0%A4%A")).toBeNull();
+	});
 });

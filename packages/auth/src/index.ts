@@ -6,12 +6,12 @@ import {
 } from "@wherabouts.com/database";
 import { serverEnv } from "@wherabouts.com/env/server";
 import { betterAuth } from "better-auth";
-import { createAuthMiddleware } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { createAuthMiddleware } from "better-auth/api";
 import { twoFactor } from "better-auth/plugins";
 import { Resend } from "resend";
-import { db } from "./db.ts";
 import { mapAuditAction } from "./audit.ts";
+import { db } from "./db.ts";
 
 const asString = (v: unknown): string | null =>
 	typeof v === "string" ? v : null;
@@ -139,7 +139,7 @@ export const auth = betterAuth({
 			});
 		},
 	},
-	plugins: [twoFactor()],
+	plugins: [twoFactor({ issuer: "Wherabouts" })],
 	user: {
 		deleteUser: { enabled: true },
 	},
@@ -162,14 +162,31 @@ export const auth = betterAuth({
 					headers?.get("x-forwarded-for") ??
 					null;
 				const userAgent = headers?.get("user-agent") ?? null;
-				const userId = ctx.context.session?.user?.id ?? null;
+				// Prefer the resolved session user id; fall back to the freshly
+				// created session (covers sign-in / verify flows where the new
+				// session is returned instead of the existing one).
+				const userId =
+					ctx.context.session?.user?.id ??
+					ctx.context.newSession?.user?.id ??
+					null;
+				// Record the attempted email when there is no resolved user id
+				// (e.g. a failed login). This is NOT stored as userId — it goes
+				// into metadata only, so it is never confused with a real user id.
+				// NOTE: ctx.context.returned does not expose the HTTP response
+				// status in BetterAuth's after-hook context; success cannot be
+				// derived reliably from the typed context, so ok is omitted here.
+				const attemptedEmail =
+					userId === null
+						? ((ctx.body as { email?: string } | undefined)?.email ?? null)
+						: null;
+				const metadata = attemptedEmail === null ? null : { attemptedEmail };
 				await db.insert(securityAuditLog).values({
 					id: crypto.randomUUID(),
 					userId,
 					action,
 					ipAddress,
 					userAgent,
-					metadata: null,
+					metadata,
 				});
 			} catch {
 				// Audit logging must never fail the auth response.

@@ -4,5 +4,9 @@ export function extractTotpSecret(uri: string): string | null {
 	if (!match) {
 		return null;
 	}
-	return decodeURIComponent(match[1]);
+	try {
+		return decodeURIComponent(match[1]);
+	} catch {
+		return null;
+	}
 }
